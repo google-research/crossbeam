@@ -23,6 +23,9 @@ class PairOperation(operation_base.OperationBase):
   def __init__(self):
     super(PairOperation, self).__init__('Pair', 2)
 
+  def __repr__(self):
+    return 'pair'
+
   def apply_single(self, raw_args):
     """See base class."""
     left, right = raw_args
@@ -39,6 +42,9 @@ class TripleOperation(operation_base.OperationBase):
 
   def __init__(self):
     super(TripleOperation, self).__init__('Triple', 3)
+
+  def __repr__(self):
+    return 'triple'
 
   def apply_single(self, raw_args):
     """See base class."""
