@@ -5,7 +5,9 @@ from crossbeam.algorithm.beam_search import beam_search
 
 
 def synthesize(task, operations, constants, model, params,
-               trace=[], max_weight=10, k=2, is_training=False):
+               trace=None, max_weight=10, k=2, is_training=False):
+  if trace is None:
+    trace = []
   num_examples = task.num_examples
 
   all_values = []

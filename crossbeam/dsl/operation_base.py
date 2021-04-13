@@ -33,6 +33,9 @@ class OperationBase(abc.ABC):
   def __eq__(self, other):
     return repr(self) == repr(other)
 
+  def __repr__(self):
+    return type(self).__name__
+
   def apply(self, arg_values):
     """Applies the operation to a list of arguments, for all examples."""
     num_examples = arg_values[0].num_examples
