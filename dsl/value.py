@@ -1,11 +1,11 @@
 # Copyright 2021 Google LLC
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     https://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,12 +18,14 @@ import abc
 
 
 class Value(abc.ABC):
-  """A value in search."""
+  """Values in search, one for each I/O example."""
 
-  def __init__(self, value, weight):
-    self.value = value
+  def __init__(self, values, weight):
+    assert isinstance(values, (list, tuple)) and values
+    self.values = values
     self.weight = weight
-    self.type = type(value)
+    self.type = type(values[0])
+    self.num_examples = len(values)
     self._repr_cache = None
 
   def __repr__(self):
@@ -33,7 +35,8 @@ class Value(abc.ABC):
     computed by this function) are equal.
     """
     if self._repr_cache is None:
-      self._repr_cache = '{}:{!r}'.format(self.type.__name__, self.value)
+      self._repr_cache = '[' + ', '.join('{}:{!r}'.format(type(v).__name__, v)
+                                         for v in self.values) + ']'
     return self._repr_cache
 
   def __hash__(self):
@@ -57,6 +60,10 @@ class Value(abc.ABC):
     """Returns whether this Value object is not equal to `other`."""
     return not self == other
 
+  def __getitem__(self, index):
+    """Gets the raw value for the example with the specified index."""
+    return self.values[index]
+
   @abc.abstractmethod
   def expression(self):
     """Returns a code expression (as a string) that creates this value."""
@@ -65,8 +72,9 @@ class Value(abc.ABC):
 class OperationValue(Value):
   """A Value resulting from the application of an Operation."""
 
-  def __init__(self, value, weight, operation, arg_values):
-    super(OperationValue, self).__init__(value, weight)
+  def __init__(self, value, operation, arg_values):
+    super(OperationValue, self).__init__(
+        value, weight=operation.weight + sum(a.weight for a in arg_values))
     self.operation = operation
     self.arg_values = arg_values
 
@@ -78,17 +86,21 @@ class OperationValue(Value):
 class ConstantValue(Value):
   """A constant value that is not created by any operation."""
 
+  def __init__(self, constant, num_examples, weight=1):
+    super(ConstantValue, self).__init__([constant] * num_examples, weight)
+    self.constant = constant
+
   def expression(self):
     """See base class."""
-    return repr(self.value)
+    return repr(self.constant)
 
 
 class InputValue(Value):
   """A value provided by the user as an input."""
 
-  def __init__(self, value, weight, name):
-    """Initializes an InputValue to contain `value` with name `name`."""
-    super(InputValue, self).__init__(value, weight)
+  def __init__(self, values, name, weight=1):
+    """Initializes an InputValue to contain `values` with name `name`."""
+    super(InputValue, self).__init__(values, weight)
     self.name = name
 
   def expression(self):
@@ -99,9 +111,13 @@ class InputValue(Value):
 class OutputValue(Value):
   """A Value representing the user's desired output.
 
-  This class is simply a wrapper aound the output value so that it can be
+  This class is simply a wrapper aound the output values so that it can be
   compared to other Value objects.
   """
+
+  def __init__(self, values, weight=-1):
+    """Initializes an OutputValue with a sentinel weight."""
+    super(OutputValue, self).__init__(values, weight)
 
   def expression(self):
     """An OutputValue is not created from any expression."""

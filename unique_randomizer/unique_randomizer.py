@@ -1,11 +1,11 @@
 # Copyright 2021 Google LLC
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     https://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -129,6 +129,10 @@ class _TrieNode(object):
       node = parent
       parent = node.parent
 
+  def compute_sum_cache(self):
+    if self.children:
+      self._sum_unnorm_unsampled_mass = np.sum(self.unnorm_unsampled_mass)
+
   def needs_probabilities(self):
     """Returns whether this node needs probabilities."""
     return self.children is None
@@ -179,6 +183,14 @@ class UniqueRandomizer(object):
   def mark_sequence_complete(self):
     """Used to mark a complete sequence of choices."""
     self.current_node.mark_leaf_sampled()
+    self.current_node = self._root_node
+
+  def clear_sequence(self):
+    """Clear the current sequence, as if it were not sampled."""
+    node = self.current_node
+    while node is not None:
+      node.compute_sum_cache()
+      node = node.parent
     self.current_node = self._root_node
 
   def needs_probabilities(self):
