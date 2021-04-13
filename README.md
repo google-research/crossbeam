@@ -12,7 +12,7 @@ prioritize partial programs within beam search for program synthesis.
 
 ## Setup
 
-We use pip package for management. Please first do pip isntall at the root folder:
+We use pip package for management. Please first do pip install at the root folder:
 
     pip install -e .
 
