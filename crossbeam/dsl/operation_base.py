@@ -27,6 +27,12 @@ class OperationBase(abc.ABC):
     self.arity = arity
     self.weight = weight
 
+  def __hash__(self):
+    return hash(repr(self))
+
+  def __eq__(self, other):
+    return repr(self) == repr(other)
+
   def apply(self, arg_values):
     """Applies the operation to a list of arguments, for all examples."""
     num_examples = arg_values[0].num_examples
