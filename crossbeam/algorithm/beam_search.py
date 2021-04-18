@@ -26,8 +26,8 @@ def beam_search(arity, k, choice_embed, init_embed, score_model, choice_mask=Non
   """
   cur_state = score_model.get_init_state(init_embed, batch_size=1)
   num_choices = choice_embed.shape[0]
-  prefix_scores = torch.zeros(1)
-  arg_choices = torch.LongTensor([[]])
+  prefix_scores = torch.zeros(1).to(score_model.device)
+  arg_choices = torch.LongTensor([[]]).to(score_model.device)
   if choice_mask is not None:
     choice_mask = choice_mask.unsqueeze(0)
   for _ in range(arity):

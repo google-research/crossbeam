@@ -5,7 +5,7 @@ from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 import functools
 
-from crossbeam.model.base import MLP
+from crossbeam.model.base import MLP, DeviceMod
 
 
 class MLPStepScore(nn.Module):
@@ -44,7 +44,7 @@ class InnerprodStepScore(nn.Module):
     return score
 
 
-class LSTMArgSelector(nn.Module):
+class LSTMArgSelector(DeviceMod):
   def __init__(self, hidden_size, mlp_sizes, n_lstm_layers = 1,
                step_score_func: str = 'mlp', step_score_normalize: bool = False):
     super(LSTMArgSelector, self).__init__()

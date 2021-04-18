@@ -31,7 +31,7 @@ flags.DEFINE_integer('gpu', -1, '')
 flags.DEFINE_integer('beam_size', 4, '')
 flags.DEFINE_integer('max_search_weight', 8, '')
 
-flags.DEFINE_integer('num_eval', 10, '')
+flags.DEFINE_integer('num_eval', 100, '')
 
 flags.DEFINE_integer('num_examples', 2, '')
 flags.DEFINE_integer('num_inputs', 3, '')
@@ -42,6 +42,7 @@ flags.DEFINE_integer('max_task_weight', 6, '')
 class JointModel(nn.Module):
   def __init__(self, input_table, output_table, value_table, operations):
     super(JointModel, self).__init__()
+    self.device = 'cpu'
     self.io = CharIOLSTMEncoder(input_table, output_table, hidden_size=FLAGS.embed_dim)
     self.val = CharValueLSTMEncoder(value_table, hidden_size=FLAGS.embed_dim)
     self.arg = LSTMArgSelector(hidden_size=FLAGS.embed_dim,
@@ -49,6 +50,12 @@ class JointModel(nn.Module):
                                step_score_func=FLAGS.step_score_func,
                                step_score_normalize=FLAGS.score_normed)
     self.init = OpPoolingState(ops=tuple(operations), state_dim=FLAGS.embed_dim, pool_method='mean')
+
+  def set_device(self, device):
+    self.device = device
+    self.io.set_device(device)
+    self.val.set_device(device)
+    self.arg.set_device(device)
 
 
 def init_model(operations):
@@ -58,6 +65,8 @@ def init_model(operations):
   model = JointModel(input_table, output_table, value_table, operations)
   if FLAGS.gpu >= 0:
     model = model.cuda()
+    device = 'cuda:{}'.format(FLAGS.gpu)
+    model.set_device(device)
   return model
 
 
@@ -91,7 +100,7 @@ def train_step(task, training_samples, all_values, model, optimizer):
   loss = 0.0
   for sample in training_samples:
     arg_options, true_arg_pos, num_vals, op = sample
-    arg_options = torch.LongTensor(arg_options)
+    arg_options = torch.LongTensor(arg_options).to(model.device)
     cur_vals = val_embed[:num_vals]
     op_state = model.init(io_embed, cur_vals, op)
     scores = model.arg(op_state, cur_vals, arg_options)
@@ -128,13 +137,13 @@ def main(argv):
   operations = tuple_operations.get_operations()
   constants = [0]
   model = init_model(operations)
-  optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+  optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
   eval_tasks = [task_gen(constants, operations) for _ in range(FLAGS.num_eval)]
   do_eval(eval_tasks, operations, constants, model)
-  pbar = tqdm(range(1000))
+  pbar = tqdm(range(300000))
   for i in pbar:
-    # t = task_gen(constants, operations)
-    t = eval_tasks[i % len(eval_tasks)]
+    t = task_gen(constants, operations)
+    #t = eval_tasks[i % len(eval_tasks)]
     trace = list(trace_gen(t.solution))
     with torch.no_grad():
       training_samples, all_values = synthesize(t, operations, constants, model,
