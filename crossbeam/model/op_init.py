@@ -1,64 +1,52 @@
-import jax
-import jax.numpy as jnp
-import flax
-from flax import linen as nn
-import functools
-from typing import Sequence
+import torch
+import torch.nn as nn
+from torch.autograd import Variable
+from torch.nn.parameter import Parameter
+import torch.nn.functional as F
 
 from crossbeam.model.base import MLP
 
 
 class PoolingState(nn.Module):
-  state_dim: int
-  pool_method: str = 'mean'
+  def __init__(self, state_dim, pool_method):
+    super(PoolingState, self).__init__()
+    self.state_dim = state_dim
+    self.pool_method = pool_method
+    self.proj = nn.Linear(state_dim * 3, state_dim)
 
-  @nn.compact
-  def __call__(self, io_embed, value_embed, value_mask):
-    pool_method = getattr(jnp, self.pool_method, None)
-    io_state = pool_method(io_embed, axis=0, keepdims=True)
-    value_mask = jnp.expand_dims(value_mask, 1)
-    if self.pool_method == 'mean':
-      value_state = jnp.sum(value_embed * value_mask, axis=0, keepdims=True)
-      value_state = value_state / (jnp.sum(value_mask) + 1e-10)
-    elif self.pool_method == 'max':
-      value_state = value_embed * value_mask + -1e10 * (1 - value_mask)
-      value_state = jnp.max(value_state, axis=0, keepdims=True)
+  def forward(self, io_embed, value_embed, value_mask=None):
+    torch_pool = getattr(torch, self.pool_method, None)
+    if self.pool_method == 'max' or self.pool_method == 'min':
+      pool_method = lambda x: torch_pool(x, dim=0, keepdims=True)[0]
     else:
-      raise NotImplementedError
+      pool_method = lambda x: torch_pool(x, dim=0, keepdims=True)
+  
+    io_state = pool_method(io_embed)
 
-    joint_state = jnp.concatenate((io_state, value_state), axis=1)
-    proj = nn.Dense(self.state_dim)
-    return proj(joint_state)
+    if value_mask is None:
+      value_state = pool_method(value_embed)
+    else:
+      value_mask = torch.unsqueeze(value_mask, dim=1)
+      if self.pool_method == 'mean':
+        value_state = torch.sum(value_embed * value_mask, dim=0, keepdims=True)
+        value_state = value_state / (torch.sum(value_mask) + 1e-10)
+      elif self.pool_method == 'max':
+        value_state = value_embed * value_mask + -1e10 * (1 - value_mask)
+        value_state, _ = torch.max(value_state, dim=0, keepdims=True)
+      else:
+        raise NotImplementedError
+    joint_state = torch.cat((io_state, value_state), dim=1)
+    return self.proj(joint_state)
 
 
-class OpPoolingState(nn.Module):  
-  ops: Sequence
-  state_dim: int
-  pool_method: str = 'mean'
-
-  def setup(self):
-    self.op_specific_mod = [PoolingState(self.state_dim) for _ in range(len(self.ops))]
+class OpPoolingState(nn.Module):
+  def __init__(self, ops, state_dim, pool_method):
+    super(OpPoolingState, self).__init__()
+    self.ops = ops
+    self.state_dim = state_dim
+    self.op_specific_mod = nn.ModuleList([PoolingState(self.state_dim, pool_method) for _ in range(len(self.ops))])
     self.op_idx_map = {repr(op): i for i, op in enumerate(self.ops)}
 
-  def __call__(self, io_embed, value_embed, value_mask, op):
-    if op is None:
-      joint_state = []
-      for op in self.op_idx_map:
-        mod = self.op_specific_mod[self.op_idx_map[op]]
-        state = mod(io_embed, value_embed, value_mask)
-        joint_state.append(state)
-      joint_state = jnp.concatenate(joint_state, axis=0)
-      return joint_state
-    else:
-      mod = self.op_specific_mod[self.op_idx_map[repr(op)]]
-      return mod(io_embed, value_embed, value_mask)
-
-  @functools.partial(jax.jit, static_argnums=[0, 5])
-  def encode(self, params, io_embed, value_embed, value_mask, op):
-    return self.apply(params, io_embed, value_embed, value_mask, op)
-
-  def init_params(self, key):
-    dummy_io = jnp.zeros((1, 2 * self.state_dim), dtype=jnp.float32)
-    dummy_mask = jnp.ones(1, dtype=jnp.int32)
-    dummy_val = jnp.zeros((1, self.state_dim), dtype=jnp.float32)
-    return self.init(key, dummy_io, dummy_val, dummy_mask, None)
+  def forward(self, io_embed, value_embed, op, value_mask=None):
+    mod = self.op_specific_mod[self.op_idx_map[repr(op)]]
+    return mod(io_embed, value_embed, value_mask)

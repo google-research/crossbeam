@@ -1,153 +1,93 @@
-import jax
-import jax.numpy as jnp
-import flax
-from flax import linen as nn
+import torch
+import torch.nn as nn
+from torch.autograd import Variable
+from torch.nn.parameter import Parameter
+import torch.nn.functional as F
 import functools
-from typing import Sequence
 
 from crossbeam.model.base import MLP
-from flax.core import Scope
 
 
 class MLPStepScore(nn.Module):
-  sizes: Sequence[int]
-  step_score_normalize: bool = False
+  def __init__(self, sizes, step_score_normalize: bool):
+    super(MLPStepScore, self).__init__()
+    self.mlp = MLP(sizes[0], sizes[1:])
+    self.step_score_normalize = step_score_normalize
 
-  @nn.compact
-  def __call__(self, state, x, is_outer):
+  def forward(self, state, x, is_outer):
     h = state
     if is_outer:
       num_states = h.shape[0]
       num_x = x.shape[0]
-      h = jnp.repeat(h, num_x, axis=0)
-      x = jnp.tile(x, [num_states, 1])
+      h = h.repeat_interleave(num_x, dim=0)
+      x = x.repeat(num_states, 1)
     else:
       assert state.shape[0] == x.shape[0]
-    x = jnp.concatenate((h, x), axis=-1)
-    mlp = MLP(self.sizes)
-    score = mlp(x)
+    x = torch.cat((h, x), dim=-1)
+    score = self.mlp(x)
     if is_outer:
-      score = jnp.reshape(score, (num_states, num_x))
+      score = score.view(num_states, num_x)
       if self.step_score_normalize:
-        score = jax.nn.log_softmax(score, axis=-1)
+        score = F.log_softmax(score, dim=-1)
     return score
 
 
 class InnerprodStepScore(nn.Module):
-  step_score_normalize: bool = False
+  def __init__(self, step_score_normalize: bool):
+    super(InnerprodStepScore, self).__init__()
+    self.step_score_normalize = step_score_normalize
 
-  @nn.compact
-  def __call__(self, state, x):
-    score = jnp.matmul(state, x.T)
+  def forward(self, state, x):
+    score = torch.matmul(state, x.T)
     if self.step_score_normalize:
-      score = jax.nn.log_softmax(score, axis=-1)
+      score = F.log_softmax(score, dim=-1)
     return score
 
 
-class LSTMAutoreg(nn.Module):
-  hidden_size: int
-
-  @functools.partial(
-      nn.transforms.scan,
-      variable_broadcast='params',
-      split_rngs={'params': False})
-  @nn.compact
-  def __call__(self, carry, x):
-    return nn.LSTMCell()(carry, x)
-
-  def init_state(self, batch_size=None):
-    # use dummy key since default state init fn is just zeros.
-    if batch_size is None:
-      return nn.LSTMCell.initialize_carry(jax.random.PRNGKey(0), (), self.hidden_size)
-    return nn.LSTMCell.initialize_carry(jax.random.PRNGKey(0), (batch_size, ), self.hidden_size)
-
-
-def get_score_mod(args):
-  if args.step_score_func == 'mlp':
-    step_func_mod = MLPStepScore(args.mlp_sizes, args.step_score_normalize)
-  elif args.step_score_func == 'innerprod':
-    step_func_mod = InnerprodStepScore(args.step_score_normalize)
-  else:
-    raise NotImplementedError
-  return step_func_mod
-
-
 class LSTMArgSelector(nn.Module):
-  hidden_size: int
-  mlp_sizes: Sequence[int] = (256, 1)
-  step_score_func: str = 'mlp'
-  step_score_normalize: bool = False
+  def __init__(self, hidden_size, mlp_sizes, n_lstm_layers = 1,
+               step_score_func: str = 'mlp', step_score_normalize: bool = False):
+    super(LSTMArgSelector, self).__init__()
+    self.hidden_size = hidden_size
+    self.mlp_sizes = mlp_sizes
+    self.n_lstm_layers = n_lstm_layers
+    self.step_score_normalize = step_score_normalize
+    self.lstm = nn.LSTM(hidden_size, hidden_size, self.n_lstm_layers, 
+                        bidirectional=False, batch_first=True)
+    if step_score_func == 'mlp':
+      self.step_func_mod = MLPStepScore([self.hidden_size * 2] + mlp_sizes, step_score_normalize)
+    elif step_score_func == 'innerprod':
+      self.step_func_mod = InnerprodStepScore(step_score_normalize)
 
-  def setup(self):
-    assert not self.step_score_normalize  # otherwise we need to handle mask of choice_embed
-    self.lstm_state_mod = LSTMAutoreg(self.hidden_size)
-    self.step_func_mod = get_score_mod(self)
+  def state_select(self, state, indices, axis=1):
+    assert axis == 1
+    return (state[0][:, indices, :], state[1][:, indices, :])
 
-  def __call__(self, init_state, choice_embed, arg_seq):
-    lstm_state = self.lstm_state_mod.init_state(arg_seq.shape[0])
-    lstm_state = jax.tree_map(lambda x: x + init_state, lstm_state)
+  def get_init_state(self, init_state, batch_size):
+    init_state = init_state.view(1, 1, self.hidden_size)
+    h0 = init_state.repeat([self.n_lstm_layers, batch_size, 1])
+    return (h0, h0)
+
+  def step_score(self, state, x):
+    h, _ = state
+    return self.step_func_mod(h[-1], x, is_outer=True)
+
+  def step_state(self, state, x):
+    assert len(x.shape) == 2
+    x = x.unsqueeze(1)
+    return self.lstm(x, state)[1]
+
+  def forward(self, init_state, choice_embed, arg_seq):
+    h0, c0 = self.get_init_state(init_state, batch_size=arg_seq.shape[0])
     arg_seq_embed = choice_embed[arg_seq]
-    _, state = jax.vmap(self.lstm_state_mod)(lstm_state, arg_seq_embed)
-    state = jnp.concatenate((jnp.expand_dims(lstm_state[1], 1), state[:, :-1, :]), axis=1)
+    output, _ = self.lstm(arg_seq_embed, (h0, c0))
+    state = torch.cat((h0[-1].unsqueeze(1), output[:, :-1, :]), dim=1)
+    state = state.view(-1, state.shape[-1])
 
-    state = jnp.reshape(state, [-1, state.shape[-1]])
     if self.step_score_normalize:
       step_logits = self.step_func_mod(state, choice_embed, is_outer=True)
-      step_scores = step_logits[jnp.arange(state.shape[0]), arg_seq.flatten()]
+      step_scores = step_logits[torch.arange(state.shape[0]), arg_seq.view(-1)]
     else:
-      step_scores = self.step_func_mod(state, 
-                                      jnp.reshape(arg_seq_embed, [state.shape[0], -1]),
-                                      is_outer=False)
-    step_scores = jnp.reshape(step_scores, [-1, arg_seq.shape[1]])
-    return jnp.sum(step_scores, axis=-1, keepdims=True)
-
-  def fn_init_state(self, params):
-    def work(init_embed):
-      lstm_state = LSTMAutoreg(self.hidden_size).init_state()
-      lstm_state = jax.tree_map(lambda x: x + init_embed, lstm_state)
-      return lstm_state
-    return work
-
-  def fn_step_score(self, params):
-    def work(state, x):
-      mod = get_score_mod(self)
-      p = params['params']['step_func_mod']
-      return mod.apply({'params': p}, state[1], x, is_outer=True)
-    return work
-
-  def fn_step_state(self, params):
-    def work(state, x):
-      lstm_state_mod = LSTMAutoreg(self.hidden_size)
-      p = params['params']['lstm_state_mod']
-      return lstm_state_mod.apply({'params': p}, state, jnp.expand_dims(x, 0))[0]
-    return work
-
-  def init_params(self, key):
-    dummy_state = jnp.zeros((2, self.hidden_size), dtype=jnp.float32)
-    dummy_args = jnp.zeros((4, self.hidden_size), dtype=jnp.float32)
-    dummy_arg_sel = jnp.array([[0, 1, 2], [1, 2, 3]], dtype=jnp.int32)
-    return self.init(key, dummy_state, dummy_args, dummy_arg_sel)
-
-
-if __name__ == '__main__':
-  key = jax.random.PRNGKey(1)
-  embed_dim = 16
-
-  model = LSTMArgSelector(hidden_size=embed_dim)
-  key, arr_key = jax.random.split(key)
-  dummy_state = jnp.ones((2, embed_dim), dtype=jnp.float32)
-  dummy_args = jax.random.uniform(arr_key, (4, embed_dim))
-  dummy_arg_sel = jnp.array([[0, 1, 2], [1, 2, 3]], dtype=jnp.int32)
-  params = model.init(key, dummy_state, dummy_args, dummy_arg_sel)
-
-  for key in params['params']:
-    print(key)
-  score = model.apply(params, dummy_state, dummy_args, dummy_arg_sel)
-  print(score)
-
-  func_step_score = model.fn_step_score(params)
-  s = func_step_score((None, dummy_state), dummy_args)
-  # s = mod_bind.step_score((None, dummy_state), dummy_args)
-  print(s)
-  # print(params['params'].keys())
-  # print(state.shape)
+      step_scores = self.step_func_mod(state, arg_seq_embed.view(state.shape), is_outer=False)
+    step_scores = step_scores.view(-1, arg_seq.shape[1])
+    return step_scores
