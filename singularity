@@ -1,0 +1,49 @@
+Bootstrap: docker
+
+From: ubuntu
+
+
+%runscript
+	if [ $# = 0 ] ; then exec bash; else exec "$@"; fi
+
+
+
+%environment
+
+    HOME=/container
+    export HOME
+    PATH="/usr/local/conda/bin:$PATH"
+    export PATH
+
+
+%labels
+
+   AUTHOR ellisk42@gmail.com
+
+
+%post
+    apt-get update && apt-get -y install python3 git wget m4
+
+    mkdir /container
+    chmod 777 /container
+    HOME=/container
+    export HOME
+    
+    wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    chmod +x Miniconda3-latest-Linux-x86_64.sh
+    ./Miniconda3-latest-Linux-x86_64.sh -b  -p /usr/local/conda
+    rm ./Miniconda3-latest-Linux-x86_64.sh
+    export PATH="/usr/local/conda/bin:$PATH"
+
+    conda install -y  numpy dill pyzmq matplotlib protobuf scikit-learn scipy absl-py pytest
+    pip install dill psutil frozendict pathos
+
+    pip install --upgrade jax jaxlib  # CPU-only version
+    pip install flax
+
+    pip install git+https://github.com/deepmind/dm-haiku
+    
+    conda install pytorch torchvision -c pytorch
+
+    
+    
