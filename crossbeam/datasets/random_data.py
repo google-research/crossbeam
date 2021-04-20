@@ -169,10 +169,6 @@ def generate_value_with_index(inputs_dict, constants, num_examples,
   return op.apply(arg_values)  # This may be None!
 
 
-def generate_random_int(minimum=0, maximum=9):
-  return random.randint(minimum, maximum)
-
-
 RANDOM_INTEGER = functools.partial(random.randint, a=0, b=9)
 
 
@@ -203,3 +199,33 @@ def generate_random_task(min_weight, max_weight, num_examples, num_inputs,
     return None
   return task_module.Task(inputs_dict, solution_value.values,
                           solution=solution_value)
+
+
+def generate_good_random_task(**kwargs):
+  """Generates a task that passes simple quality checks."""
+  while True:
+    task = generate_random_task(**kwargs)
+    if task is None:
+      continue
+
+    # For any input or output, it cannot be identical to another input or a
+    # constant.
+    inputs = list(task.inputs_dict.values())
+    constants = kwargs['constants']
+    good = True
+    for to_check, other in itertools.product(inputs + task.outputs,
+                                             inputs + constants):
+      if to_check is not other and to_check == other:
+        good = False
+        break
+    if not good:
+      continue
+
+    # The output can't be a constant across all examples.
+    num_examples = kwargs['num_examples']
+    if (num_examples > 1 and
+        all(x == y for x, y in itertools.combinations(task.outputs, 2))):
+      continue
+
+    # The task has passed all checks.
+    return task

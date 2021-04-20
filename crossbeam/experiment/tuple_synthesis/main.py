@@ -1,3 +1,17 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import random
 import numpy as np
 from absl import app
@@ -34,6 +48,7 @@ flags.DEFINE_integer('beam_size', 4, '')
 flags.DEFINE_integer('max_search_weight', 8, '')
 
 flags.DEFINE_integer('num_eval', 100, '')
+flags.DEFINE_integer('train_steps', 10000, '')
 
 flags.DEFINE_integer('num_examples', 2, '')
 flags.DEFINE_integer('num_inputs', 3, '')
@@ -43,9 +58,9 @@ flags.DEFINE_integer('max_task_weight', 6, '')
 
 def init_model(key, operations):
   input_table = CharacterTable('0123456789:,', max_len=50)
-  output_table = CharacterTable('0123456789() ,', max_len=50)
-  value_table = CharacterTable('0123456789intuple:[]() ,', max_len=70)
-  
+  output_table = CharacterTable('0123456789() ,-', max_len=50)
+  value_table = CharacterTable('0123456789intuple:[]() ,-', max_len=70)
+
   model = {}
   model['io'] = CharIOLSTMEncoder(input_table, output_table, hidden_size=FLAGS.embed_dim)
   model['val'] = CharValueLSTMEncoder(value_table, hidden_size=FLAGS.embed_dim)
@@ -63,17 +78,15 @@ def init_model(key, operations):
 
 
 def task_gen(constants, operations):
-  while True:
-    task = random_data.generate_random_task(
-        min_weight=FLAGS.min_task_weight,
-        max_weight=FLAGS.max_task_weight,
-        num_examples=FLAGS.num_examples,
-        num_inputs=FLAGS.num_inputs,
-        constants=constants,
-        operations=operations,
-        input_generator=random_data.RANDOM_INTEGER)  
-    if task:
-      return task
+  return random_data.generate_good_random_task(
+      min_weight=FLAGS.min_task_weight,
+      max_weight=FLAGS.max_task_weight,
+      num_examples=FLAGS.num_examples,
+      num_inputs=FLAGS.num_inputs,
+      constants=constants,
+      operations=operations,
+      input_generator=random_data.RANDOM_INTEGER)
+
 
 def trace_gen(value_node):
   if isinstance(value_node, value_module.OperationValue): # non-leaf
@@ -95,7 +108,7 @@ def single_fwd_backwd(model, optimizer, io_input, val_input, val_mask, padded_ar
     nll = -nn.log_softmax(scores)[true_label]
     return nll
   l, grads = jax.value_and_grad(loss)(optimizer.target)
-  optimizer = optimizer.apply_gradient(grads) 
+  optimizer = optimizer.apply_gradient(grads)
   return l, optimizer
 
 
@@ -122,7 +135,7 @@ def do_eval(eval_tasks, operations, constants, model, params):
   print('doing eval')
   succ = 0.0
   for t in tqdm(eval_tasks):
-    out, _ = synthesize(t, operations, constants, model, params, 
+    out, _ = synthesize(t, operations, constants, model, params,
                         max_weight=FLAGS.max_search_weight,
                         k=FLAGS.beam_size,
                         is_training=False)
@@ -147,7 +160,7 @@ def main(argv):
 
   eval_tasks = [task_gen(constants, operations) for _ in range(FLAGS.num_eval)]
   do_eval(eval_tasks, operations, constants, model, optimizer.target)
-  pbar = tqdm(range(10000))
+  pbar = tqdm(range(FLAGS.train_steps))
   for i in pbar:
     # t = task_gen(constants, operations)
     t = eval_tasks[i % len(eval_tasks)]
