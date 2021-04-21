@@ -12,16 +12,28 @@ prioritize partial programs within beam search for program synthesis.
 
 ## Setup
 
-We use pip package for management. Please first do pip install at the root folder:
+We use pip package for management. Please first do pip install at the root
+folder:
 
     pip install -e .
 
-You can also append `--user` option if you don't want to install globally. 
+You can also append `--user` option if you don't want to install globally.
 
+## Running code
+
+From the root `crossbeam` directory:
+
+```
+python3 -m crossbeam.experiment.tuple_synthesis.main
+```
 
 ## Running tests
 
-From crossbeam's parent directory: `python3 -m pytest crossbeam`
+From the root `crossbeam` directory:
+
+```
+pytest
+```
 
 ## Disclaimer
 

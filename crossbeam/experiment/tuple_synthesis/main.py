@@ -1,3 +1,17 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import random
 import numpy as np
 from absl import app
@@ -33,6 +47,7 @@ flags.DEFINE_float('grad_clip', 5.0, 'clip grad')
 flags.DEFINE_integer('max_search_weight', 8, '')
 
 flags.DEFINE_integer('num_eval', 100, '')
+flags.DEFINE_integer('train_steps', 10000, '')
 
 flags.DEFINE_integer('num_examples', 2, '')
 flags.DEFINE_integer('num_inputs', 3, '')
@@ -72,17 +87,14 @@ def init_model(operations):
 
 
 def task_gen(constants, operations):
-  while True:
-    task = random_data.generate_random_task(
-        min_weight=FLAGS.min_task_weight,
-        max_weight=FLAGS.max_task_weight,
-        num_examples=FLAGS.num_examples,
-        num_inputs=FLAGS.num_inputs,
-        constants=constants,
-        operations=operations,
-        input_generator=random_data.RANDOM_INTEGER)  
-    if task:
-      return task
+  return random_data.generate_good_random_task(
+      min_weight=FLAGS.min_task_weight,
+      max_weight=FLAGS.max_task_weight,
+      num_examples=FLAGS.num_examples,
+      num_inputs=FLAGS.num_inputs,
+      constants=constants,
+      operations=operations,
+      input_generator=random_data.RANDOM_INTEGER)
 
 
 def trace_gen(value_node):
@@ -92,7 +104,7 @@ def trace_gen(value_node):
       for v in sub_trace:
         yield v
     yield value_node
-
+    
 
 def train_step(task, training_samples, all_values, model, optimizer):
   optimizer.zero_grad()
@@ -146,7 +158,7 @@ def main(argv):
   optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
   eval_tasks = [task_gen(constants, operations) for _ in range(FLAGS.num_eval)]
   do_eval(eval_tasks, operations, constants, model)
-  pbar = tqdm(range(300000))
+  pbar = tqdm(range(FLAGS.train_steps))
   for i in pbar:
     t = task_gen(constants, operations)
     #t = eval_tasks[i % len(eval_tasks)]
