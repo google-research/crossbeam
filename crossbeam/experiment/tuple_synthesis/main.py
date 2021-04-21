@@ -25,10 +25,11 @@ flags.DEFINE_integer('seed', 1, 'random seed')
 flags.DEFINE_integer('embed_dim', 128, 'embedding dimension')
 flags.DEFINE_string('pooling', 'mean', 'pooling method used')
 flags.DEFINE_string('step_score_func', 'mlp', 'score func used at each step of autoregressive model')
-flags.DEFINE_boolean('score_normed', False, 'whether to normalize the score into valid probability')
+flags.DEFINE_boolean('score_normed', True, 'whether to normalize the score into valid probability')
 
 flags.DEFINE_integer('gpu', -1, '')
 flags.DEFINE_integer('beam_size', 4, '')
+flags.DEFINE_float('grad_clip', 5.0, 'clip grad')
 flags.DEFINE_integer('max_search_weight', 8, '')
 
 flags.DEFINE_integer('num_eval', 100, '')
@@ -105,10 +106,15 @@ def train_step(task, training_samples, all_values, model, optimizer):
     op_state = model.init(io_embed, cur_vals, op)
     scores = model.arg(op_state, cur_vals, arg_options)
     scores = torch.sum(scores, dim=-1)
-    nll = -F.log_softmax(scores, dim=0)[true_arg_pos]
+    if FLAGS.score_normed:
+        nll = -scores[true_arg_pos]
+    else:
+        nll = -F.log_softmax(scores, dim=0)[true_arg_pos]
     loss = loss + nll
   loss = loss / len(training_samples)
   loss.backward()
+  if FLAGS.grad_clip > 0:
+      torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=FLAGS.grad_clip)
   optimizer.step()
   return loss
 
@@ -137,7 +143,7 @@ def main(argv):
   operations = tuple_operations.get_operations()
   constants = [0]
   model = init_model(operations)
-  optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+  optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
   eval_tasks = [task_gen(constants, operations) for _ in range(FLAGS.num_eval)]
   do_eval(eval_tasks, operations, constants, model)
   pbar = tqdm(range(300000))
