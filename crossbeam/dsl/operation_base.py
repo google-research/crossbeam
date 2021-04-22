@@ -52,6 +52,10 @@ class OperationBase(abc.ABC):
   def apply_single(self, raw_arg_values):
     """Applies the operation to a list of arguments, for 1 example."""
 
-  @abc.abstractmethod
   def expression(self, arg_values):
     """Returns a code expression for an application of this operation."""
+    return ''.join(self.tokenized_expression(arg_values))
+
+  @abc.abstractmethod
+  def tokenized_expression(self, arg_values):
+    """Returns a tokenized expression for an application of this operation."""

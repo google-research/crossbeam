@@ -1,13 +1,30 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import numpy as np
-from crossbeam.dsl import value as value_module
+
 from crossbeam.algorithm.beam_search import beam_search
+from crossbeam.dsl import value as value_module
 
 
 def synthesize(task, operations, constants, model,
-               trace=None, max_weight=10, k=2, is_training=False, 
-               include_as_train=lambda trace_in_beam: True):
+               trace=None, max_weight=10, k=2, is_training=False,
+               include_as_train=None):
   if trace is None:
     trace = []
+  if include_as_train is None:
+    include_as_train = lambda trace_in_beam: True
   num_examples = task.num_examples
 
   all_values = []
@@ -24,24 +41,25 @@ def synthesize(task, operations, constants, model,
 
   while True:
     cur_num_values = len(all_values)
+
     for operation in operations:
       num_values_before_op = len(all_values)
-      val_embed = model.val(all_values)      
+      val_embed = model.val(all_values)
       op_state = model.init(io_embed, val_embed, operation)
       args, _ = beam_search(operation.arity, k,
                             val_embed,
                             op_state,
                             model.arg)
-      args = args.data.cpu().numpy().astype(np.int32)      
+      args = args.data.cpu().numpy().astype(np.int32)
       if k > (len(all_values) ** operation.arity):
         args = args[:len(all_values) ** operation.arity]
-
       beam = [[all_values[i] for i in arg_list] for arg_list in args]
+
       trace_in_beam = -1
       for i, arg_list in enumerate(beam):
         result_value = operation.apply(arg_list)
         if result_value is None or result_value.weight > max_weight:
-            continue
+          continue
         if result_value in all_value_dict:
           # TODO: replace existing one if this way is simpler (less weight)
           continue
@@ -49,10 +67,11 @@ def synthesize(task, operations, constants, model,
         all_values.append(result_value)
         if result_value == output_value and not is_training:
           return result_value, all_values
-        # TODO: allow multi-choiece when options in trace have the same priority
+        # TODO: allow multi-choice when options in trace have the same priority
         # one easy fix would to include this into trace_generation stage (add stochasticity)
         if len(trace) and result_value == trace[0] and trace_in_beam < 0:
           trace_in_beam = i
+
       if is_training and len(trace) and trace[0].operation == operation:
         if include_as_train(trace_in_beam):  # construct training example
           if trace_in_beam < 0:  # true arg not found

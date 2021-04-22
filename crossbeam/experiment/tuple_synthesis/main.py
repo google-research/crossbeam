@@ -46,8 +46,10 @@ flags.DEFINE_integer('beam_size', 4, '')
 flags.DEFINE_float('grad_clip', 5.0, 'clip grad')
 flags.DEFINE_integer('max_search_weight', 8, '')
 
-flags.DEFINE_integer('num_eval', 100, '')
-flags.DEFINE_integer('train_steps', 10000, '')
+flags.DEFINE_integer('train_steps', 10000, 'number of training steps')
+flags.DEFINE_integer('num_eval', 100, 'number of eval tasks')
+flags.DEFINE_integer('eval_every', 1000, 'number of steps between evals')
+flags.DEFINE_float('lr', 0.001, 'learning rate')
 
 flags.DEFINE_integer('num_examples', 2, '')
 flags.DEFINE_integer('num_inputs', 3, '')
@@ -104,7 +106,7 @@ def trace_gen(value_node):
       for v in sub_trace:
         yield v
     yield value_node
-    
+
 
 def train_step(task, training_samples, all_values, model, optimizer):
   optimizer.zero_grad()
@@ -132,17 +134,17 @@ def train_step(task, training_samples, all_values, model, optimizer):
 
 
 def do_eval(eval_tasks, operations, constants, model):
-  print('doing eval')
+  print('doing eval...')
   succ = 0.0
-  for t in tqdm(eval_tasks):
-    out, _ = synthesize(t, operations, constants, model, 
+  for t in eval_tasks:
+    out, _ = synthesize(t, operations, constants, model,
                         max_weight=FLAGS.max_search_weight,
                         k=FLAGS.beam_size,
                         is_training=False)
     if out is not None:
       succ += 1.0
   succ /= len(eval_tasks)
-  print('eval succ:', succ)
+  print('eval success rate: {:.1f}%'.format(succ * 100))
   return succ
 
 
@@ -155,13 +157,13 @@ def main(argv):
   operations = tuple_operations.get_operations()
   constants = [0]
   model = init_model(operations)
-  optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+  optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.lr)
   eval_tasks = [task_gen(constants, operations) for _ in range(FLAGS.num_eval)]
-  do_eval(eval_tasks, operations, constants, model)
   pbar = tqdm(range(FLAGS.train_steps))
   for i in pbar:
+    if i % FLAGS.eval_every == 0:
+      do_eval(eval_tasks, operations, constants, model)
     t = task_gen(constants, operations)
-    #t = eval_tasks[i % len(eval_tasks)]
     trace = list(trace_gen(t.solution))
     with torch.no_grad():
       training_samples, all_values = synthesize(t, operations, constants, model,
@@ -171,7 +173,9 @@ def main(argv):
                                                 is_training=True)
     if isinstance(training_samples, list):
       loss = train_step(t, training_samples, all_values, model, optimizer)
-      pbar.set_description('loss: %.2f' % loss)
+      pbar.set_description('train loss: %.2f' % loss)
+
+  print('Training finished. Performing final evaluation...')
   do_eval(eval_tasks, operations, constants, model)
 
 
