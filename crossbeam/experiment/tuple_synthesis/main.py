@@ -16,13 +16,11 @@ import random
 import numpy as np
 from absl import app
 from absl import flags
-import jax
-import jax.numpy as jnp
 from tqdm import tqdm
-from flax import optim
-import flax.linen as nn
-from flax.core.frozen_dict import FrozenDict
 import functools
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 FLAGS = flags.FLAGS
 
 from crossbeam.datasets import random_data
@@ -41,10 +39,11 @@ flags.DEFINE_integer('seed', 1, 'random seed')
 flags.DEFINE_integer('embed_dim', 128, 'embedding dimension')
 flags.DEFINE_string('pooling', 'mean', 'pooling method used')
 flags.DEFINE_string('step_score_func', 'mlp', 'score func used at each step of autoregressive model')
-flags.DEFINE_boolean('score_normed', False, 'whether to normalize the score into valid probability')
+flags.DEFINE_boolean('score_normed', True, 'whether to normalize the score into valid probability')
 
-
+flags.DEFINE_integer('gpu', -1, '')
 flags.DEFINE_integer('beam_size', 4, '')
+flags.DEFINE_float('grad_clip', 5.0, 'clip grad')
 flags.DEFINE_integer('max_search_weight', 8, '')
 
 flags.DEFINE_integer('num_eval', 100, '')
@@ -56,25 +55,35 @@ flags.DEFINE_integer('min_task_weight', 3, '')
 flags.DEFINE_integer('max_task_weight', 6, '')
 
 
-def init_model(key, operations):
-  input_table = CharacterTable('0123456789:,', max_len=50)
-  output_table = CharacterTable('0123456789() ,-', max_len=50)
-  value_table = CharacterTable('0123456789intuple:[]() ,-', max_len=70)
+class JointModel(nn.Module):
+  def __init__(self, input_table, output_table, value_table, operations):
+    super(JointModel, self).__init__()
+    self.device = 'cpu'
+    self.io = CharIOLSTMEncoder(input_table, output_table, hidden_size=FLAGS.embed_dim)
+    self.val = CharValueLSTMEncoder(value_table, hidden_size=FLAGS.embed_dim)
+    self.arg = LSTMArgSelector(hidden_size=FLAGS.embed_dim,
+                               mlp_sizes=[256, 1],
+                               step_score_func=FLAGS.step_score_func,
+                               step_score_normalize=FLAGS.score_normed)
+    self.init = OpPoolingState(ops=tuple(operations), state_dim=FLAGS.embed_dim, pool_method='mean')
 
-  model = {}
-  model['io'] = CharIOLSTMEncoder(input_table, output_table, hidden_size=FLAGS.embed_dim)
-  model['val'] = CharValueLSTMEncoder(value_table, hidden_size=FLAGS.embed_dim)
-  model['arg'] = LSTMArgSelector(hidden_size=FLAGS.embed_dim,
-                                 step_score_func=FLAGS.step_score_func,
-                                 step_score_normalize=FLAGS.score_normed)
-  model['init'] = OpPoolingState(ops=tuple(operations), state_dim=FLAGS.embed_dim)
-  model = FrozenDict(**model)
-  rand_keys = jax.random.split(key, num=len(model))
-  params = {}
-  for i, name in enumerate(model):
-    mod = model[name]
-    params[name] = mod.init_params(rand_keys[i])
-  return model, params
+  def set_device(self, device):
+    self.device = device
+    self.io.set_device(device)
+    self.val.set_device(device)
+    self.arg.set_device(device)
+
+
+def init_model(operations):
+  input_table = CharacterTable('0123456789:,', max_len=50)
+  output_table = CharacterTable('0123456789() ,', max_len=50)
+  value_table = CharacterTable('0123456789intuple:[]() ,', max_len=70)
+  model = JointModel(input_table, output_table, value_table, operations)
+  if FLAGS.gpu >= 0:
+    model = model.cuda()
+    device = 'cuda:{}'.format(FLAGS.gpu)
+    model.set_device(device)
+  return model
 
 
 def task_gen(constants, operations):
@@ -95,47 +104,38 @@ def trace_gen(value_node):
       for v in sub_trace:
         yield v
     yield value_node
-
-
-@functools.partial(jax.jit, static_argnums=[0, 8])
-def single_fwd_backwd(model, optimizer, io_input, val_input, val_mask, padded_args, arg_mask, true_label, op):
-  def loss(params):
-    io_embed = model['io'].exec_encode(params['io'], *io_input)
-    val_embed = model['val'].exec_encode(params['val'], *val_input)
-    op_state = model['init'].encode(params['init'], io_embed, val_embed, val_mask, op)
-    scores = model['arg'].apply(params['arg'], op_state, val_embed, padded_args).flatten()
-    scores = scores * arg_mask + (1 - arg_mask) * -1e10
-    nll = -nn.log_softmax(scores)[true_label]
-    return nll
-  l, grads = jax.value_and_grad(loss)(optimizer.target)
-  optimizer = optimizer.apply_gradient(grads)
-  return l, optimizer
-
+    
 
 def train_step(task, training_samples, all_values, model, optimizer):
-  val_input = model['val'].make_input(all_values)
-  io_input = model['io'].make_input(task.inputs_dict, task.outputs)
-
+  optimizer.zero_grad()
+  io_embed = model.io(task.inputs_dict, task.outputs)
+  val_embed = model.val(all_values)
   loss = 0.0
   for sample in training_samples:
     arg_options, true_arg_pos, num_vals, op = sample
-    true_arg_pos = jnp.array(true_arg_pos, dtype=jnp.int32)
-    arg_options = jnp.asarray(arg_options)
-    pad_num = FLAGS.beam_size + 1 - arg_options.shape[0]
-    arg_mask = jnp.pad(jnp.ones((arg_options.shape[0],), dtype=jnp.float32), [(0, pad_num)])
-    val_mask = jnp.pad(jnp.ones((num_vals,), dtype=jnp.float32), [(0, val_input[0].shape[0] - num_vals)])
-    padded_args = jnp.pad(arg_options, [(0, pad_num), (0, 0)])
-    l, optimizer = single_fwd_backwd(model, optimizer, io_input, val_input, val_mask, padded_args, arg_mask, true_arg_pos, op)
-    loss = loss + l.item()
+    arg_options = torch.LongTensor(arg_options).to(model.device)
+    cur_vals = val_embed[:num_vals]
+    op_state = model.init(io_embed, cur_vals, op)
+    scores = model.arg(op_state, cur_vals, arg_options)
+    scores = torch.sum(scores, dim=-1)
+    if FLAGS.score_normed:
+        nll = -scores[true_arg_pos]
+    else:
+        nll = -F.log_softmax(scores, dim=0)[true_arg_pos]
+    loss = loss + nll
+  loss = loss / len(training_samples)
+  loss.backward()
+  if FLAGS.grad_clip > 0:
+      torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=FLAGS.grad_clip)
+  optimizer.step()
+  return loss
 
-  return loss / len(training_samples), optimizer
 
-
-def do_eval(eval_tasks, operations, constants, model, params):
+def do_eval(eval_tasks, operations, constants, model):
   print('doing eval')
   succ = 0.0
   for t in tqdm(eval_tasks):
-    out, _ = synthesize(t, operations, constants, model, params,
+    out, _ = synthesize(t, operations, constants, model, 
                         max_weight=FLAGS.max_search_weight,
                         k=FLAGS.beam_size,
                         is_training=False)
@@ -148,32 +148,31 @@ def do_eval(eval_tasks, operations, constants, model, params):
 
 def main(argv):
   del argv
+  torch.manual_seed(3)
   random.seed(FLAGS.seed)
   np.random.seed(FLAGS.seed)
-  key = jax.random.PRNGKey(FLAGS.seed)
 
   operations = tuple_operations.get_operations()
   constants = [0]
-  model, params = init_model(key, operations)
-  optimizer_def = optim.Adam(0.0001)
-  optimizer = optimizer_def.create(params)
-
+  model = init_model(operations)
+  optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
   eval_tasks = [task_gen(constants, operations) for _ in range(FLAGS.num_eval)]
-  do_eval(eval_tasks, operations, constants, model, optimizer.target)
+  do_eval(eval_tasks, operations, constants, model)
   pbar = tqdm(range(FLAGS.train_steps))
   for i in pbar:
-    # t = task_gen(constants, operations)
-    t = eval_tasks[i % len(eval_tasks)]
+    t = task_gen(constants, operations)
+    #t = eval_tasks[i % len(eval_tasks)]
     trace = list(trace_gen(t.solution))
-    training_samples, all_values = synthesize(t, operations, constants, model, optimizer.target,
-                                              trace=trace,
-                                              max_weight=FLAGS.max_search_weight,
-                                              k=FLAGS.beam_size,
-                                              is_training=True)
+    with torch.no_grad():
+      training_samples, all_values = synthesize(t, operations, constants, model,
+                                                trace=trace,
+                                                max_weight=FLAGS.max_search_weight,
+                                                k=FLAGS.beam_size,
+                                                is_training=True)
     if isinstance(training_samples, list):
-      loss, optimizer = train_step(t, training_samples, all_values, model, optimizer)
+      loss = train_step(t, training_samples, all_values, model, optimizer)
       pbar.set_description('loss: %.2f' % loss)
-  do_eval(eval_tasks, operations, constants, model, optimizer.target)
+  do_eval(eval_tasks, operations, constants, model)
 
 
 if __name__ == '__main__':

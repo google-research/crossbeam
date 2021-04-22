@@ -1,97 +1,69 @@
 from typing import Callable
 import numpy as np
-import jax
-import jax.numpy as jnp
-import flax
-from flax import linen as nn
+import torch
+import torch.nn as nn
+from torch.autograd import Variable
+from torch.nn.parameter import Parameter
+import torch.nn.functional as F
 import functools
+from torch.nn.utils.rnn import pack_sequence, PackedSequence, pad_packed_sequence, pack_padded_sequence
 
-from crossbeam.model.base import CharSeqEncoder
-from crossbeam.model.util import CharacterTable, make_onehot_tensor, pad_power_of_2
+from crossbeam.model.base import CharSeqEncoder, pad_sequence, DeviceMod
+from crossbeam.model.util import CharacterTable
 
 
-class CharIOLSTMEncoder(nn.Module):
-  input_char_table: CharacterTable
-  output_char_table: CharacterTable
-  hidden_size: int
-  to_string: Callable = repr
+def pad_int_seq(int_seqs, device):
+  int_seqs = [torch.LongTensor(x) for x in int_seqs]
+  lengths = [v.size(0) for v in int_seqs]
+  padded = pad_sequence(int_seqs)
+  return padded.to(device), lengths
 
-  @nn.compact
-  def __call__(self, input_seq, output_seq):
-    input_embed = CharSeqEncoder(self.input_char_table.vocab_size, self.hidden_size)(input_seq)
-    output_embed = CharSeqEncoder(self.output_char_table.vocab_size, self.hidden_size)(output_seq)
-    cat_embed = jnp.concatenate((input_embed, output_embed), axis=-1)
-    return cat_embed
 
-  @functools.partial(jax.jit, static_argnums=0)
-  def exec_encode(self, params, imat, omat, imask, omask):
-    @functools.partial(jax.mask, in_shapes=['(n, _)', '(m, _)'], out_shape=f'({2 * self.hidden_size},)')
-    def single_encode_fn(seq_i, seq_o):
-      return self.apply(params, seq_i, seq_o)
-    return jax.vmap(single_encode_fn)([imat, omat], dict(n=imask, m=omask))
+class CharIOLSTMEncoder(DeviceMod):
+  def __init__(self, input_char_table, output_char_table, hidden_size,
+               to_string: Callable = repr):
+    super(CharIOLSTMEncoder, self).__init__()
+    self.hidden_size = hidden_size
+    self.to_string = to_string
+    self.input_char_table = input_char_table
+    self.output_char_table = output_char_table
+    self.input_encoder = CharSeqEncoder(self.input_char_table.vocab_size, self.hidden_size)
+    self.output_encoder = CharSeqEncoder(self.output_char_table.vocab_size, self.hidden_size)
 
-  def make_input(self, inputs_dict, outputs):
+  def forward(self, inputs_dict, outputs):
     list_input = [''] * len(outputs)
     for _, input_value in inputs_dict.items():
       for i in range(len(list_input)):
         list_input[i] += self.to_string(input_value[i]) + ','
     list_output = [self.to_string(x) for x in outputs]
-    io_mats = []
-    io_masks = []
-    dummy_ts = lambda x: x
-    for l, tab in [(list_input, self.input_char_table), (list_output, self.output_char_table)]:
-      tok_tensor, lens = make_onehot_tensor(l, dummy_ts, tab)
-      io_mats.append(tok_tensor)
-      io_masks.append(lens)
-    imat, omat = io_mats
-    imask, omask = io_masks
-    return imat, omat, imask, omask
+    list_int_i = []
+    list_int_o = []
+    for l, tab, lst in [(list_input, self.input_char_table, list_int_i),
+                        (list_output, self.output_char_table, list_int_o)]:
+      for obj in l:
+        tokens = tab.encode(obj)
+        lst.append(tokens)
 
-  def encode(self, params, inputs_dict, outputs):
-    imat, omat, imask, omask = self.make_input(inputs_dict, outputs)
-    return self.exec_encode(params, imat, omat, imask, omask)
+    padded_i, len_i = pad_int_seq(list_int_i, self.device)
+    padded_o, len_o = pad_int_seq(list_int_o, self.device)
 
-  def init_params(self, key):
-    dummy_in, _ = make_onehot_tensor([self.input_char_table._chars[0]], lambda x: x, self.input_char_table)
-    dummy_out, _ = make_onehot_tensor([self.output_char_table._chars[0]], lambda x: x, self.output_char_table)
-    return self.init(key, dummy_in[0], dummy_out[0])
+    input_embed = self.input_encoder(padded_i, len_i)
+    output_embed = self.output_encoder(padded_o, len_o)
+    cat_embed = torch.cat((input_embed, output_embed), dim=-1)
+    return cat_embed
 
 
-class CharValueLSTMEncoder(nn.Module):
-  val_char_table: CharacterTable
-  hidden_size: int
-  to_string: Callable = repr
-
-  @nn.compact
-  def __call__(self, val_seq):
-    val_embed = CharSeqEncoder(self.val_char_table.vocab_size, self.hidden_size)(val_seq)
+class CharValueLSTMEncoder(DeviceMod):
+  def __init__(self, val_char_table, hidden_size, to_string: Callable = repr):
+    super(CharValueLSTMEncoder, self).__init__()
+    self.hidden_size = hidden_size
+    self.to_string = to_string
+    self.val_char_table = val_char_table
+    self.val_encoder = CharSeqEncoder(self.val_char_table.vocab_size, self.hidden_size)
+  
+  def forward(self, all_values):
+    list_values = [self.to_string(x) for x in all_values]
+    list_int_vals = [self.val_char_table.encode(x) for x in list_values]
+    padded_i, len_i = pad_int_seq(list_int_vals, self.device)
+    val_embed = self.val_encoder(padded_i, len_i)
     return val_embed
-
-  @functools.partial(jax.jit, static_argnums=0)
-  def exec_encode(self, params, val_tensor, val_lens):
-    @functools.partial(jax.mask, in_shapes=('(n, _)',), out_shape=f'({self.hidden_size},)')
-    def single_encode_fn(seq_val):
-      return self.apply(params, seq_val)
-    return jax.vmap(single_encode_fn)((val_tensor,), dict(n=val_lens))
-
-  def make_input(self, all_values):
-    val_tensor, len_vals = make_onehot_tensor(all_values, self.to_string, self.val_char_table)
-    val_tensor = pad_power_of_2(val_tensor, axis=0)
-    len_vals = pad_power_of_2(len_vals, axis=0)
-    return val_tensor, len_vals
-
-  def padded_encode(self, params, all_values):
-    n_vals = len(all_values)
-    val_tensor, len_vals = self.make_input(all_values)
-    val_embed = self.exec_encode(params, val_tensor, len_vals)
-    pad_mask = jnp.pad(jnp.ones(n_vals), [(0, val_embed.shape[0] - n_vals)])
-    return val_embed, pad_mask
-
-  def encode(self, params, all_values):
-    n_vals = len(all_values)
-    val_embed, _ = self.padded_encode(params, all_values)
-    return val_embed[:n_vals]
-
-  def init_params(self, key):
-    dummy_seq, _ = make_onehot_tensor([self.val_char_table._chars[0]], lambda x: x, self.val_char_table)
-    return self.init(key, dummy_seq[0])
