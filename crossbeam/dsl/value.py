@@ -64,9 +64,13 @@ class Value(abc.ABC):
     """Gets the raw value for the example with the specified index."""
     return self.values[index]
 
-  @abc.abstractmethod
   def expression(self):
     """Returns a code expression (as a string) that creates this value."""
+    return ''.join(self.tokenized_expression())
+
+  @abc.abstractmethod
+  def tokenized_expression(self):
+    """Returns a code expression (tokenized) that creates this value."""
 
 
 class OperationValue(Value):
@@ -78,9 +82,9 @@ class OperationValue(Value):
     self.operation = operation
     self.arg_values = arg_values
 
-  def expression(self):
+  def tokenized_expression(self):
     """See base class."""
-    return self.operation.expression(self.arg_values)
+    return self.operation.tokenized_expression(self.arg_values)
 
 
 class ConstantValue(Value):
@@ -90,9 +94,9 @@ class ConstantValue(Value):
     super(ConstantValue, self).__init__([constant] * num_examples, weight)
     self.constant = constant
 
-  def expression(self):
+  def tokenized_expression(self):
     """See base class."""
-    return repr(self.constant)
+    return [repr(self.constant)]
 
 
 class InputValue(Value):
@@ -103,9 +107,9 @@ class InputValue(Value):
     super(InputValue, self).__init__(values, weight)
     self.name = name
 
-  def expression(self):
+  def tokenized_expression(self):
     """See base class."""
-    return self.name
+    return [self.name]
 
 
 class OutputValue(Value):
@@ -119,6 +123,6 @@ class OutputValue(Value):
     """Initializes an OutputValue with a sentinel weight."""
     super(OutputValue, self).__init__(values, weight)
 
-  def expression(self):
+  def tokenized_expression(self):
     """An OutputValue is not created from any expression."""
     raise NotImplementedError()
