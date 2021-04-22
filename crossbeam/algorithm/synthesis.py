@@ -53,7 +53,7 @@ def synthesize(task, operations, constants, model,
         # one easy fix would to include this into trace_generation stage (add stochasticity)
         if len(trace) and result_value == trace[0] and trace_in_beam < 0:
           trace_in_beam = i
-      if is_training and len(trace) and trace[0].operation == operation.arity:
+      if is_training and len(trace) and trace[0].operation == operation:
         if include_as_train(trace_in_beam):  # construct training example
           if trace_in_beam < 0:  # true arg not found
             true_args = []
