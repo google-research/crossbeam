@@ -4,7 +4,8 @@ from crossbeam.algorithm.beam_search import beam_search
 
 
 def synthesize(task, operations, constants, model,
-               trace=None, max_weight=10, k=2, is_training=False):
+               trace=None, max_weight=10, k=2, is_training=False, 
+               include_as_train=lambda trace_in_beam: True):
   if trace is None:
     trace = []
   num_examples = task.num_examples
@@ -48,10 +49,12 @@ def synthesize(task, operations, constants, model,
         all_values.append(result_value)
         if result_value == output_value and not is_training:
           return result_value, all_values
+        # TODO: allow multi-choiece when options in trace have the same priority
+        # one easy fix would to include this into trace_generation stage (add stochasticity)
         if len(trace) and result_value == trace[0] and trace_in_beam < 0:
           trace_in_beam = i
-      if is_training and len(trace) and len(trace[0].arg_values) == operation.arity:  # TODO: formal check on compatibility
-        if True:  # construct training example
+      if is_training and len(trace) and trace[0].operation == operation.arity:
+        if include_as_train(trace_in_beam):  # construct training example
           if trace_in_beam < 0:  # true arg not found
             true_args = []
             true_val = trace[0]
