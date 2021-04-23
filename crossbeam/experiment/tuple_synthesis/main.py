@@ -14,6 +14,8 @@
 
 import random
 import numpy as np
+import os
+import pickle as cp
 from absl import app
 from absl import flags
 from tqdm import tqdm
@@ -33,8 +35,8 @@ from crossbeam.model.op_arg import LSTMArgSelector
 from crossbeam.model.op_init import OpPoolingState
 from crossbeam.model.encoder import CharIOLSTMEncoder, CharValueLSTMEncoder
 
+from crossbeam.datasets.tuple_data_gen import get_consts_and_ops, task_gen, trace_gen
 
-flags.DEFINE_integer('seed', 1, 'random seed')
 # nn configs
 flags.DEFINE_integer('embed_dim', 128, 'embedding dimension')
 flags.DEFINE_string('pooling', 'mean', 'pooling method used')
@@ -47,14 +49,8 @@ flags.DEFINE_float('grad_clip', 5.0, 'clip grad')
 flags.DEFINE_integer('max_search_weight', 8, '')
 
 flags.DEFINE_integer('train_steps', 10000, 'number of training steps')
-flags.DEFINE_integer('num_eval', 100, 'number of eval tasks')
 flags.DEFINE_integer('eval_every', 1000, 'number of steps between evals')
-flags.DEFINE_float('lr', 0.001, 'learning rate')
-
-flags.DEFINE_integer('num_examples', 2, '')
-flags.DEFINE_integer('num_inputs', 3, '')
-flags.DEFINE_integer('min_task_weight', 3, '')
-flags.DEFINE_integer('max_task_weight', 6, '')
+flags.DEFINE_float('lr', 0.0001, 'learning rate')
 
 
 class JointModel(nn.Module):
@@ -86,26 +82,6 @@ def init_model(operations):
     device = 'cuda:{}'.format(FLAGS.gpu)
     model.set_device(device)
   return model
-
-
-def task_gen(constants, operations):
-  return random_data.generate_good_random_task(
-      min_weight=FLAGS.min_task_weight,
-      max_weight=FLAGS.max_task_weight,
-      num_examples=FLAGS.num_examples,
-      num_inputs=FLAGS.num_inputs,
-      constants=constants,
-      operations=operations,
-      input_generator=random_data.RANDOM_INTEGER)
-
-
-def trace_gen(value_node):
-  if isinstance(value_node, value_module.OperationValue): # non-leaf
-    for value in value_node.arg_values:
-      sub_trace = trace_gen(value)
-      for v in sub_trace:
-        yield v
-    yield value_node
 
 
 def train_step(task, training_samples, all_values, model, optimizer):
@@ -150,20 +126,20 @@ def do_eval(eval_tasks, operations, constants, model):
 
 def main(argv):
   del argv
-  torch.manual_seed(3)
+  torch.manual_seed(FLAGS.seed)
   random.seed(FLAGS.seed)
   np.random.seed(FLAGS.seed)
 
-  operations = tuple_operations.get_operations()
-  constants = [0]
+  constants, operations = get_consts_and_ops()
   model = init_model(operations)
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.lr)
-  eval_tasks = [task_gen(constants, operations) for _ in range(FLAGS.num_eval)]
+  with open(os.path.join(FLAGS.data_folder, 'valid-tasks.pkl'), 'rb') as f:
+    eval_tasks = cp.load(f)
   pbar = tqdm(range(FLAGS.train_steps))
   for i in pbar:
     if i % FLAGS.eval_every == 0:
       do_eval(eval_tasks, operations, constants, model)
-    t = task_gen(constants, operations)
+    t = task_gen(FLAGS, constants, operations)
     trace = list(trace_gen(t.solution))
     with torch.no_grad():
       training_samples, all_values = synthesize(t, operations, constants, model,
