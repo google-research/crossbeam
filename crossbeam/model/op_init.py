@@ -5,6 +5,26 @@ from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 
 from crossbeam.model.base import MLP
+from torch_scatter import scatter_mean, scatter_max
+
+
+class IOPoolProjSummary(nn.Module):
+  def __init__(self, embed_dim, pool_method):
+    super(IOPoolProjSummary, self).__init__()
+    self.embed_merge = nn.Linear(2 * embed_dim, embed_dim)    
+    if pool_method == 'max':
+      self.agg_func = lambda x, idx: scatter_max(x, idx, dim=0)[0]
+    elif pool_method == 'mean':
+      self.agg_func = lambda x, idx: scatter_mean(x, idx, dim=0)
+    else:
+      raise NotImplementedError
+
+  def forward(self, io_concat_embed, scatter_idx=None):
+    if scatter_idx is not None:
+      pooled_io = self.agg_func(io_concat_embed, scatter_idx)
+    else:
+      pooled_io = io_concat_embed
+    return self.embed_merge(pooled_io)
 
 
 class PoolingState(nn.Module):

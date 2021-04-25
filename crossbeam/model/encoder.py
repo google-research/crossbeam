@@ -30,12 +30,20 @@ class CharIOLSTMEncoder(DeviceMod):
     self.input_encoder = CharSeqEncoder(self.input_char_table.vocab_size, self.hidden_size)
     self.output_encoder = CharSeqEncoder(self.output_char_table.vocab_size, self.hidden_size)
 
-  def forward(self, inputs_dict, outputs):
-    list_input = [''] * len(outputs)
-    for _, input_value in inputs_dict.items():
-      for i in range(len(list_input)):
-        list_input[i] += self.to_string(input_value[i]) + ','
-    list_output = [self.to_string(x) for x in outputs]
+  def forward(self, list_inputs_dict, list_outputs, needs_scatter_idx=False):
+    sample_scatter_idx = []
+    list_input = []
+    list_output = []
+    for sample_idx, (inputs_dict, outputs) in enumerate(zip(list_inputs_dict, list_outputs)):
+      cur_input = [''] * len(outputs)
+      for _, input_value in inputs_dict.items():
+        for i in range(len(cur_input)):
+          cur_input[i] += self.to_string(input_value[i]) + ','
+      list_input += cur_input
+      cur_output = [self.to_string(x) for x in outputs]
+      list_output += cur_output
+      sample_scatter_idx += [sample_idx] * len(outputs)
+
     list_int_i = []
     list_int_o = []
     for l, tab, lst in [(list_input, self.input_char_table, list_int_i),
@@ -50,7 +58,11 @@ class CharIOLSTMEncoder(DeviceMod):
     input_embed = self.input_encoder(padded_i, len_i)
     output_embed = self.output_encoder(padded_o, len_o)
     cat_embed = torch.cat((input_embed, output_embed), dim=-1)
-    return cat_embed
+    if needs_scatter_idx:
+      sample_scatter_idx = torch.LongTensor(sample_scatter_idx).to(self.device)
+      return cat_embed, sample_scatter_idx
+    else:
+      return cat_embed
 
 
 class CharValueLSTMEncoder(DeviceMod):
