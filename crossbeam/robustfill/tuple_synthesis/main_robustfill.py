@@ -28,7 +28,7 @@ class RobustFill(nn.Module):
   def __init__(self, input_table, output_table, prog_vdict):
     super(RobustFill, self).__init__()
     self.io = CharIOLSTMEncoder(input_table, output_table, hidden_size=FLAGS.embed_dim)
-    self.io_summary = IOPoolProjSummary(FLAGS.embed_dim, pool_method='max')
+    self.io_summary = IOPoolProjSummary(FLAGS.embed_dim, pool_method='mean')
     self.decoder = RfillAutoreg(prog_vdict, FLAGS.decoder_rnn_layers, FLAGS.embed_dim)
 
   def embed_io(self, list_inputs_dict, list_outputs):
@@ -69,6 +69,10 @@ def main(argv):
   train_gen = iter(train_loader)
 
   model = init_model(constants)
+  if FLAGS.load_model is not None:
+   model_dump = os.path.join(FLAGS.save_dir, FLAGS.load_model)
+   print('loading from', model_dump)
+   model.load_state_dict(torch.load(model_dump))
   if FLAGS.gpu >= 0:
     model = model.cuda()
     device = 'cuda:{}'.format(FLAGS.gpu)
@@ -97,15 +101,23 @@ def main(argv):
     model.eval()
     with torch.no_grad():
       hit_at_1 = 0.0
+      total_hit = 0.0
       for list_inputs_dict, list_outputs, expr_list in valid_loader:
         init_state = model.embed_io(list_inputs_dict, list_outputs)
         _, list_pred_progs, _, _ = model.decoder.beam_search(init_state, beam_size=FLAGS.beam_size, max_len=50)        
         for i in range(len(expr_list)):
-          pred = ''.join(list_pred_progs[i * FLAGS.beam_size])
-          if pred == ''.join(expr_list[i]):
-            hit_at_1 += 1
+          hit = -1
+          for j in range(FLAGS.beam_size):
+            pred = ''.join(list_pred_progs[i * FLAGS.beam_size + j])
+            if pred == ''.join(expr_list[i]):
+              hit = j
+              break
+          if hit >= 0:
+            hit_at_1 += hit == 0
+            total_hit += 1
       hit_at_1 = hit_at_1 * 100.0 / len(valid_dataset)
-      print('valid top1: %.2f' % hit_at_1)
+      total_hit = total_hit * 100.0 / len(valid_dataset)
+      print('valid top1: %.2f' % hit_at_1, 'top-k: %.2f' % total_hit)
       if hit_at_1 > best_valid:
         print('saving best valid model')
         best_valid = hit_at_1
