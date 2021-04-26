@@ -1,6 +1,7 @@
 import random
 import os
 import numpy as np
+import sys
 from absl import app
 from absl import flags
 from tqdm import tqdm
@@ -55,6 +56,31 @@ def init_model(constants):
   return model
 
 
+def eval_dataset(model, dataset):
+  eval_loader = DataLoader(dataset, batch_size=FLAGS.batch_size, collate_fn=raw_collate_fn, num_workers=0,
+                            shuffle=False, drop_last=False)
+  model.eval()
+  with torch.no_grad():
+    hit_at_1 = 0.0
+    total_hit = 0.0
+    for list_inputs_dict, list_outputs, expr_list in eval_loader:
+      init_state = model.embed_io(list_inputs_dict, list_outputs)
+      _, list_pred_progs, _, _ = model.decoder.beam_search(init_state, beam_size=FLAGS.beam_size, max_len=50)        
+      for i in range(len(expr_list)):
+        hit = -1
+        for j in range(FLAGS.beam_size):
+          pred = ''.join(list_pred_progs[i * FLAGS.beam_size + j])
+          if pred == ''.join(expr_list[i]):
+            hit = j
+            break
+        if hit >= 0:
+          hit_at_1 += hit == 0
+          total_hit += 1
+    hit_at_1 = hit_at_1 * 100.0 / len(dataset)
+    total_hit = total_hit * 100.0 / len(dataset)
+  return hit_at_1, total_hit
+
+
 def main(argv):
   del argv
   torch.manual_seed(FLAGS.seed)
@@ -77,7 +103,12 @@ def main(argv):
     model = model.cuda()
     device = 'cuda:{}'.format(FLAGS.gpu)
     model.set_device(device)
-  optimizer = optim.Adam(model.parameters(), lr=FLAGS.lr)  
+  if FLAGS.do_test:
+    test_dataset = RawTupleOfflineDataset(FLAGS.data_folder, 'test')
+    hit_at_1, total_hit = eval_dataset(model, test_dataset)
+    print('test hit@1: %.2f, hit@%d: %.2f' % (hit_at_1, FLAGS.beam_size, total_hit))
+    sys.exit()
+  optimizer = optim.Adam(model.parameters(), lr=FLAGS.lr)
 
   cur_step = 0
   best_valid = -1
@@ -96,33 +127,13 @@ def main(argv):
       optimizer.step()
       pbar.set_description('iter: %d, loss: %.4f' % (it, loss.item()))
     cur_step += FLAGS.eval_every
-    valid_loader = DataLoader(valid_dataset, batch_size=FLAGS.batch_size, collate_fn=raw_collate_fn, num_workers=0,
-                              shuffle=False, drop_last=False)
-    model.eval()
-    with torch.no_grad():
-      hit_at_1 = 0.0
-      total_hit = 0.0
-      for list_inputs_dict, list_outputs, expr_list in valid_loader:
-        init_state = model.embed_io(list_inputs_dict, list_outputs)
-        _, list_pred_progs, _, _ = model.decoder.beam_search(init_state, beam_size=FLAGS.beam_size, max_len=50)        
-        for i in range(len(expr_list)):
-          hit = -1
-          for j in range(FLAGS.beam_size):
-            pred = ''.join(list_pred_progs[i * FLAGS.beam_size + j])
-            if pred == ''.join(expr_list[i]):
-              hit = j
-              break
-          if hit >= 0:
-            hit_at_1 += hit == 0
-            total_hit += 1
-      hit_at_1 = hit_at_1 * 100.0 / len(valid_dataset)
-      total_hit = total_hit * 100.0 / len(valid_dataset)
-      print('valid top1: %.2f' % hit_at_1, 'top-k: %.2f' % total_hit)
-      if hit_at_1 > best_valid:
-        print('saving best valid model')
-        best_valid = hit_at_1
-        save_file = os.path.join(FLAGS.save_dir, 'model-best-valid.ckpt')
-        torch.save(model.state_dict(), save_file)
+    hit_at_1, total_hit = eval_dataset(model, valid_dataset)
+    print('valid hit@1: %.2f, hit@%d: %.2f' % (hit_at_1, FLAGS.beam_size, total_hit))
+    if hit_at_1 > best_valid:
+      print('saving best valid model')
+      best_valid = hit_at_1
+      save_file = os.path.join(FLAGS.save_dir, 'model-best-valid.ckpt')
+      torch.save(model.state_dict(), save_file)
 
 
 if __name__ == '__main__':
