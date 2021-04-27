@@ -77,10 +77,12 @@ def synthesize(task, operations, constants, model,
           if trace_in_beam < 0:  # true arg not found
             true_args = []
             true_val = trace[0]
-            all_value_dict[true_val] = len(all_values)
-            all_values.append(true_val)
+            if not true_val in all_value_dict:
+              all_value_dict[true_val] = len(all_values)
+              all_values.append(true_val)
             true_arg_vals = true_val.arg_values
             for i in range(operation.arity):
+              assert true_arg_vals[i] in all_value_dict
               true_args.append(all_value_dict[true_arg_vals[i]])
             true_args = np.array(true_args, dtype=np.int32)
             args = np.concatenate((args, np.expand_dims(true_args, 0)), axis=0)
