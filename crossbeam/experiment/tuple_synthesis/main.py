@@ -37,20 +37,11 @@ from crossbeam.model.encoder import CharIOLSTMEncoder, CharValueLSTMEncoder
 
 from crossbeam.datasets.tuple_data_gen import get_consts_and_ops, task_gen, trace_gen
 
-# nn configs
-flags.DEFINE_integer('embed_dim', 128, 'embedding dimension')
+
 flags.DEFINE_string('pooling', 'mean', 'pooling method used')
 flags.DEFINE_string('step_score_func', 'mlp', 'score func used at each step of autoregressive model')
 flags.DEFINE_boolean('score_normed', True, 'whether to normalize the score into valid probability')
-
-flags.DEFINE_integer('gpu', -1, '')
-flags.DEFINE_integer('beam_size', 4, '')
-flags.DEFINE_float('grad_clip', 5.0, 'clip grad')
 flags.DEFINE_integer('max_search_weight', 8, '')
-
-flags.DEFINE_integer('train_steps', 10000, 'number of training steps')
-flags.DEFINE_integer('eval_every', 1000, 'number of steps between evals')
-flags.DEFINE_float('lr', 0.0001, 'learning rate')
 
 
 class JointModel(nn.Module):
@@ -86,7 +77,7 @@ def init_model(operations):
 
 def train_step(task, training_samples, all_values, model, optimizer):
   optimizer.zero_grad()
-  io_embed = model.io(task.inputs_dict, task.outputs)
+  io_embed = model.io([task.inputs_dict], [task.outputs])
   val_embed = model.val(all_values)
   loss = 0.0
   for sample in training_samples:
