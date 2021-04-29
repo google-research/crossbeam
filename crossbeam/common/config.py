@@ -22,10 +22,14 @@ flags.DEFINE_float('grad_clip', 5.0, 'clip grad')
 flags.DEFINE_integer('train_steps', 10000, 'number of training steps')
 flags.DEFINE_integer('eval_every', 1000, 'number of steps between evals')
 flags.DEFINE_float('lr', 0.0001, 'learning rate')
-flags.DEFINE_integer('gpu', -1, '')
-
-
 flags.DEFINE_integer('beam_size', 4, '')
+
+
+flags.DEFINE_integer('gpu', -1, '')
+flags.DEFINE_integer('port', 29500, 'port for distributed training')
+flags.DEFINE_string('gpu_list', None, 'list of gpu ids to be used')
+flags.DEFINE_integer('num_proc', 1, '# processes for training')
+
 
 def get_torch_device(device_id):
   if device_id >= 0 and torch.cuda.is_available():

@@ -30,7 +30,7 @@ from crossbeam.model.joint_model import JointModel
 from crossbeam.datasets.arithmetic_data_gen import get_consts_and_ops, task_gen, trace_gen
 from crossbeam.experiment.exp_common import set_global_seed
 from crossbeam.experiment.train_eval import singleproc_train_eval_loop
-from crossbeam.common.config import get_torch_device 
+from crossbeam.common.config import get_torch_device
 FLAGS = flags.FLAGS
 
 
