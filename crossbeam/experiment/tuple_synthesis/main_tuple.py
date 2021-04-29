@@ -38,11 +38,7 @@ def init_model(operations):
   input_table = CharacterTable('0123456789:,', max_len=50)
   output_table = CharacterTable('0123456789() ,', max_len=50)
   value_table = CharacterTable('0123456789intuple:[]() ,', max_len=70)
-  model = JointModel(FLAGS, input_table, output_table, value_table, operations)
-  if FLAGS.gpu >= 0:
-    model = model.cuda()
-    device = 'cuda:{}'.format(FLAGS.gpu)
-    model.set_device(device)
+  model = JointModel(FLAGS, input_table, output_table, value_table, operations)  
   return model
 
 
@@ -55,8 +51,7 @@ def main(argv):
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.lr)
   with open(os.path.join(FLAGS.data_folder, 'valid-tasks.pkl'), 'rb') as f:
     eval_tasks = cp.load(f)
-
-  singleproc_train_eval_loop(FLAGS, model, optimizer, eval_tasks, operations, constants, task_gen, trace_gen)
+  singleproc_train_eval_loop(FLAGS, 'cpu', model, optimizer, eval_tasks, operations, constants, task_gen, trace_gen)
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 from absl import flags
+import torch
 
 """
 We define a set of args here to avoid repetitions in each main function.
@@ -25,3 +26,8 @@ flags.DEFINE_integer('gpu', -1, '')
 
 
 flags.DEFINE_integer('beam_size', 4, '')
+
+def get_torch_device(device_id):
+  if device_id >= 0 and torch.cuda.is_available():
+    return 'cuda:{}'.format(device_id)
+  return 'cpu'

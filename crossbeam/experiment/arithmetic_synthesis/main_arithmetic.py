@@ -30,7 +30,7 @@ from crossbeam.model.joint_model import JointModel
 from crossbeam.datasets.arithmetic_data_gen import get_consts_and_ops, task_gen, trace_gen
 from crossbeam.experiment.exp_common import set_global_seed
 from crossbeam.experiment.train_eval import singleproc_train_eval_loop
-
+from crossbeam.common.config import get_torch_device 
 FLAGS = flags.FLAGS
 
 
@@ -39,10 +39,6 @@ def init_model(operations):
   output_table = CharacterTable('0123456789() ,-', max_len=50)
   value_table = CharacterTable('0123456789intuple:[]() ,-', max_len=70)
   model = JointModel(FLAGS, input_table, output_table, value_table, operations)
-  if FLAGS.gpu >= 0:
-    model = model.cuda()
-    device = 'cuda:{}'.format(FLAGS.gpu)
-    model.set_device(device)
   return model
 
 
@@ -55,8 +51,8 @@ def main(argv):
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.lr)
   with open(os.path.join(FLAGS.data_folder, 'valid-tasks.pkl'), 'rb') as f:
     eval_tasks = cp.load(f)
-
-  singleproc_train_eval_loop(FLAGS, model, optimizer, eval_tasks, operations, constants, task_gen, trace_gen)
+  device = get_torch_device(FLAGS.gpu)
+  singleproc_train_eval_loop(FLAGS, device, model, optimizer, eval_tasks, operations, constants, task_gen, trace_gen)
 
 
 if __name__ == '__main__':
