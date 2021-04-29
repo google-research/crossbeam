@@ -116,17 +116,17 @@ def train_eval_loop(args, device, model, eval_tasks, operations, constants, task
   best_succ = -1
   for cur_step in range(0, args.train_steps, args.eval_every):
     if rank == 0:
-      print('eval at step %d', cur_step)
+      print('eval at step %d' % cur_step)
     succ = eval_func(eval_tasks, operations, constants, model, verbose=not is_distributed)
     if args.num_proc > 1:
       succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
     if succ > best_succ and rank == 0:
-      print('saving best model dump so far with %.4f valid succ' % (succ * 100))
+      print('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
       best_succ = succ
-      save_file = os.path.join(FLAGS.save_dir, 'model-best-valid.ckpt')
+      save_file = os.path.join(args.save_dir, 'model-best-valid.ckpt')
       torch.save(model.state_dict(), save_file)
 
-    pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.train_steps)
+    pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)
     for _ in pbar:
       t = task_gen(args, constants, operations)
       trace = list(trace_gen(t.solution))
