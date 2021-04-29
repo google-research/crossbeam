@@ -1,6 +1,5 @@
 from typing import Callable
 import numpy as np
-import jax.numpy as jnp
 
 
 def onehot(sequence, vocab_size):

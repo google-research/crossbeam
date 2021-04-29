@@ -18,7 +18,7 @@ from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
 
 
-def synthesize(task, operations, constants, model,
+def synthesize(task, operations, constants, model, device,
                trace=None, max_weight=10, k=2, is_training=False,
                include_as_train=None):
   if trace is None:
@@ -36,7 +36,7 @@ def synthesize(task, operations, constants, model,
   output_value = value_module.OutputValue(task.outputs)
   all_value_dict = {v: i for i, v in enumerate(all_values)}
 
-  io_embed = model.io([task.inputs_dict], [task.outputs])
+  io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
   training_samples = []
 
   while True:
@@ -44,12 +44,13 @@ def synthesize(task, operations, constants, model,
 
     for operation in operations:
       num_values_before_op = len(all_values)
-      val_embed = model.val(all_values)
+      val_embed = model.val(all_values, device=device)
       op_state = model.init(io_embed, val_embed, operation)
       args, _ = beam_search(operation.arity, k,
                             val_embed,
                             op_state,
-                            model.arg)
+                            model.arg,
+                            device=device)
       args = args.data.cpu().numpy().astype(np.int32)
       if k > (len(all_values) ** operation.arity):
         args = args[:len(all_values) ** operation.arity]
