@@ -20,7 +20,6 @@ import pickle as cp
 from absl import app
 from absl import flags
 from tqdm import tqdm
-import math
 import functools
 import torch
 import torch.nn as nn
