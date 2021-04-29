@@ -57,7 +57,6 @@ def main(argv):
   
   proc_args = Namespace(**FLAGS.flag_values_dict())
   if FLAGS.num_proc > 1:
-    model.share_memory()
     if FLAGS.gpu_list is not None:
       devices = [get_torch_device(int(x.strip())) for x in FLAGS.gpu_list.split(',')]
     else:
@@ -67,7 +66,7 @@ def main(argv):
     procs = []
     for rank, device in enumerate(devices):
       local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
-      proc = mp.Process(target=train_eval_loop, args=(proc_args, device, model, 
+      proc = mp.Process(target=train_mp, args=(proc_args, rank, device, model, 
                                                       local_eval_tasks, 
                                                       operations, constants, task_gen, trace_gen))
       procs.append(proc)

@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,7 +8,9 @@ import functools
 from functools import wraps
 import torch.multiprocessing as mp
 from torch.multiprocessing import Queue
+from _thread import start_new_thread
 import torch.distributed as dist
+import traceback
 
 
 def thread_wrapped_func(func):
@@ -103,7 +106,6 @@ def train_eval_loop(args, device, model, eval_tasks, operations, constants, task
     rank = dist.get_rank()
   else:
     rank = 0
-  
   model = model.to(device)
   optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
   pbar = tqdm(range(args.train_steps)) if rank == 0 else range(args.train_steps)
@@ -129,7 +131,7 @@ def train_eval_loop(args, device, model, eval_tasks, operations, constants, task
     else:
       loss = 0.0
     if is_distributed:
-      for p in model.parameters():
+      for param in model.parameters():
         if param.grad is None:
           param.grad = param.data.new(param.data.shape).zero_()
         dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
@@ -137,7 +139,7 @@ def train_eval_loop(args, device, model, eval_tasks, operations, constants, task
       torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=args.grad_clip)
     optimizer.step()
     if rank == 0:
-      pbar.set_description('train loss: %.2f' % loss)
+      pbar.set_description('train loss: %.2f' % (loss * args.num_proc))
 
   if rank == 0:
     print('Training finished. Performing final evaluation...')

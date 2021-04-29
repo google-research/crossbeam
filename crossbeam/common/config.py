@@ -26,7 +26,7 @@ flags.DEFINE_integer('beam_size', 4, '')
 
 
 flags.DEFINE_integer('gpu', -1, '')
-flags.DEFINE_integer('port', 29500, 'port for distributed training')
+flags.DEFINE_string('port', '29500', 'port for distributed training')
 flags.DEFINE_string('gpu_list', None, 'list of gpu ids to be used')
 flags.DEFINE_integer('num_proc', 1, '# processes for training')
 
