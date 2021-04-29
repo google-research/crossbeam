@@ -14,6 +14,7 @@
 
 import random
 import numpy as np
+from argparse import Namespace
 import os
 import pickle as cp
 from absl import app
@@ -54,6 +55,7 @@ def main(argv):
   with open(os.path.join(FLAGS.data_folder, 'valid-tasks.pkl'), 'rb') as f:
     eval_tasks = cp.load(f)
   
+  proc_args = Namespace(**FLAGS.flag_values_dict())
   if FLAGS.num_proc > 1:
     model.share_memory()
     if FLAGS.gpu_list is not None:
@@ -65,7 +67,7 @@ def main(argv):
     procs = []
     for rank, device in enumerate(devices):
       local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
-      proc = mp.Process(target=train_eval_loop, args=(FLAGS, device, model, 
+      proc = mp.Process(target=train_eval_loop, args=(proc_args, device, model, 
                                                       local_eval_tasks, 
                                                       operations, constants, task_gen, trace_gen))
       procs.append(proc)
@@ -73,7 +75,7 @@ def main(argv):
     for proc in procs:
       proc.join()
   else:
-    train_eval_loop(FLAGS, get_torch_device(FLAGS.gpu), model, eval_tasks, operations, constants, task_gen, trace_gen)
+    train_eval_loop(proc_args, get_torch_device(FLAGS.gpu), model, eval_tasks, operations, constants, task_gen, trace_gen)
   logging.info("Training finished!!")
 
 
