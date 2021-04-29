@@ -101,6 +101,7 @@ def _gather_eval_info(rank, device, local_acc, local_num):
   succ = (stats[0] / stats[1]).item()
   if rank == 0:
     print('eval success rate: {:.1f}%'.format(succ * 100))
+  return succ
 
 
 def train_eval_loop(args, device, model, eval_tasks, operations, constants, task_gen, trace_gen):
@@ -110,39 +111,48 @@ def train_eval_loop(args, device, model, eval_tasks, operations, constants, task
   else:
     rank = 0
   model = model.to(device)
-  optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-  pbar = tqdm(range(args.train_steps)) if rank == 0 else range(args.train_steps)
+  optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
   eval_func = functools.partial(do_eval, max_search_weight=args.max_search_weight, beam_size=args.beam_size, device=device)
-  for i in pbar:
-    if i % args.eval_every == 0:
-      succ = eval_func(eval_tasks, operations, constants, model, verbose=not is_distributed)
-      if args.num_proc > 1:
-        _gather_eval_info(rank, device, succ, len(eval_tasks))
-    t = task_gen(args, constants, operations)
-    trace = list(trace_gen(t.solution))
-    with torch.no_grad():
-      training_samples, all_values = synthesize(t, operations, constants, model,
-                                                device=device,
-                                                trace=trace,
-                                                max_weight=args.max_search_weight,
-                                                k=args.beam_size,
-                                                is_training=True)
-    optimizer.zero_grad()
-    if isinstance(training_samples, list):
-      loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
-      loss.backward()
-    else:
-      loss = 0.0
-    if is_distributed:
-      for param in model.parameters():
-        if param.grad is None:
-          param.grad = param.data.new(param.data.shape).zero_()
-        dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
-    if args.grad_clip > 0:
-      torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=args.grad_clip)
-    optimizer.step()
+  best_succ = -1
+  for cur_step in range(0, args.train_steps, args.eval_every):
     if rank == 0:
-      pbar.set_description('train loss: %.2f' % (loss * args.num_proc))
+      print('eval at step %d', cur_step)
+    succ = eval_func(eval_tasks, operations, constants, model, verbose=not is_distributed)
+    if args.num_proc > 1:
+      succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
+    if succ > best_succ and rank == 0:
+      print('saving best model dump so far with %.4f valid succ' % (succ * 100))
+      best_succ = succ
+      save_file = os.path.join(FLAGS.save_dir, 'model-best-valid.ckpt')
+      torch.save(model.state_dict(), save_file)
+
+    pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.train_steps)
+    for _ in pbar:
+      t = task_gen(args, constants, operations)
+      trace = list(trace_gen(t.solution))
+      with torch.no_grad():
+        training_samples, all_values = synthesize(t, operations, constants, model,
+                                                  device=device,
+                                                  trace=trace,
+                                                  max_weight=args.max_search_weight,
+                                                  k=args.beam_size,
+                                                  is_training=True)
+      optimizer.zero_grad()
+      if isinstance(training_samples, list):
+        loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
+        loss.backward()
+      else:
+        loss = 0.0
+      if is_distributed:
+        for param in model.parameters():
+          if param.grad is None:
+            param.grad = param.data.new(param.data.shape).zero_()
+          dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
+      if args.grad_clip > 0:
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=args.grad_clip)
+      optimizer.step()
+      if rank == 0:
+        pbar.set_description('train loss: %.2f' % (loss * args.num_proc))
 
   if rank == 0:
     print('Training finished. Performing final evaluation...')
