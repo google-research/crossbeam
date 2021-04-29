@@ -29,8 +29,7 @@ from crossbeam.model.util import CharacterTable
 from crossbeam.model.joint_model import JointModel
 from crossbeam.datasets.arithmetic_data_gen import get_consts_and_ops, task_gen, trace_gen
 from crossbeam.experiment.exp_common import set_global_seed
-from crossbeam.experiment.train_eval import singleproc_train_eval_loop
-from crossbeam.common.config import get_torch_device
+from crossbeam.experiment.train_eval import main_train_eval
 FLAGS = flags.FLAGS
 
 
@@ -48,12 +47,15 @@ def main(argv):
 
   constants, operations = get_consts_and_ops()
   model = init_model(operations)
+
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.lr)
   with open(os.path.join(FLAGS.data_folder, 'valid-tasks.pkl'), 'rb') as f:
     eval_tasks = cp.load(f)
-  device = get_torch_device(FLAGS.gpu)
-  singleproc_train_eval_loop(FLAGS, device, model, optimizer, eval_tasks, operations, constants, task_gen, trace_gen)
+
+  proc_args = Namespace(**FLAGS.flag_values_dict())
+  main_train_eval(proc_args, model, eval_tasks, operations, constants, task_gen, trace_gen)
 
 
 if __name__ == '__main__':
+  torch.multiprocessing.set_start_method('spawn')
   app.run(main)

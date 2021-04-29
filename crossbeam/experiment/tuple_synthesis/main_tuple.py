@@ -19,21 +19,20 @@ import os
 import pickle as cp
 from absl import app
 from absl import flags
-from absl import logging
 from tqdm import tqdm
 import math
 import functools
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.multiprocessing as mp
+
 from crossbeam.algorithm.synthesis import synthesize
 from crossbeam.model.util import CharacterTable
 from crossbeam.model.joint_model import JointModel
 from crossbeam.datasets.tuple_data_gen import get_consts_and_ops, task_gen, trace_gen
 from crossbeam.experiment.exp_common import set_global_seed
-from crossbeam.experiment.train_eval import train_eval_loop, train_mp
-from crossbeam.common.config import get_torch_device
+from crossbeam.experiment.train_eval import main_train_eval
+
 FLAGS = flags.FLAGS
 
 
@@ -56,26 +55,7 @@ def main(argv):
     eval_tasks = cp.load(f)
   
   proc_args = Namespace(**FLAGS.flag_values_dict())
-  if FLAGS.num_proc > 1:
-    if FLAGS.gpu_list is not None:
-      devices = [get_torch_device(int(x.strip())) for x in FLAGS.gpu_list.split(',')]
-    else:
-      devices = ['cpu'] * FLAGS.num_proc
-    assert len(devices) == FLAGS.num_proc
-    nq_per_proc = math.ceil(len(eval_tasks) / FLAGS.num_proc)
-    procs = []
-    for rank, device in enumerate(devices):
-      local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
-      proc = mp.Process(target=train_mp, args=(proc_args, rank, device, model, 
-                                                      local_eval_tasks, 
-                                                      operations, constants, task_gen, trace_gen))
-      procs.append(proc)
-      proc.start()
-    for proc in procs:
-      proc.join()
-  else:
-    train_eval_loop(proc_args, get_torch_device(FLAGS.gpu), model, eval_tasks, operations, constants, task_gen, trace_gen)
-  logging.info("Training finished!!")
+  main_train_eval(proc_args, model, eval_tasks, operations, constants, task_gen, trace_gen)
 
 
 if __name__ == '__main__':

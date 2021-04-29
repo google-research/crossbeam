@@ -11,6 +11,8 @@ from torch.multiprocessing import Queue
 from _thread import start_new_thread
 import torch.distributed as dist
 import traceback
+from crossbeam.common.config import get_torch_device
+from absl import logging
 
 
 def thread_wrapped_func(func):
@@ -160,3 +162,26 @@ def train_mp(args, rank, device, model, eval_tasks, operations, constants, task_
     backend = 'nccl'
   dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
   train_eval_loop(args, device, model, eval_tasks, operations, constants, task_gen, trace_gen)
+
+
+def main_train_eval(args, model, eval_tasks, operations, constants, task_gen, trace_gen):
+  if args.num_proc > 1:
+    if args.gpu_list is not None:
+      devices = [get_torch_device(int(x.strip())) for x in args.gpu_list.split(',')]
+    else:
+      devices = ['cpu'] * args.num_proc
+    assert len(devices) == args.num_proc
+    nq_per_proc = math.ceil(len(eval_tasks) / args.num_proc)
+    procs = []
+    for rank, device in enumerate(devices):
+      local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
+      proc = mp.Process(target=train_mp, args=(args, rank, device, model, 
+                                               local_eval_tasks, 
+                                               operations, constants, task_gen, trace_gen))
+      procs.append(proc)
+      proc.start()
+    for proc in procs:
+      proc.join()
+  else:
+    train_eval_loop(args, get_torch_device(args.gpu), model, eval_tasks, operations, constants, task_gen, trace_gen)
+  logging.info("Training finished!!")
