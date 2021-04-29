@@ -16,6 +16,7 @@ import random
 import numpy as np
 import os
 import pickle as cp
+from argparse import Namespace
 from absl import app
 from absl import flags
 from tqdm import tqdm
