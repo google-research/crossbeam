@@ -6,6 +6,7 @@ from tqdm import tqdm
 import functools
 from functools import wraps
 import torch.multiprocessing as mp
+from torch.multiprocessing import Queue
 import torch.distributed as dist
 
 
@@ -147,13 +148,13 @@ def train_eval_loop(args, device, model, eval_tasks, operations, constants, task
 
 @thread_wrapped_func
 def train_mp(args, rank, device, model, eval_tasks, operations, constants, task_gen, trace_gen):
-    if args.num_proc > 1:
-        torch.set_num_threads(1)
-    os.environ['MASTER_ADDR'] = '127.0.0.1'
-    os.environ['MASTER_PORT'] = args.port
-    if device == 'cpu':
-      backend = 'gloo'
-    else:
-      backend = 'nccl'
-    dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
-    train_eval_loop(args, device, model, eval_tasks, operations, constants, task_gen, trace_gen)
+  if args.num_proc > 1:
+    torch.set_num_threads(1)
+  os.environ['MASTER_ADDR'] = '127.0.0.1'
+  os.environ['MASTER_PORT'] = args.port
+  if device == 'cpu':
+    backend = 'gloo'
+  else:
+    backend = 'nccl'
+  dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
+  train_eval_loop(args, device, model, eval_tasks, operations, constants, task_gen, trace_gen)

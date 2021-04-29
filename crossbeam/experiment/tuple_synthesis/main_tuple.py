@@ -32,7 +32,7 @@ from crossbeam.model.util import CharacterTable
 from crossbeam.model.joint_model import JointModel
 from crossbeam.datasets.tuple_data_gen import get_consts_and_ops, task_gen, trace_gen
 from crossbeam.experiment.exp_common import set_global_seed
-from crossbeam.experiment.train_eval import train_eval_loop
+from crossbeam.experiment.train_eval import train_eval_loop, train_mp
 from crossbeam.common.config import get_torch_device
 FLAGS = flags.FLAGS
 
