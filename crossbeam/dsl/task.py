@@ -18,11 +18,11 @@
 class Task(object):
   """Stores multiple I/O examples for a single task."""
 
-  def __init__(self, input_dict, outputs, solution=None):
-    self.inputs_dict = input_dict
+  def __init__(self, inputs_dict, outputs, solution=None):
+    self.inputs_dict = inputs_dict
     self.outputs = outputs
     self.solution = solution
-    self.num_inputs = len(input_dict)
+    self.num_inputs = len(inputs_dict)
     self.num_examples = len(outputs)
 
   def __str__(self):
