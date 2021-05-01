@@ -117,15 +117,6 @@ class MLP(nn.Module):
     return x
 
 
-class DeviceMod(nn.Module):
-  def __init__(self):
-    super(DeviceMod, self).__init__()
-    self.device = 'cpu'
-
-  def set_device(self, device):
-    self.device = device
-
-
 class CharSeqEncoder(nn.Module):
   def __init__(self, vocab_size, hidden_size):
     super(CharSeqEncoder, self).__init__()
