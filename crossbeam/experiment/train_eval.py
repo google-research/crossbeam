@@ -18,21 +18,11 @@ from absl import logging
 
 def thread_wrapped_func(func):
     """Wrapped func for torch.multiprocessing.Process.
-
-
-
     With this wrapper we can use OMP threads in subprocesses
-
     otherwise, OMP_NUM_THREADS=1 is mandatory.
-
-
-
     How to use:
-
     @thread_wrapped_func
-
     def func_to_wrap(args ...):
-
     """
     @wraps(func)
     def decorated_function(*args, **kwargs):
