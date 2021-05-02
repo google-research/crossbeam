@@ -15,6 +15,9 @@
 """Operations for the logic programming DSL."""
 
 from crossbeam.dsl import operation_base
+import numpy as np
+
+
 
 class MemorizeDyadicClause(operation_base.OperationBase):
     """
@@ -25,12 +28,12 @@ class MemorizeDyadicClause(operation_base.OperationBase):
 
     def apply_single(self, raw_arguments):
         base_relation, l, r = raw_arguments
-        new_relation = np.copy(base_relation)
+        new_relation = force_dyadic(np.copy(base_relation))
         new_relation[l,r] = True
         return new_relation
 
     def tokenized_expression(self, arguments):
-        assert False
+        return ['(','assert/2',arguments[0],arguments[1],')']
 
 class MemorizeMonadicClause(operation_base.OperationBase):
     """
@@ -41,17 +44,23 @@ class MemorizeMonadicClause(operation_base.OperationBase):
 
     def apply_single(self, raw_arguments):
         base_relation, i = raw_arguments
-        new_relation = np.copy(base_relation)
+        new_relation = force_monadic(np.copy(base_relation))
         new_relation[i] = True
         return new_relation
 
     def tokenized_expression(self, arguments):
-        assert False
+        return ['(','assert/1',arguments[0],')']
 
 class RecursiveClause(operation_base.OperationBase):
     """
+    whenever Q is dyadic:
     P(x,y) <- Q(x,y). % base case
     P(x,y) <- R(x,z), P(z,y). % inductive case
+
+    whenever Q is monadic:
+    P(x) <- Q(x). % base case
+    P(x) <- R(x,y), P(y). % inductive case
+
     """
     def __init__(self):
         super(RecursiveClause, self).__init__("RecursiveClause",2)
@@ -59,7 +68,10 @@ class RecursiveClause(operation_base.OperationBase):
     def apply_single(self, raw_arguments):
         base_case, inductive_step = raw_arguments
 
-        truth_values = np.copy(base_case)
+        # make it so that we can also work with monadic predicates
+        inductive_step = force_dyadic(inductive_step)
+
+        truth_values = base_case
         while True:
             current_size = np.sum(truth_values)
 
@@ -72,6 +84,10 @@ class RecursiveClause(operation_base.OperationBase):
 
         return truth_values
 
+    def tokenized_expression(self, arguments):
+        return ['(','recursive'] + arguments[0].tokenized_expression() + arguments[1].tokenized_expression() + [')']
+
+
 class TransposeClause(operation_base.OperationBase):
     """
     P(x,y) <- Q(y,x).
@@ -80,18 +96,31 @@ class TransposeClause(operation_base.OperationBase):
         super(TransposeClause, self).__init__("TransposeClause",1)
     def apply_single(self, raw_arguments):
         assert len(raw_arguments) == 1
-        return raw_arguments[0].T
+        p = force_dyadic(raw_arguments[0])
+        return p.T
+
+    def tokenized_expression(self, arguments):
+        return ['(','transpose'] + arguments[0].tokenized_expression() + [')']
+
 
 class DisjunctionClause(operation_base.OperationBase):
     """
-    P(x,y) <- Q(x,y).
-    P(x,y) <- R(x,y).
+    P(vars) <- Q(vars).
+    P(vars) <- R(vars).
     """
     def __init__(self):
         super(DisjunctionClause, self).__init__("DisjunctionClause",2)
     def apply_single(self, raw_arguments):
         assert len(raw_arguments) == 2
-        return (raw_arguments[0] + raw_arguments[1]) > 0
+        p,q = raw_arguments
+        if len(p.shape) != len(q.shape):
+            p = force_dyadic(p)
+            q = force_dyadic(q)
+            
+        return (p + q) > 0
+    def tokenized_expression(self, arguments):
+        return ['(','disjunction'] + arguments[0].tokenized_expression() + arguments[1].tokenized_expression() + [')']
+
 
 class ChainClause(operation_base.OperationBase):
     """
@@ -103,8 +132,22 @@ class ChainClause(operation_base.OperationBase):
     def apply_single(self, raw_arguments):
         q,r,t = raw_arguments
 
+        q = force_dyadic(q)
+        r = force_dyadic(r)
+        t = force_dyadic(t)
+
         return (q + r@t) > 0
+    def tokenized_expression(self, arguments):
+        return ['(','chain'] + arguments[0].tokenized_expression() + arguments[1].tokenized_expression() + arguments[2].tokenized_expression() + [')']
     
+def force_dyadic(maybe_monadic):
+    if len(maybe_monadic.shape) == 2: return maybe_monadic
+    assert len(maybe_monadic.shape) == 1
+    return np.diag(maybe_monadic)
+def force_monadic(maybe_dyadic):
+    if len(maybe_dyadic.shape) == 1: return maybe_dyadic
+    assert len(maybe_dyadic.shape) == 2
+    return maybe_dyadic.diagonal()
 
 def get_operations():
   return [
