@@ -201,6 +201,19 @@ def generate_random_task(min_weight, max_weight, num_examples, num_inputs,
                           solution=solution_value)
 
 
+def _duplicate_check_dfs(node, ancestors):
+  """Returns whether any node equals any of its descendants."""
+  if node in ancestors:
+    return True
+  if isinstance(node, value_module.OperationValue):
+    ancestors.append(node)
+    for arg_node in node.arg_values:
+      if _duplicate_check_dfs(arg_node, ancestors):
+        return True
+    del ancestors[-1]
+  return False
+
+
 def generate_good_random_task(**kwargs):
   """Generates a task that passes simple quality checks."""
   while True:
@@ -225,6 +238,11 @@ def generate_good_random_task(**kwargs):
     num_examples = kwargs['num_examples']
     if (num_examples > 1 and
         all(x == y for x, y in itertools.combinations(task.outputs, 2))):
+      continue
+
+    # A node in the AST can't have descendants that are equal to it, or else the
+    # solution isn't minimal.
+    if _duplicate_check_dfs(task.solution, []):
       continue
 
     # The task has passed all checks.
