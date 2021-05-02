@@ -27,7 +27,7 @@ import torch.nn.functional as F
 from crossbeam.algorithm.synthesis import synthesize
 from crossbeam.model.util import CharacterTable
 from crossbeam.model.joint_model import JointModel
-from crossbeam.datasets.arithmetic_data_gen import get_consts_and_ops, task_gen, trace_gen
+from crossbeam.datasets.data_gen import arithmetic_consts_and_ops, task_gen, trace_gen
 from crossbeam.experiment.exp_common import set_global_seed
 from crossbeam.experiment.train_eval import singleproc_train_eval_loop
 
@@ -50,7 +50,7 @@ def main(argv):
   del argv
   set_global_seed(FLAGS.seed)
 
-  constants, operations = get_consts_and_ops()
+  constants, operations = arithmetic_consts_and_ops()
   model = init_model(operations)
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.lr)
   with open(os.path.join(FLAGS.data_folder, 'valid-tasks.pkl'), 'rb') as f:

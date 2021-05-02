@@ -46,17 +46,23 @@ def trace_gen(value_node, result=None):
   return result
 
 
+def arithmetic_consts_and_ops():
+    return [0], arithmetic_operations.get_operations()
+
+
+def tuple_consts_and_ops():
+    return [0], tuple_operations.get_operations()
+
+
 def main(argv):
   del argv
   random.seed(FLAGS.seed)
   np.random.seed(FLAGS.seed)
 
   if FLAGS.domain == 'tuple':
-    operations = tuple_operations.get_operations()
-    constants = [0]
+    constants, operations = tuple_consts_and_ops()
   elif FLAGS.domain == 'arithmetic':
-    operations = arithmetic_operations.get_operations()
-    constants = [0]
+    constants, operations = arithmetic_consts_and_ops()
   else:
     raise ValueError('Unhandled domain: {}'.format(FLAGS.domain))
 
