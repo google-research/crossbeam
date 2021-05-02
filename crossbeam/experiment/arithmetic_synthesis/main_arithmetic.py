@@ -16,6 +16,7 @@ import random
 import numpy as np
 import os
 import pickle as cp
+from argparse import Namespace
 from absl import app
 from absl import flags
 from tqdm import tqdm
@@ -29,8 +30,7 @@ from crossbeam.model.util import CharacterTable
 from crossbeam.model.joint_model import JointModel
 from crossbeam.datasets.data_gen import arithmetic_consts_and_ops, task_gen, trace_gen
 from crossbeam.experiment.exp_common import set_global_seed
-from crossbeam.experiment.train_eval import singleproc_train_eval_loop
-
+from crossbeam.experiment.train_eval import main_train_eval
 FLAGS = flags.FLAGS
 
 
@@ -39,10 +39,6 @@ def init_model(operations):
   output_table = CharacterTable('0123456789() ,-', max_len=50)
   value_table = CharacterTable('0123456789intuple:[]() ,-', max_len=70)
   model = JointModel(FLAGS, input_table, output_table, value_table, operations)
-  if FLAGS.gpu >= 0:
-    model = model.cuda()
-    device = 'cuda:{}'.format(FLAGS.gpu)
-    model.set_device(device)
   return model
 
 
@@ -52,12 +48,15 @@ def main(argv):
 
   constants, operations = arithmetic_consts_and_ops()
   model = init_model(operations)
+
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.lr)
   with open(os.path.join(FLAGS.data_folder, 'valid-tasks.pkl'), 'rb') as f:
     eval_tasks = cp.load(f)
 
-  singleproc_train_eval_loop(FLAGS, model, optimizer, eval_tasks, operations, constants, task_gen, trace_gen)
+  proc_args = Namespace(**FLAGS.flag_values_dict())
+  main_train_eval(proc_args, model, eval_tasks, operations, constants, task_gen, trace_gen)
 
 
 if __name__ == '__main__':
+  torch.multiprocessing.set_start_method('spawn')
   app.run(main)
