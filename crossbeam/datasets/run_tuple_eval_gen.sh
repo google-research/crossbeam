@@ -7,10 +7,21 @@ then
     mkdir -p $data_dir
 fi
 
+seed=1
+eval_file=$data_dir/valid-tasks.pkl
+
+python data_gen.py \
+    --domain tuple \
+    --seed $seed \
+    --num_eval 1000 \
+    --output_file $eval_file
+
+
 seed=10
 eval_file=$data_dir/test-tasks.pkl
 
-python tuple_data_gen.py \
+python data_gen.py \
+    --domain tuple \
     --seed $seed \
     --num_eval 1000 \
     --output_file $eval_file
