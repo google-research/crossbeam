@@ -27,18 +27,28 @@ import torch.nn.functional as F
 
 from crossbeam.algorithm.synthesis import synthesize
 from crossbeam.model.util import CharacterTable
-from crossbeam.model.joint_model import JointModel
+from crossbeam.model.joint_model import JointModel, IntJointModel
 from crossbeam.datasets.data_gen import arithmetic_consts_and_ops, task_gen, trace_gen
 from crossbeam.experiment.exp_common import set_global_seed
 from crossbeam.experiment.train_eval import main_train_eval
 FLAGS = flags.FLAGS
 
+flags.DEFINE_string('model_type', 'char', 'int/char')
 
 def init_model(operations):
-  input_table = CharacterTable('0123456789:,', max_len=50)
-  output_table = CharacterTable('0123456789() ,-', max_len=50)
-  value_table = CharacterTable('0123456789intuple:[]() ,-', max_len=70)
-  model = JointModel(FLAGS, input_table, output_table, value_table, operations)
+  if FLAGS.model_type == 'char':
+    input_table = CharacterTable('0123456789:,', max_len=50)
+    output_table = CharacterTable('0123456789() ,-', max_len=50)
+    value_table = CharacterTable('0123456789intuple:[]() ,-', max_len=70)
+    model = JointModel(FLAGS, input_table, output_table, value_table, operations)
+  elif FLAGS.model_type == 'int':
+    model = IntJointModel(FLAGS, 
+                          input_range=(0, 10), 
+                          output_range=(-800, 800),
+                          value_range=(-800, 800),
+                          operations=operations)
+  else:
+    raise ValueError('unknown model type %s' % FLAGS.model_type)
   return model
 
 

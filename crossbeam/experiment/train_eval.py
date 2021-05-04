@@ -115,7 +115,6 @@ def train_eval_loop(args, device, model, eval_tasks, operations, constants, task
       best_succ = succ
       save_file = os.path.join(args.save_dir, 'model-best-valid.ckpt')
       torch.save(model.state_dict(), save_file)
-
     pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)
     for _ in pbar:
       t = task_gen(args, constants, operations)

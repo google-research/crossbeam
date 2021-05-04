@@ -13,7 +13,7 @@ fi
 export CUDA_VISIBLE_DEVICES=0
 
 #python3 -m crossbeam.experiment.arithmetic_synthesis.main_arithmetic \
-python main_arithmetic \
+python main_arithmetic.py \
     --data_folder $data_folder \
     --eval_every 10000 \
     --gpu 0 \
