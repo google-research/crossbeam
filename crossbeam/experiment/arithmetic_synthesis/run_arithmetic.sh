@@ -19,3 +19,4 @@ python main_arithmetic.py \
     --gpu 0 \
     --save_dir $save_dir \
     --train_steps 1000000 \
+    $@

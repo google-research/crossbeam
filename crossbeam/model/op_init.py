@@ -70,3 +70,12 @@ class OpPoolingState(nn.Module):
   def forward(self, io_embed, value_embed, op, value_mask=None):
     mod = self.op_specific_mod[self.op_idx_map[repr(op)]]
     return mod(io_embed, value_embed, value_mask)
+
+
+class OpExplicitPooling(OpPoolingState):
+  def __init__(self, ops, state_dim, pool_method):
+    super(OpExplicitPooling, self).__init__(ops, state_dim, pool_method)
+
+  def forward(self, io_embed, value_embed, op, value_mask=None):
+    mod = self.op_specific_mod[self.op_idx_map[repr(op)]]
+    return mod(io_embed, value_embed, value_mask), op

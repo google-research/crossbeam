@@ -36,12 +36,12 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('model_type', 'char', 'int/char')
 
 def init_model(operations):
-  if FLAGS.model_type == 'char':
+  if FLAGS.model_type.startswith('char'):
     input_table = CharacterTable('0123456789:,', max_len=50)
     output_table = CharacterTable('0123456789() ,-', max_len=50)
     value_table = CharacterTable('0123456789intuple:[]() ,-', max_len=70)
     model = JointModel(FLAGS, input_table, output_table, value_table, operations)
-  elif FLAGS.model_type == 'int':
+  elif FLAGS.model_type.startswith('int'):
     model = IntJointModel(FLAGS, 
                           input_range=(0, 10), 
                           output_range=(-800, 800),
