@@ -42,8 +42,6 @@ def main(argv):
 
   constants, operations = get_consts_and_ops()
   eval_tasks = [task_gen(FLAGS, constants, operations) for _ in range(FLAGS.num_eval)]
-  import pdb; pdb.set_trace()
-  
 
   with open(FLAGS.output_file, 'wb') as f:
     cp.dump(eval_tasks, f, cp.HIGHEST_PROTOCOL)

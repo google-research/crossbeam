@@ -1,3 +1,4 @@
+import numpy as np
 import os
 import torch
 import torch.nn as nn
@@ -70,18 +71,24 @@ def do_eval(eval_tasks, operations, constants, model,
             max_search_weight, beam_size, device, verbose=True):
   if verbose:
     print('doing eval...')
+
+    # if we are verbose then we will show up to ten random task solutions
+    should_show = np.random.choice(list(range(len(eval_tasks))),
+                                   min(len(eval_tasks),10))
   succ = 0.0
-  for t in eval_tasks:
+  for i,t in enumerate(eval_tasks):
     out, _ = synthesize(t, operations, constants, model,
                         device=device,
                         max_weight=max_search_weight,
                         k=beam_size,
                         is_training=False)
     if out is not None:
-      if verbose:
-          print("successfully synthesized a solution to",t)
-          print(out)
+      if verbose and i in should_show:
+        print("successfully synthesized a solution to",t)
+        print(out)
       succ += 1.0
+    elif verbose and i in should_show:
+      print("could not successfully solve",t)
   succ /= len(eval_tasks)
   if verbose:
     print('eval success rate: {:.1f}%'.format(succ * 100))
