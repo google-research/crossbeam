@@ -58,6 +58,7 @@ class CharIOLSTMEncoder(nn.Module):
     input_embed = self.input_encoder(padded_i, len_i)
     output_embed = self.output_encoder(padded_o, len_o)
     cat_embed = torch.cat((input_embed, output_embed), dim=-1)
+    
     if needs_scatter_idx:
       sample_scatter_idx = torch.LongTensor(sample_scatter_idx).to(device)
       return cat_embed, sample_scatter_idx

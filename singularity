@@ -22,7 +22,7 @@ From: ubuntu
 
 
 %post
-    apt-get update && apt-get -y install python3 git wget m4
+    apt-get update && apt-get -y install python3 git wget m4 build-essential g++
 
     mkdir /container
     chmod 777 /container
@@ -44,6 +44,7 @@ From: ubuntu
     pip install git+https://github.com/deepmind/dm-haiku
     
     conda install pytorch torchvision -c pytorch
+    pip install torch-scatter
 
     
     

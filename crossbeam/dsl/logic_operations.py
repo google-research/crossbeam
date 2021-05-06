@@ -33,7 +33,7 @@ class MemorizeDyadicClause(operation_base.OperationBase):
         return new_relation
 
     def tokenized_expression(self, arguments):
-        return ['(','assert/2',arguments[0],arguments[1],')']
+        return ['(assert/2',arguments[0],arguments[1],')']
 
 class MemorizeMonadicClause(operation_base.OperationBase):
     """
@@ -49,7 +49,7 @@ class MemorizeMonadicClause(operation_base.OperationBase):
         return new_relation
 
     def tokenized_expression(self, arguments):
-        return ['(','assert/1',arguments[0],')']
+        return ['(assert/1',arguments[0],')']
 
 class RecursiveClause(operation_base.OperationBase):
     """
@@ -85,7 +85,7 @@ class RecursiveClause(operation_base.OperationBase):
         return truth_values
 
     def tokenized_expression(self, arguments):
-        return ['(','recursive'] + arguments[0].tokenized_expression() + arguments[1].tokenized_expression() + [')']
+        return ['(recursive '] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + [')']
 
 
 class TransposeClause(operation_base.OperationBase):
@@ -100,7 +100,7 @@ class TransposeClause(operation_base.OperationBase):
         return p.T
 
     def tokenized_expression(self, arguments):
-        return ['(','transpose'] + arguments[0].tokenized_expression() + [')']
+        return ['(transpose '] + arguments[0].tokenized_expression() + [')']
 
 
 class DisjunctionClause(operation_base.OperationBase):
@@ -119,7 +119,7 @@ class DisjunctionClause(operation_base.OperationBase):
             
         return (p + q) > 0
     def tokenized_expression(self, arguments):
-        return ['(','disjunction'] + arguments[0].tokenized_expression() + arguments[1].tokenized_expression() + [')']
+        return ['(disjunction'] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + [')']
 
 
 class ChainClause(operation_base.OperationBase):
@@ -138,7 +138,7 @@ class ChainClause(operation_base.OperationBase):
 
         return (q + r@t) > 0
     def tokenized_expression(self, arguments):
-        return ['(','chain'] + arguments[0].tokenized_expression() + arguments[1].tokenized_expression() + arguments[2].tokenized_expression() + [')']
+        return ['(chain '] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + arguments[2].tokenized_expression() + [')']
     
 def force_dyadic(maybe_monadic):
     if len(maybe_monadic.shape) == 2: return maybe_monadic

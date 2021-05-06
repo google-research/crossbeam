@@ -52,7 +52,7 @@ def make_connected_task(operators,p=0.5):
     A = value_module.InputValue([A],"edge")
     solution = recursive_clause.apply((A,A))
     
-    return Task({"edge": A}, solution.values, solution)
+    return Task({"edge": A.values}, solution.values, solution)
 
 def make_divisible_task(k, operators):
     global MAXIMUM_ENTITIES
@@ -77,9 +77,9 @@ def make_divisible_task(k, operators):
     
     solution = recursive.apply([Z,Pk])   
     
-    return Task({"zero": Z,
-                 "_|_": B,
-                 "successor": S},
+    return Task({"zero": Z.values,
+                 "_|_": B.values,
+                 "successor": S.values},
                 solution.values,
                 solution)
     

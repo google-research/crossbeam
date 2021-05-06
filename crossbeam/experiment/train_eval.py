@@ -78,6 +78,9 @@ def do_eval(eval_tasks, operations, constants, model,
                         k=beam_size,
                         is_training=False)
     if out is not None:
+      if verbose:
+          print("successfully synthesized a solution to",t)
+          print(out)
       succ += 1.0
   succ /= len(eval_tasks)
   if verbose:
