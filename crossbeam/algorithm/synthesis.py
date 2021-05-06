@@ -45,8 +45,6 @@ def synthesize(task, operations, constants, model, device,
     for operation in operations:
       num_values_before_op = len(all_values)
       val_embed = model.val(all_values, device=device)
-
-      
       op_state = model.init(io_embed, val_embed, operation)
       args, _ = beam_search(operation.arity, k,
                             val_embed,
