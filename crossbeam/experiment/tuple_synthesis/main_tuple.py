@@ -28,7 +28,7 @@ import torch.nn.functional as F
 from crossbeam.algorithm.synthesis import synthesize
 from crossbeam.model.util import CharacterTable
 from crossbeam.model.joint_model import JointModel
-from crossbeam.datasets.tuple_data_gen import get_consts_and_ops, task_gen, trace_gen
+from crossbeam.datasets.data_gen import tuple_consts_and_ops, task_gen, trace_gen
 from crossbeam.experiment.exp_common import set_global_seed
 from crossbeam.experiment.train_eval import main_train_eval
 
@@ -47,7 +47,7 @@ def main(argv):
   del argv
   set_global_seed(FLAGS.seed)
 
-  constants, operations = get_consts_and_ops()
+  constants, operations = tuple_consts_and_ops()
   model = init_model(operations)
 
   with open(os.path.join(FLAGS.data_folder, 'valid-tasks.pkl'), 'rb') as f:

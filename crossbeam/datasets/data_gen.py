@@ -12,6 +12,7 @@ from crossbeam.dsl import value as value_module
 
 FLAGS = flags.FLAGS
 
+flags.DEFINE_enum('domain', 'tuple', ['tuple', 'arithmetic'], 'task domain')
 flags.DEFINE_string('output_file', None, 'data dump')
 flags.DEFINE_integer('num_eval', 100, '# tasks for evaluation')
 flags.DEFINE_integer('num_examples', 2, '')
@@ -31,19 +32,26 @@ def task_gen(args, constants, operations):
       input_generator=random_data.RANDOM_INTEGER)
 
 
-def trace_gen(value_node):
-  if isinstance(value_node, value_module.OperationValue): # non-leaf
-    for value in value_node.arg_values:
-      sub_trace = trace_gen(value)
-      for v in sub_trace:
-        yield v
-    yield value_node
+def trace_gen(value_node, result=None):
+  if result is None:
+    result = []
+  if isinstance(value_node, value_module.OperationValue):  # non-leaf
+    sub_ops = [arg for arg in value_node.arg_values
+               if isinstance(arg, value_module.OperationValue)]
+    random.shuffle(sub_ops)
+    for child in sub_ops:
+      trace_gen(child, result)
+    if value_node not in result:
+      result.append(value_node)
+  return result
 
 
-def get_consts_and_ops():
-  operations = tuple_operations.get_operations()
-  constants = [0]
-  return constants, operations
+def arithmetic_consts_and_ops():
+    return [0], arithmetic_operations.get_operations()
+
+
+def tuple_consts_and_ops():
+    return [0], tuple_operations.get_operations()
 
 
 def main(argv):
@@ -51,8 +59,15 @@ def main(argv):
   random.seed(FLAGS.seed)
   np.random.seed(FLAGS.seed)
 
-  constants, operations = get_consts_and_ops()
-  eval_tasks = [task_gen(FLAGS, constants, operations) for _ in range(FLAGS.num_eval)]
+  if FLAGS.domain == 'tuple':
+    constants, operations = tuple_consts_and_ops()
+  elif FLAGS.domain == 'arithmetic':
+    constants, operations = arithmetic_consts_and_ops()
+  else:
+    raise ValueError('Unhandled domain: {}'.format(FLAGS.domain))
+
+  eval_tasks = [task_gen(FLAGS, constants, operations)
+                for _ in range(FLAGS.num_eval)]
 
   with open(FLAGS.output_file, 'wb') as f:
     cp.dump(eval_tasks, f, cp.HIGHEST_PROTOCOL)
