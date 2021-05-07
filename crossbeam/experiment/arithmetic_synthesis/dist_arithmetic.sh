@@ -20,3 +20,4 @@ python main_arithmetic.py \
     --num_proc 4 \
     --train_steps 1000000 \
     --port 29501 \
+    --model_type int_op \

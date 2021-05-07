@@ -15,7 +15,7 @@
 import random
 import numpy as np
 import os
-import pickle as cp
+import pickle5 as cp
 from argparse import Namespace
 from absl import app
 from absl import flags
