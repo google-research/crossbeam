@@ -19,6 +19,11 @@ class Task(object):
   """Stores multiple I/O examples for a single task."""
 
   def __init__(self, inputs_dict, outputs, solution=None):
+    """
+    inputs_dict: map from variable name to list of values (one list element per example)
+    outputs: list of outputs, one for example
+    solution: OperationValue
+    """
     self.inputs_dict = inputs_dict
     self.outputs = outputs
     self.solution = solution
