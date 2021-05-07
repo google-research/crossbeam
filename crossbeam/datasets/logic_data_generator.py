@@ -10,8 +10,6 @@ from crossbeam.dsl import logic_operations
 from crossbeam.dsl.task import Task
 from crossbeam.dsl import value as value_module
 
-from crossbeam.datasets.tuple_data_gen import task_gen
-
 
 FLAGS = flags.FLAGS
 
@@ -21,20 +19,6 @@ def get_consts_and_ops():
   constants = [np.array([False]*10),
                np.zeros((10,10)) > 1]
   return constants, operations
-
-
-def trace_gen(value_node):
-  if isinstance(value_node, value_module.OperationValue): # non-leaf
-    sub_ops = []
-    for ch in value_node.arg_values:
-      if isinstance(ch, value_module.OperationValue): # non-leaf
-        sub_ops.append(ch)
-    random.shuffle(sub_ops)
-    for ch in sub_ops:
-      sub_trace = trace_gen(ch)
-      for v in sub_trace:
-        yield v
-    yield value_node
 
 
 MAXIMUM_ENTITIES = 10
