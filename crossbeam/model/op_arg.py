@@ -91,3 +91,41 @@ class LSTMArgSelector(nn.Module):
       step_scores = self.step_func_mod(state, arg_seq_embed.view(state.shape), is_outer=False)
     step_scores = step_scores.view(-1, arg_seq.shape[1])
     return step_scores
+
+
+class OpSpecificLSTMSelector(nn.Module):
+  def __init__(self, ops, hidden_size, mlp_sizes, n_lstm_layers = 1,
+               step_score_func: str = 'mlp', step_score_normalize: bool = False):
+    super(OpSpecificLSTMSelector, self).__init__()
+    self.ops = ops
+    self.op_specific_mod = nn.ModuleList([LSTMArgSelector(hidden_size, 
+                                                          mlp_sizes, 
+                                                          n_lstm_layers, 
+                                                          step_score_func,
+                                                          step_score_normalize) for _ in range(len(self.ops))])
+    self.op_idx_map = {repr(op): i for i, op in enumerate(self.ops)}
+
+  def get_mod(self, op):
+    return self.op_specific_mod[self.op_idx_map[repr(op)]]
+
+  def state_select(self, state, indices, axis=1):
+    state, op = state
+    selected_state = self.get_mod(op).state_select(state, indices, axis)
+    return selected_state, op
+
+  def get_init_state(self, init_state, batch_size):
+    init_state, op = init_state
+    init_state = self.get_mod(op).get_init_state(init_state, batch_size)
+    return init_state, op
+
+  def step_score(self, state, x):
+    state, op = state
+    return self.get_mod(op).step_score(state, x)
+
+  def step_state(self, state, x):
+    state, op = state
+    return self.get_mod(op).step_state(state, x), op
+
+  def forward(self, init_state, choice_embed, arg_seq):
+    init_state, op = init_state
+    return self.get_mod(op)(init_state, choice_embed, arg_seq)
