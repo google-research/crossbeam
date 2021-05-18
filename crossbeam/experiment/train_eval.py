@@ -67,8 +67,9 @@ def task_loss(task, device, training_samples, all_values, model, score_normed=Tr
   return loss
 
 
-def do_eval(eval_tasks, operations, constants, model,
-            max_search_weight, beam_size, device, verbose=True):
+def do_eval(eval_tasks, operations, model,
+            max_search_weight, beam_size, device, verbose=True,
+            constants=None, constants_extractor=None):
   if verbose:
     print('doing eval...')
 
@@ -77,8 +78,10 @@ def do_eval(eval_tasks, operations, constants, model,
                                    min(len(eval_tasks),10))
   succ = 0.0
   for i,t in enumerate(eval_tasks):
-    out, _ = synthesize(t, operations, constants, model,
+    out, _ = synthesize(t, operations, model,
                         device=device,
+                        constants=constants,
+                        constants_extractor=constants_extractor,
                         max_weight=max_search_weight,
                         k=beam_size,
                         is_training=False)
@@ -104,20 +107,27 @@ def _gather_eval_info(rank, device, local_acc, local_num):
   return succ
 
 
-def train_eval_loop(args, device, model, eval_tasks, operations, constants, task_gen, trace_gen):
+def train_eval_loop(args, device, model, eval_tasks, operations,
+                    task_gen, trace_gen, input_generator,
+                    constants=None, constants_extractor=None):
   is_distributed = args.num_proc > 1
   if is_distributed:
     rank = dist.get_rank()
   else:
     rank = 0
   model = model.to(device)
-  optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)  
-  eval_func = functools.partial(do_eval, max_search_weight=args.max_search_weight, beam_size=args.beam_size, device=device)
+  optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+  eval_func = functools.partial(do_eval,
+                                max_search_weight=args.max_search_weight,
+                                beam_size=args.beam_size,
+                                device=device)
   best_succ = -1
   for cur_step in range(0, args.train_steps, args.eval_every):
     if rank == 0:
       print('eval at step %d' % cur_step)
-    succ = eval_func(eval_tasks, operations, constants, model, verbose=not is_distributed)
+    succ = eval_func(eval_tasks, operations, model, verbose=not is_distributed,
+                     constants=constants,
+                     constants_extractor=constants_extractor)
     if args.num_proc > 1:
       succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
     if succ > best_succ and rank == 0:
@@ -127,15 +137,17 @@ def train_eval_loop(args, device, model, eval_tasks, operations, constants, task
       torch.save(model.state_dict(), save_file)
     pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)
     for _ in pbar:
-      t = task_gen(args, constants, operations)
+      t = task_gen(args, operations, input_generator,
+                   constants=constants, constants_extractor=constants_extractor)
       trace = list(trace_gen(t.solution))
       with torch.no_grad():
-        training_samples, all_values = synthesize(t, operations, constants, model,
-                                                  device=device,
-                                                  trace=trace,
-                                                  max_weight=args.max_search_weight,
-                                                  k=args.beam_size,
-                                                  is_training=True)
+        training_samples, all_values = synthesize(
+            t, operations, model, device=device,
+            constants=constants, constants_extractor=constants_extractor,
+            trace=trace,
+            max_weight=args.max_search_weight,
+            k=args.beam_size,
+            is_training=True)
       optimizer.zero_grad()
       if isinstance(training_samples, list):
         loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
@@ -155,13 +167,16 @@ def train_eval_loop(args, device, model, eval_tasks, operations, constants, task
 
   if rank == 0:
     print('Training finished. Performing final evaluation...')
-  succ = eval_func(eval_tasks, operations, constants, model, verbose=not is_distributed)
+  succ = eval_func(eval_tasks, operations, model, verbose=not is_distributed,
+                   constants=constants, constants_extractor=constants_extractor)
   if args.num_proc > 1:
     _gather_eval_info(rank, device, succ, len(eval_tasks))
 
 
 @thread_wrapped_func
-def train_mp(args, rank, device, model, eval_tasks, operations, constants, task_gen, trace_gen):
+def train_mp(args, rank, device, model, eval_tasks, operations, task_gen,
+             trace_gen, input_generator,
+             constants=None, constants_extractor=None):
   if args.num_proc > 1:
     torch.set_num_threads(1)
   os.environ['MASTER_ADDR'] = '127.0.0.1'
@@ -171,10 +186,13 @@ def train_mp(args, rank, device, model, eval_tasks, operations, constants, task_
   else:
     backend = 'nccl'
   dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
-  train_eval_loop(args, device, model, eval_tasks, operations, constants, task_gen, trace_gen)
+  train_eval_loop(args, device, model, eval_tasks, operations, task_gen,
+                  trace_gen, input_generator,
+                  constants=constants, constants_extractor=constants_extractor)
 
 
-def main_train_eval(args, model, eval_tasks, operations, constants, task_gen, trace_gen):
+def main_train_eval(args, model, eval_tasks, operations, task_gen, trace_gen,
+                    input_generator, constants=None, constants_extractor=None):
   if args.num_proc > 1:
     if args.gpu_list is not None:
       devices = [get_torch_device(int(x.strip())) for x in args.gpu_list.split(',')]
@@ -185,13 +203,18 @@ def main_train_eval(args, model, eval_tasks, operations, constants, task_gen, tr
     procs = []
     for rank, device in enumerate(devices):
       local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
-      proc = mp.Process(target=train_mp, args=(args, rank, device, model, 
-                                               local_eval_tasks, 
-                                               operations, constants, task_gen, trace_gen))
+      proc = mp.Process(target=train_mp,
+                        args=(args, rank, device, model, local_eval_tasks,
+                              operations, task_gen, trace_gen, input_generator),
+                        kwargs={'constants': constants,
+                                'constants_extractor': constants_extractor})
       procs.append(proc)
       proc.start()
     for proc in procs:
       proc.join()
   else:
-    train_eval_loop(args, get_torch_device(args.gpu), model, eval_tasks, operations, constants, task_gen, trace_gen)
+    train_eval_loop(args, get_torch_device(args.gpu), model, eval_tasks,
+                    operations, task_gen, trace_gen, input_generator,
+                    constants=constants,
+                    constants_extractor=constants_extractor)
   logging.info("Training finished!!")

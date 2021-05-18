@@ -25,17 +25,18 @@ flags.DEFINE_integer('max_task_weight', 9, '')
 flags.DEFINE_boolean('verbose', False, 'whether to print generated tasks')
 
 
-def task_gen(args, constants, operations, input_generator, constant_extractor):
+def task_gen(args, operations, input_generator,
+             constants=None, constants_extractor=None):
   """Generates a random task."""
   task = random_data.generate_good_random_task(
       min_weight=args.min_task_weight,
       max_weight=args.max_task_weight,
       num_examples=args.num_examples,
       num_inputs=args.num_inputs,
-      constants=constants,
       operations=operations,
       input_generator=input_generator,
-      constant_extractor=constant_extractor)
+      constants=constants,
+      constants_extractor=constants_extractor)
   if args.verbose:
     print(task)
   return task
@@ -65,7 +66,7 @@ def tuple_consts_and_ops():
 
 
 def bustle_consts_and_ops():
-  return [], bustle_operations.get_operations()
+  return None, bustle_operations.get_operations()  # Use constants extractor.
 
 
 def main(argv):
@@ -73,7 +74,7 @@ def main(argv):
   random.seed(FLAGS.seed)
   np.random.seed(FLAGS.seed)
 
-  constant_extractor = None
+  constants_extractor = None
   if FLAGS.domain == 'tuple':
     constants, operations = tuple_consts_and_ops()
     input_generator = random_data.RANDOM_INTEGER
@@ -83,12 +84,13 @@ def main(argv):
   elif FLAGS.domain == 'bustle':
     constants, operations = bustle_consts_and_ops()
     input_generator = bustle_data.bustle_input_generator
-    constant_extractor = bustle_data.bustle_constant_extractor
+    constants_extractor = bustle_data.bustle_constants_extractor
   else:
     raise ValueError('Unhandled domain: {}'.format(FLAGS.domain))
 
-  eval_tasks = [task_gen(FLAGS, constants, operations, input_generator,
-                         constant_extractor)
+  eval_tasks = [task_gen(FLAGS, operations, input_generator,  # pylint: disable=g-complex-comprehension
+                         constants=constants,
+                         constants_extractor=constants_extractor)
                 for _ in range(FLAGS.num_eval)]
 
   with open(FLAGS.output_file, 'wb') as f:

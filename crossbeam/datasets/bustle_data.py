@@ -24,7 +24,7 @@ def bustle_input_generator():
 # TODO(kshi): Reimplement GenerateData::getRandomExamples
 
 
-def bustle_constant_extractor(inputs_dict):
+def bustle_constants_extractor(inputs_dict):
   # TODO(kshi): Reimplement ConstantExtraction::extractConstants
   del inputs_dict
   return ['', ' ', 0, 1, 2, 99]
