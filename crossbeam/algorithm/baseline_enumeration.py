@@ -26,7 +26,7 @@ def _gather_values_with_weight_and_type(values_by_weight, arg_weight, arg_type,
   return values
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def generate_partitions(num_elements, num_parts):
   """Generates partitions of num_elements into num_parts nonnegative parts.
 
