@@ -254,7 +254,7 @@ class Upper(BustleOperation):
 
 
 class Proper(BustleOperation):
-  """Propercases a string."""
+  """Propercases (title cases) a string."""
 
   def __init__(self):
     super(Proper, self).__init__('Proper', 1)
@@ -288,7 +288,133 @@ class Rept(BustleOperation):
     return txt * times
 
 
-# TODO(kshi): substitute and below
+class Substitute3(BustleOperation):
+  """Performs string substitution."""
+
+  def __init__(self):
+    super(Substitute3, self).__init__('Substitute', 3)
+
+  def arg_types(self):
+    """See base class."""
+    return str, str, str
+
+  def apply_single(self, raw_args):
+    """See base class."""
+    source, search, replace = raw_args
+    if search == '':  # pylint: disable=g-explicit-bool-comparison
+      return source
+    return source.replace(search, replace)
+
+
+class Substitute4(BustleOperation):
+  """Performs string substitution for a particular occurrence."""
+
+  def __init__(self):
+    super(Substitute4, self).__init__('Substitute', 4)
+
+  def arg_types(self):
+    """See base class."""
+    return str, str, str, int
+
+  def apply_single(self, raw_args):
+    """See base class."""
+    source, search, replace, occurrence = raw_args
+    if occurrence < 0:
+      raise ValueError()
+    if search == '':  # pylint: disable=g-explicit-bool-comparison
+      return source
+    if occurrence == 0:
+      return source.replace(search, replace)
+
+    index = -1
+    for _ in range(occurrence):
+      index += 1
+      index = source.find(search, index)
+      if index == -1:
+        break
+    if index != -1:
+      return source[:index] + replace + source[index + len(search):]
+    else:
+      return source
+
+
+class ToText(BustleOperation):
+  """Converts an integer to a string."""
+
+  def __init__(self):
+    super(ToText, self).__init__('To_Text', 1)
+
+  def arg_types(self):
+    """See base class."""
+    return (int,)
+
+  def apply_single(self, raw_args):
+    """See base class."""
+    return str(raw_args[0])
+
+
+class If(BustleOperation):
+  """Performs if-then-else."""
+
+  def __init__(self):
+    super(If, self).__init__('If', 3)
+
+  def arg_types(self):
+    """See base class."""
+    return bool, str, str
+
+  def apply_single(self, raw_args):
+    """See base class."""
+    condition, true_result, false_result = raw_args
+    return true_result if condition else false_result
+
+
+class Exact(BustleOperation):
+  """Checks if two strings exactly match."""
+
+  def __init__(self):
+    super(Exact, self).__init__('Exact', 2)
+
+  def arg_types(self):
+    """See base class."""
+    return str, str
+
+  def apply_single(self, raw_args):
+    """See base class."""
+    left, right = raw_args
+    return left == right
+
+
+class Gt(BustleOperation):
+  """Checks if the first int is greater than the second int."""
+
+  def __init__(self):
+    super(Gt, self).__init__('Gt', 2)
+
+  def arg_types(self):
+    """See base class."""
+    return int, int
+
+  def apply_single(self, raw_args):
+    """See base class."""
+    left, right = raw_args
+    return left > right
+
+
+class Gte(BustleOperation):
+  """Checks if the first int is greater than or equal to the second int."""
+
+  def __init__(self):
+    super(Gte, self).__init__('Gte', 2)
+
+  def arg_types(self):
+    """See base class."""
+    return int, int
+
+  def apply_single(self, raw_args):
+    """See base class."""
+    left, right = raw_args
+    return left >= right
 
 
 def get_operations():
@@ -308,4 +434,11 @@ def get_operations():
       Upper(),
       Proper(),
       Rept(),
+      Substitute3(),
+      Substitute4(),
+      ToText(),
+      If(),
+      Exact(),
+      Gt(),
+      Gte(),
   ]

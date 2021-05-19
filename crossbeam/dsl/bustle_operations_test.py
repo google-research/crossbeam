@@ -88,6 +88,49 @@ class BustleOperationsTest(parameterized.TestCase):
       ('Rept', ['abc', 1], 'abc'),
       ('Rept', ['abc', 2], 'abcabc'),
       ('Rept', ['abc', 3], 'abcabcabc'),
+
+      ('Substitute3', ['Spreadsheet', 'e', 'E'], 'SprEadshEEt'),
+      ('Substitute3', ['Spreadsheet', 'x', 'E'], 'Spreadsheet'),
+      ('Substitute3', ['Spreadsheet', '', 'X'], 'Spreadsheet'),
+      ('Substitute3', ['', '', 'X'], ''),
+      ('Substitute3', ['Spreadsheet', 'e', ''], 'Spradsht'),
+      ('Substitute3', ['AAAAA', 'AA', 'X'], 'XXA'),
+      ('Substitute3', ['AAAAA', 'AA', 'AXA'], 'AXAAXAA'),
+      ('Substitute3', ['AAAAA', '', 'B'], 'AAAAA'),
+
+      ('Substitute4', ['Google Docs', 'ogle', 'od', 1], 'Good Docs'),
+      ('Substitute4', ['Google Docs', 'o', 'a', 3], 'Google Dacs'),
+      ('Substitute4', ['Spreadsheet', 'e', 'E', 2], 'SpreadshEet'),
+      ('Substitute4', ['AAAAA', 'AA', 'X', -1], None),
+      ('Substitute4', ['AAAAA', 'AA', 'X', 0], 'XXA'),
+      ('Substitute4', ['AAAAA', 'AA', 'X', 1], 'XAAA'),
+      ('Substitute4', ['AAAAA', 'AA', 'X', 2], 'AXAA'),
+      ('Substitute4', ['AAAAA', 'AA', 'X', 3], 'AAXA'),
+      ('Substitute4', ['AAAAA', 'AA', 'X', 4], 'AAAX'),
+      ('Substitute4', ['AAAAA', 'AA', 'X', 5], 'AAAAA'),
+      ('Substitute4', ['AAAAA', 'AA', 'AXA', 0], 'AXAAXAA'),
+      ('Substitute4', ['AAAAA', 'AA', 'AXA', 1], 'AXAAAA'),
+      ('Substitute4', ['AAAAA', 'AA', 'AXA', 4], 'AAAAXA'),
+      ('Substitute4', ['AAAAA', 'AA', 'AXA', 5], 'AAAAA'),
+      ('Substitute4', ['A', '', 'B', -1], None),
+
+      ('ToText', [-99], '-99'),
+      ('ToText', [0], '0'),
+      ('ToText', [123], '123'),
+
+      ('If', [True, 'A', 'B'], 'A'),
+      ('If', [False, 'A', 'B'], 'B'),
+
+      ('Exact', ['A', 'A'], True),
+      ('Exact', ['A', 'B'], False),
+
+      ('Gt', [5, 6], False),
+      ('Gt', [6, 6], False),
+      ('Gt', [7, 6], True),
+
+      ('Gte', [5, 6], False),
+      ('Gte', [6, 6], True),
+      ('Gte', [7, 6], True),
   )
   def test_operations(self, operation_name, arguments, expected_result):
     operation = getattr(bustle_operations, operation_name)()
