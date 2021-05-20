@@ -36,9 +36,16 @@ class OperationBase(abc.ABC):
   def __repr__(self):
     return type(self).__name__
 
+  def arg_types(self):
+    """The types of this operation's arguments, or None to allow any types."""
+    return None
+
   def apply(self, arg_values):
     """Applies the operation to a list of arguments, for all examples."""
     num_examples = arg_values[0].num_examples
+    arg_types = self.arg_types()  # pylint: disable=assignment-from-none
+    if arg_types is not None and arg_types != tuple(x.type for x in arg_values):
+      return None
     try:
       results = [self.apply_single([arg_value[i] for arg_value in arg_values])
                  for i in range(num_examples)]

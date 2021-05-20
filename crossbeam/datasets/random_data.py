@@ -173,20 +173,26 @@ RANDOM_INTEGER = functools.partial(random.randint, a=0, b=9)
 
 
 def generate_random_task(min_weight, max_weight, num_examples, num_inputs,
-                         constants, operations, input_generator,
-                         dp_info=None, random_seed=None):
+                         operations, input_generator, dp_info=None,
+                         constants=None, constants_extractor=None,
+                         random_seed=None):
   """Generate a random Examples object."""
   if random_seed is not None:
     random.seed(random_seed)
-
-  if dp_info is None:
-    dp_info = num_expressions_dp(operations, num_inputs, constants, max_weight)
 
   inputs_dict = {
       'in{}'.format(input_index + 1):
           [input_generator() for _ in range(num_examples)]
       for input_index in range(num_inputs)
   }
+
+  assert (constants is None) != (constants_extractor is None), (
+      'expected exactly one of constants or constants_extractor')
+  if constants is None:
+    constants = constants_extractor(inputs_dict)
+
+  if dp_info is None:
+    dp_info = num_expressions_dp(operations, num_inputs, constants, max_weight)
 
   min_index = dp_info.cumulative_expressions[min_weight - 1]
   max_index = dp_info.cumulative_expressions[max_weight] - 1
@@ -224,7 +230,13 @@ def generate_good_random_task(**kwargs):
     # For any input or output, it cannot be identical to another input or a
     # constant.
     inputs = list(task.inputs_dict.values())
+
+    assert (kwargs.get('constants', None) !=
+            kwargs.get('constants_extractor', None)), (
+                'expected exactly one of constants or constants_extractor')
     constants = kwargs['constants']
+    if constants is None:
+      constants = kwargs['constants_extractor'](task.inputs_dict)
     good = True
     for to_check, other in itertools.product(inputs + task.outputs,
                                              inputs + constants):
