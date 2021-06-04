@@ -20,7 +20,7 @@ flags.DEFINE_integer('num_eval', 1000, '# tasks for evaluation')
 flags.DEFINE_integer('num_examples', 3, '')
 flags.DEFINE_integer('num_inputs', 3, '')
 flags.DEFINE_integer('min_task_weight', 3, '')
-flags.DEFINE_integer('max_task_weight', 9, '')
+flags.DEFINE_integer('max_task_weight', 10, '')
 flags.DEFINE_boolean('verbose', False, 'whether to print generated tasks')
 
 
@@ -76,7 +76,7 @@ def main(argv):
   eval_tasks = gen_random_tasks(domain,
                                 num_tasks=FLAGS.num_eval,
                                 min_weight=FLAGS.min_task_weight,
-                                max_weight=FLAGS.max_task_Weight,
+                                max_weight=FLAGS.max_task_weight,
                                 num_examples=FLAGS.num_examples,
                                 num_inputs=FLAGS.num_inputs,
                                 verbose=FLAGS.verbose)
