@@ -7,10 +7,9 @@ from absl import flags
 import pickle as cp
 from crossbeam.datasets import random_data
 from crossbeam.datasets import bustle_data
-from crossbeam.dsl import arithmetic_operations
-from crossbeam.dsl import tuple_operations
-from crossbeam.dsl import bustle_operations
+from crossbeam.dsl import domains
 from crossbeam.dsl import value as value_module
+from crossbeam.experiment import exp_common
 
 FLAGS = flags.FLAGS
 
@@ -25,21 +24,33 @@ flags.DEFINE_integer('max_task_weight', 9, '')
 flags.DEFINE_boolean('verbose', False, 'whether to print generated tasks')
 
 
-def task_gen(args, operations, input_generator,
-             constants=None, constants_extractor=None):
+def task_gen(domain, min_weight, max_weight, num_examples, num_inputs,
+             verbose=False):
   """Generates a random task."""
   task = random_data.generate_good_random_task(
-      min_weight=args.min_task_weight,
-      max_weight=args.max_task_weight,
-      num_examples=args.num_examples,
-      num_inputs=args.num_inputs,
-      operations=operations,
-      input_generator=input_generator,
-      constants=constants,
-      constants_extractor=constants_extractor)
-  if args.verbose:
+      domain=domain,
+      min_weight=min_weight,
+      max_weight=max_weight,
+      num_examples=num_examples,
+      num_inputs=num_inputs)
+  if verbose:
     print(task)
   return task
+
+
+def gen_random_tasks(domain, num_tasks,
+                     min_weight, max_weight, num_examples, num_inputs,
+                     verbose=False):
+  """Generates multiple random tasks."""
+  return [
+      task_gen(domain=domain,  # pylint: disable=g-complex-comprehension
+               min_weight=min_weight,
+               max_weight=max_weight,
+               num_examples=num_examples,
+               num_inputs=num_inputs,
+               verbose=verbose)
+      for _ in range(num_tasks)
+  ]
 
 
 def trace_gen(value_node, result=None):
@@ -57,41 +68,18 @@ def trace_gen(value_node, result=None):
   return result
 
 
-def arithmetic_consts_and_ops():
-  return [0], arithmetic_operations.get_operations()
-
-
-def tuple_consts_and_ops():
-  return [0], tuple_operations.get_operations()
-
-
-def bustle_consts_and_ops():
-  return None, bustle_operations.get_operations()  # Use constants extractor.
-
-
 def main(argv):
   del argv
-  random.seed(FLAGS.seed)
-  np.random.seed(FLAGS.seed)
+  exp_common.set_global_seed(FLAGS.seed)
 
-  constants_extractor = None
-  if FLAGS.domain == 'tuple':
-    constants, operations = tuple_consts_and_ops()
-    input_generator = random_data.RANDOM_INTEGER
-  elif FLAGS.domain == 'arithmetic':
-    constants, operations = arithmetic_consts_and_ops()
-    input_generator = random_data.RANDOM_INTEGER
-  elif FLAGS.domain == 'bustle':
-    constants, operations = bustle_consts_and_ops()
-    input_generator = bustle_data.bustle_input_generator
-    constants_extractor = bustle_data.bustle_constants_extractor
-  else:
-    raise ValueError('Unhandled domain: {}'.format(FLAGS.domain))
-
-  eval_tasks = [task_gen(FLAGS, operations, input_generator,  # pylint: disable=g-complex-comprehension
-                         constants=constants,
-                         constants_extractor=constants_extractor)
-                for _ in range(FLAGS.num_eval)]
+  domain = domains.get_domain(FLAGS.domain)
+  eval_tasks = gen_random_tasks(domain,
+                                num_tasks=FLAGS.num_eval,
+                                min_weight=FLAGS.min_task_weight,
+                                max_weight=FLAGS.max_task_Weight,
+                                num_examples=FLAGS.num_examples,
+                                num_inputs=FLAGS.num_inputs,
+                                verbose=FLAGS.verbose)
 
   with open(FLAGS.output_file, 'wb') as f:
     cp.dump(eval_tasks, f, cp.HIGHEST_PROTOCOL)

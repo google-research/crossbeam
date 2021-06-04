@@ -12,12 +12,15 @@ fi
 
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 
-python main_arithmetic.py \
+#python3 -m crossbeam.experiment.run_crossbeam \
+python run_crossbeam.py \
+    --domain=arithmetic \
+    --model_type=int \
     --data_folder $data_folder \
-    --eval_every 10000 \
-    --gpu_list 0,1,2,3 \
     --save_dir $save_dir \
+    --gpu_list 0,1,2,3 \
     --num_proc 4 \
+    --eval_every 10000 \
     --train_steps 1000000 \
     --port 29501 \
-    --model_type int_op \
+    $@

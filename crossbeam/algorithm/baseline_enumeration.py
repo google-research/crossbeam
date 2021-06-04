@@ -63,8 +63,7 @@ def generate_partitions(num_elements, num_parts):
   return results
 
 
-def synthesize_baseline(task, operations, max_weight=10, timeout=5,
-                        constants=None, constants_extractor=None):
+def synthesize_baseline(task, domain, max_weight=10, timeout=5):
   """Synthesizes a solution using normal bottom-up enumerative search."""
   end_time = timeit.default_timer() + timeout
   num_examples = task.num_examples
@@ -74,6 +73,8 @@ def synthesize_baseline(task, operations, max_weight=10, timeout=5,
   values_by_weight = [collections.OrderedDict()
                       for _ in range(max_weight + 1)]
 
+  constants = domain.constants
+  constants_extractor = domain.constants_extractor
   assert (constants is None) != (constants_extractor is None), (
       'expected exactly one of constants or constants_extractor')
   if constants_extractor is None:
@@ -94,7 +95,7 @@ def synthesize_baseline(task, operations, max_weight=10, timeout=5,
   typechecking_cache = {}
 
   for target_weight in range(2, max_weight + 1):
-    for op in operations:
+    for op in domain.operations:
 
       arity = op.arity
       arg_types = op.arg_types()
