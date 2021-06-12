@@ -67,21 +67,21 @@ def task_loss(task, device, training_samples, all_values, model, score_normed=Tr
   return loss
 
 
-def do_eval(eval_tasks, operations, model,
-            max_search_weight, beam_size, device, verbose=True,
-            constants=None, constants_extractor=None):
+def do_eval(eval_tasks, domain, model,
+            max_search_weight, beam_size, device, verbose=True):
   if verbose:
     print('doing eval...')
 
     # if we are verbose then we will show up to ten random task solutions
-    should_show = np.random.choice(list(range(len(eval_tasks))),
-                                   min(len(eval_tasks),10))
+    if len(eval_tasks) > 10:
+      should_show = np.random.choice(list(range(len(eval_tasks))),
+                                     min(len(eval_tasks),10))
+    else:
+      should_show = range(len(eval_tasks))
   succ = 0.0
   for i,t in enumerate(eval_tasks):
-    out, _ = synthesize(t, operations, model,
+    out, _ = synthesize(t, domain, model,
                         device=device,
-                        constants=constants,
-                        constants_extractor=constants_extractor,
                         max_weight=max_search_weight,
                         k=beam_size,
                         is_training=False)
@@ -107,9 +107,8 @@ def _gather_eval_info(rank, device, local_acc, local_num):
   return succ
 
 
-def train_eval_loop(args, device, model, eval_tasks, operations,
-                    task_gen, trace_gen, input_generator,
-                    constants=None, constants_extractor=None):
+def train_eval_loop(args, device, model, eval_tasks, domain,
+                    task_gen, trace_gen):
   is_distributed = args.num_proc > 1
   if is_distributed:
     rank = dist.get_rank()
@@ -123,27 +122,28 @@ def train_eval_loop(args, device, model, eval_tasks, operations,
                                 device=device)
   best_succ = -1
   for cur_step in range(0, args.train_steps, args.eval_every):
-    if rank == 0:
-      print('eval at step %d' % cur_step)
-    succ = eval_func(eval_tasks, operations, model, verbose=not is_distributed,
-                     constants=constants,
-                     constants_extractor=constants_extractor)
-    if args.num_proc > 1:
-      succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
-    if succ > best_succ and rank == 0:
-      print('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
-      best_succ = succ
-      save_file = os.path.join(args.save_dir, 'model-best-valid.ckpt')
-      torch.save(model.state_dict(), save_file)
+
+    # Evaluation
+    if cur_step > 0:
+      if rank == 0:
+        print('eval at step %d' % cur_step)
+      succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
+      if args.num_proc > 1:
+        succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
+      if succ > best_succ and rank == 0 and args.save_dir:
+        print('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
+        best_succ = succ
+        save_file = os.path.join(args.save_dir, 'model-best-valid.ckpt')
+        torch.save(model.state_dict(), save_file)
+
+    # Training
     pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)
     for _ in pbar:
-      t = task_gen(args, operations, input_generator,
-                   constants=constants, constants_extractor=constants_extractor)
+      t = task_gen(domain)
       trace = list(trace_gen(t.solution))
       with torch.no_grad():
         training_samples, all_values = synthesize(
-            t, operations, model, device=device,
-            constants=constants, constants_extractor=constants_extractor,
+            t, domain, model, device=device,
             trace=trace,
             max_weight=args.max_search_weight,
             k=args.beam_size,
@@ -167,16 +167,13 @@ def train_eval_loop(args, device, model, eval_tasks, operations,
 
   if rank == 0:
     print('Training finished. Performing final evaluation...')
-  succ = eval_func(eval_tasks, operations, model, verbose=not is_distributed,
-                   constants=constants, constants_extractor=constants_extractor)
+  succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
   if args.num_proc > 1:
     _gather_eval_info(rank, device, succ, len(eval_tasks))
 
 
 @thread_wrapped_func
-def train_mp(args, rank, device, model, eval_tasks, operations, task_gen,
-             trace_gen, input_generator,
-             constants=None, constants_extractor=None):
+def train_mp(args, rank, device, model, eval_tasks, domain, task_gen, trace_gen):
   if args.num_proc > 1:
     torch.set_num_threads(1)
   os.environ['MASTER_ADDR'] = '127.0.0.1'
@@ -186,13 +183,10 @@ def train_mp(args, rank, device, model, eval_tasks, operations, task_gen,
   else:
     backend = 'nccl'
   dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
-  train_eval_loop(args, device, model, eval_tasks, operations, task_gen,
-                  trace_gen, input_generator,
-                  constants=constants, constants_extractor=constants_extractor)
+  train_eval_loop(args, device, model, eval_tasks, domain, task_gen, trace_gen)
 
 
-def main_train_eval(args, model, eval_tasks, operations, task_gen, trace_gen,
-                    input_generator, constants=None, constants_extractor=None):
+def main_train_eval(args, model, eval_tasks, domain, task_gen, trace_gen):
   if args.num_proc > 1:
     if args.gpu_list is not None:
       devices = [get_torch_device(int(x.strip())) for x in args.gpu_list.split(',')]
@@ -205,16 +199,12 @@ def main_train_eval(args, model, eval_tasks, operations, task_gen, trace_gen,
       local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
       proc = mp.Process(target=train_mp,
                         args=(args, rank, device, model, local_eval_tasks,
-                              operations, task_gen, trace_gen, input_generator),
-                        kwargs={'constants': constants,
-                                'constants_extractor': constants_extractor})
+                              domain, task_gen, trace_gen))
       procs.append(proc)
       proc.start()
     for proc in procs:
       proc.join()
   else:
     train_eval_loop(args, get_torch_device(args.gpu), model, eval_tasks,
-                    operations, task_gen, trace_gen, input_generator,
-                    constants=constants,
-                    constants_extractor=constants_extractor)
+                    domain, task_gen, trace_gen)
   logging.info("Training finished!!")

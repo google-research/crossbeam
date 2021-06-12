@@ -19,9 +19,8 @@ from absl import flags
 import numpy as np
 
 from crossbeam.algorithm import baseline_enumeration
-from crossbeam.datasets import bustle_data
 from crossbeam.datasets import data_gen
-from crossbeam.datasets import random_data
+from crossbeam.dsl import domains
 from crossbeam.experiment import exp_common
 
 FLAGS = flags.FLAGS
@@ -31,45 +30,22 @@ flags.DEFINE_float('timeout', 5, 'time limit in seconds')
 flags.DEFINE_integer('num_tasks', 5, 'number of evaluation tasks')
 
 
-def main(argv):
-  del argv
-  exp_common.set_global_seed(FLAGS.seed)
-
-  constants_extractor = None
-  if FLAGS.domain == 'tuple':
-    constants, operations = data_gen.tuple_consts_and_ops()
-    input_generator = random_data.RANDOM_INTEGER
-  elif FLAGS.domain == 'arithmetic':
-    constants, operations = data_gen.arithmetic_consts_and_ops()
-    input_generator = random_data.RANDOM_INTEGER
-  elif FLAGS.domain == 'bustle':
-    constants, operations = data_gen.bustle_consts_and_ops()
-    input_generator = bustle_data.bustle_input_generator
-    constants_extractor = bustle_data.bustle_constants_extractor
-
-  if FLAGS.eval_set_pkl:
-    with open(FLAGS.eval_set_pkl, 'rb') as f:
-      eval_tasks = cp.load(f)
-    if FLAGS.num_tasks > 0:
-      eval_tasks = eval_tasks[:FLAGS.num_tasks]
-  else:
-    eval_tasks = [data_gen.task_gen(FLAGS, operations, input_generator,  # pylint: disable=g-complex-comprehension
-                                    constants=constants,
-                                    constants_extractor=constants_extractor)
-                  for _ in range(FLAGS.num_tasks)]
-
-  print('Num tasks: {}'.format(FLAGS.num_tasks))
+def run_synthesis(domain, tasks, timeout, verbose=False):
+  """Performs baseline synthesis on the tasks."""
+  num_tasks = len(tasks)
+  print('Num tasks: {}'.format(num_tasks))
   success_count = 0
   successful_times = []
+  results_and_times = []
 
-  for i, task in enumerate(eval_tasks):
+  for i, task in enumerate(tasks):
     start_time = timeit.default_timer()
     result, value_set, _ = baseline_enumeration.synthesize_baseline(
-        task, operations, max_weight=10, timeout=FLAGS.timeout,
-        constants=constants, constants_extractor=constants_extractor)
+        task, domain, max_weight=10, timeout=timeout)
     elapsed_time = timeit.default_timer() - start_time
+    results_and_times.append((result, elapsed_time))
 
-    if FLAGS.verbose:
+    if verbose:
       print('Task {}: {}'.format(i, task))
       print('Task solution has weight {}'.format(task.solution.weight))
       print('Solution: {}, weight {}'.format(
@@ -84,10 +60,38 @@ def main(argv):
       successful_times.append(elapsed_time)
 
   print('Solved {} / {} ({:.2f}%) tasks within {} sec time limit each'.format(
-      success_count, FLAGS.num_tasks, success_count / FLAGS.num_tasks * 100,
-      FLAGS.timeout))
+      success_count, num_tasks, success_count / num_tasks * 100, timeout))
   print('Successful solve time mean: {:.2f} sec, median: {:.2f} sec'.format(
       np.mean(successful_times), np.median(successful_times)))
+
+  return results_and_times
+
+
+def main(argv):
+  del argv
+
+  exp_common.set_global_seed(FLAGS.seed)
+
+  domain = domains.get_domain(FLAGS.domain)
+
+  if FLAGS.eval_set_pkl:
+    with open(FLAGS.eval_set_pkl, 'rb') as f:
+      tasks = cp.load(f)
+    if FLAGS.num_tasks > 0:
+      tasks = tasks[:FLAGS.num_tasks]
+  else:
+    tasks = data_gen.gen_random_tasks(domain,
+                                      num_tasks=FLAGS.num_tasks,
+                                      min_weight=FLAGS.min_task_weight,
+                                      max_weight=FLAGS.max_task_weight,
+                                      num_examples=FLAGS.num_examples,
+                                      num_inputs=FLAGS.num_inputs,
+                                      verbose=FLAGS.verbose)
+
+  run_synthesis(domain=domain,
+                tasks=tasks,
+                timeout=FLAGS.timeout,
+                verbose=FLAGS.verbose)
 
 
 if __name__ == '__main__':

@@ -18,8 +18,7 @@ from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
 
 
-def synthesize(task, operations, model, device,
-               constants=None, constants_extractor=None,
+def synthesize(task, domain, model, device,
                trace=None, max_weight=10, k=2, is_training=False,
                include_as_train=None):
   if trace is None:
@@ -30,6 +29,8 @@ def synthesize(task, operations, model, device,
 
   all_values = []
 
+  constants = domain.constants
+  constants_extractor = domain.constants_extractor
   assert (constants is None) != (constants_extractor is None), (
       'expected exactly one of constants or constants_extractor')
   if constants_extractor is None:
@@ -49,7 +50,7 @@ def synthesize(task, operations, model, device,
   while True:
     cur_num_values = len(all_values)
 
-    for operation in operations:
+    for operation in domain.operations:
       num_values_before_op = len(all_values)
       val_embed = model.val(all_values, device=device)
       op_state = model.init(io_embed, val_embed, operation)

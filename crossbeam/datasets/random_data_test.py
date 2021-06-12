@@ -17,6 +17,7 @@
 from absl.testing import absltest
 
 from crossbeam.datasets import random_data
+from crossbeam.dsl import domains
 from crossbeam.dsl import tuple_operations
 
 
@@ -58,18 +59,16 @@ class RandomDataTest(absltest.TestCase):
     self.assertLen(expression_set, dp_info.answer)
 
   def test_generate_random_task(self):
-    operations = tuple_operations.get_operations()
+    domain = domains.TUPLE_DOMAIN
     for max_weight in range(1, 8):
       for min_weight in range(1, max_weight + 1):
         for _ in range(100):
           task = random_data.generate_random_task(
+              domain,
               min_weight=min_weight,
               max_weight=max_weight,
               num_examples=3,
-              num_inputs=2,
-              constants=[0],
-              operations=operations,
-              input_generator=random_data.RANDOM_INTEGER)
+              num_inputs=2)
           if max_weight == min_weight == 2:
             # This is the only combination that leaves no possible tasks.
             self.assertIsNone(task)

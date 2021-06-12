@@ -6,7 +6,7 @@ import numpy as np
 flags.DEFINE_string('pooling', 'mean', 'pooling method used')
 flags.DEFINE_string('step_score_func', 'mlp', 'score func used at each step of autoregressive model')
 flags.DEFINE_boolean('score_normed', True, 'whether to normalize the score into valid probability')
-flags.DEFINE_integer('max_search_weight', 8, '')
+flags.DEFINE_integer('max_search_weight', 12, '')
 
 
 def set_global_seed(seed):
