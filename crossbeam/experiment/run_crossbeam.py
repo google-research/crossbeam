@@ -61,8 +61,9 @@ def main(argv):
 
   domain = domains.get_domain(FLAGS.domain)
   model = init_model(domain, FLAGS.model_type)
-  if FLAGS.model_dump is not None:
+  if FLAGS.load_model is not None:
     model_dump = os.path.join(FLAGS.save_dir, FLAGS.load_model)
+    print('loading model from', model_dump)
     model.load_state_dict(torch.load(model_dump))
   if FLAGS.do_test:
     eval_file = 'test-tasks.pkl'
