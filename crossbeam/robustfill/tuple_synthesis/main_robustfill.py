@@ -46,7 +46,7 @@ def init_model(domain):
   output_table = CharacterTable(domain.output_charset,
                                 max_len=domain.output_max_len)
 
-  prog_vocab = ['pad'] + [str(x) for x in domain.constaints]
+  prog_vocab = ['pad'] + [str(x) for x in domain.constants]
   for i in range(1, FLAGS.num_inputs + 1):
       prog_vocab.append('in%d' % i)
   prog_vocab += ['(', ')', ', ', 'sos', 'eos']
