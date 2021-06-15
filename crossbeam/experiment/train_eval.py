@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -68,7 +69,8 @@ def task_loss(task, device, training_samples, all_values, model, score_normed=Tr
 
 
 def do_eval(eval_tasks, domain, model,
-            max_search_weight, beam_size, device, verbose=True):
+            max_search_weight, beam_size, device, verbose=True, 
+            timeout=None, is_stochastic=False):
   if verbose:
     print('doing eval...')
 
@@ -84,7 +86,9 @@ def do_eval(eval_tasks, domain, model,
                         device=device,
                         max_weight=max_search_weight,
                         k=beam_size,
-                        is_training=False)
+                        is_training=False,
+                        timeout=timeout,
+                        is_stochastic=is_stochastic)
     if out is not None:
       if verbose and i in should_show:
         print("successfully synthesized a solution to",t)
@@ -114,12 +118,19 @@ def train_eval_loop(args, device, model, eval_tasks, domain,
     rank = dist.get_rank()
   else:
     rank = 0
-  model = model.to(device)
-  optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+  model = model.to(device)  
   eval_func = functools.partial(do_eval,
                                 max_search_weight=args.max_search_weight,
                                 beam_size=args.beam_size,
-                                device=device)
+                                device=device,
+                                timeout=args.timeout,
+                                is_stochastic=args.stochastic_beam)
+  if args.do_test: # test only
+    succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
+    if args.num_proc > 1:
+      succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
+    sys.exit()
+  optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
   best_succ = -1
   for cur_step in range(0, args.train_steps, args.eval_every):
 
