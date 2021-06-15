@@ -139,21 +139,27 @@ def train_eval_loop(args, device, model, eval_tasks, domain,
     # Training
     pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)
     for _ in pbar:
-      t = task_gen(domain)
-      trace = list(trace_gen(t.solution))
-      with torch.no_grad():
-        training_samples, all_values = synthesize(
-            t, domain, model, device=device,
-            trace=trace,
-            max_weight=args.max_search_weight,
-            k=args.beam_size,
-            is_training=True)
+      loss_acc = []
       optimizer.zero_grad()
-      if isinstance(training_samples, list):
-        loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
-        loss.backward()
-      else:
-        loss = 0.0
+      for _ in range(args.grad_accumulate):
+        t = task_gen(domain)
+        trace = list(trace_gen(t.solution))
+        with torch.no_grad():
+          training_samples, all_values = synthesize(
+              t, domain, model, device=device,
+              trace=trace,
+              max_weight=args.max_search_weight,
+              k=args.beam_size,
+              is_training=True)
+        
+        if isinstance(training_samples, list):
+          loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
+          loss = loss / args.grad_accumulate
+          loss.backward()
+          loss_acc.append(loss.item())
+        else:
+          loss = 0.0
+      loss = np.sum(loss_acc)
       if is_distributed:
         for param in model.parameters():
           if param.grad is None:
