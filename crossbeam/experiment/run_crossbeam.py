@@ -30,6 +30,8 @@ from crossbeam.model.util import CharacterTable
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('model_type', 'char', 'int/char')
+flags.DEFINE_bool('stochastic_beam', False, 'do stochastic beam search during test')
+flags.DEFINE_float('timeout', None, 'timeout during test')
 
 
 def init_model(domain, model_type):
@@ -59,8 +61,15 @@ def main(argv):
 
   domain = domains.get_domain(FLAGS.domain)
   model = init_model(domain, FLAGS.model_type)
-
-  with open(os.path.join(FLAGS.data_folder, 'valid-tasks.pkl'), 'rb') as f:
+  if FLAGS.load_model is not None:
+    model_dump = os.path.join(FLAGS.save_dir, FLAGS.load_model)
+    print('loading model from', model_dump)
+    model.load_state_dict(torch.load(model_dump))
+  if FLAGS.do_test:
+    eval_file = 'test-tasks.pkl'
+  else:
+    eval_file = 'valid-tasks.pkl'
+  with open(os.path.join(FLAGS.data_folder, eval_file), 'rb') as f:
     eval_tasks = cp.load(f)
 
   proc_args = argparse.Namespace(**FLAGS.flag_values_dict())

@@ -4,7 +4,7 @@ import math
 from crossbeam.model.util import ceil_power_of_2
 
 
-def beam_search(arity, k, choice_embed, init_embed, score_model, device, choice_mask=None):
+def beam_search(arity, k, choice_embed, init_embed, score_model, device, choice_mask=None, is_stochastic=False):
   """
   Args:
     arity: int, arity of current op;
@@ -19,6 +19,7 @@ def beam_search(arity, k, choice_embed, init_embed, score_model, device, choice_
       fn_step_score: a function takes (N-state, M-choices) and return a score matrix of N x M
     device: device to run beam search
     choice_mask: vector of size N, mark valid (1) or invalid choice(0)
+    is_stochastic: whether use stochastic (multinomial) instead of top-k
   Returns:
     arg_choices: jax int32 array of size k x arity, the indices of selected args
     prefix_scores: scores for each arg-list
@@ -35,9 +36,17 @@ def beam_search(arity, k, choice_embed, init_embed, score_model, device, choice_
     if choice_mask is not None:
       joint_scores = joint_scores * choice_mask + (1 - choice_mask) * -1e10
     joint_scores = joint_scores.view(-1)
-    prefix_scores, arg_topk = torch.topk(joint_scores, joint_scores.shape[0] if k > joint_scores.shape[0] else k)
-    prev_index = arg_topk // num_choices
-    op_choice = arg_topk % num_choices
+    cur_k = joint_scores.shape[0] if k > joint_scores.shape[0] else k
+    if is_stochastic:
+      prob = torch.softmax(joint_scores, dim=0)
+      arg_selected = torch.multinomial(prob, cur_k)
+      prefix_scores = joint_scores[arg_selected]
+      prefix_scores, idx_sorted = torch.sort(prefix_scores)
+      arg_selected = arg_selected[idx_sorted]
+    else:
+      prefix_scores, arg_selected = torch.topk(joint_scores, cur_k)
+    prev_index = arg_selected // num_choices
+    op_choice = arg_selected % num_choices
 
     prev_state = score_model.state_select(cur_state, prev_index)
     cur_op_embed = choice_embed[op_choice]

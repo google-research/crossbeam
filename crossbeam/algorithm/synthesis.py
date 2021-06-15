@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import timeit
 
 from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
@@ -20,7 +21,8 @@ from crossbeam.dsl import value as value_module
 
 def synthesize(task, domain, model, device,
                trace=None, max_weight=10, k=2, is_training=False,
-               include_as_train=None):
+               include_as_train=None, timeout=None, is_stochastic=False):
+  end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
   if trace is None:
     trace = []
   if include_as_train is None:
@@ -58,7 +60,8 @@ def synthesize(task, domain, model, device,
                             val_embed,
                             op_state,
                             model.arg,
-                            device=device)
+                            device=device,
+                            is_stochastic=is_stochastic)
       args = args.data.cpu().numpy().astype(np.int32)
       if k > (len(all_values) ** operation.arity):
         args = args[:len(all_values) ** operation.arity]
@@ -80,7 +83,8 @@ def synthesize(task, domain, model, device,
         # one easy fix would to include this into trace_generation stage (add stochasticity)
         if len(trace) and result_value == trace[0] and trace_in_beam < 0:
           trace_in_beam = i
-
+      if end_time is not None and timeit.default_timer() > end_time:
+        return None, None
       if is_training and len(trace) and trace[0].operation == operation:
         if include_as_train(trace_in_beam):  # construct training example
           if trace_in_beam < 0:  # true arg not found
