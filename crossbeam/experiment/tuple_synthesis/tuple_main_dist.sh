@@ -8,8 +8,8 @@ maxsw=8
 data_folder=$HOME/data/crossbeam/tuple_synthesis/ne-${ne}-ni-${ni}-maxw-${maxw}
 
 beam_size=4
-grad_acc=1
-save_dir=$HOME/results/crossbeam/tuple_synthesis/b-${beam_size}-g-${grad_acc}
+grad_acc=3
+save_dir=$HOME/results/crossbeam/tuple_synthesis/dist-b-${beam_size}-g-${grad_acc}
 
 if [ ! -e $save_dir ];
 then
