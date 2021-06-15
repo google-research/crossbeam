@@ -31,7 +31,6 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('model_type', 'char', 'int/char')
 flags.DEFINE_bool('stochastic_beam', False, 'do stochastic beam search during test')
-flags.DEFINE_float('timeout', None, 'timeout during test')
 
 
 def init_model(domain, model_type):
