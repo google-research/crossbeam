@@ -31,13 +31,10 @@ class RobustFill(nn.Module):
     self.io_summary = IOPoolProjSummary(FLAGS.embed_dim, pool_method='mean')
     self.decoder = RfillAutoreg(prog_vdict, FLAGS.decoder_rnn_layers, FLAGS.embed_dim)
 
-  def embed_io(self, list_inputs_dict, list_outputs):
-    io_concat_embed, sample_scatter_idx = self.io(list_inputs_dict, list_outputs, needs_scatter_idx=True)
+  def embed_io(self, list_inputs_dict, list_outputs, device):
+    io_concat_embed, sample_scatter_idx = self.io(list_inputs_dict, list_outputs, 
+                                                  device=device, needs_scatter_idx=True)
     return self.io_summary(io_concat_embed, sample_scatter_idx)
-
-  def set_device(self, device):
-    self.device = device
-    self.io.set_device(device)
 
 
 def init_model(domain):
@@ -57,7 +54,7 @@ def init_model(domain):
   return model
 
 
-def eval_dataset(model, dataset):
+def eval_dataset(model, dataset, device):
   eval_loader = DataLoader(dataset, batch_size=FLAGS.batch_size, collate_fn=raw_collate_fn, num_workers=0,
                             shuffle=False, drop_last=False)
   model.eval()
@@ -65,7 +62,7 @@ def eval_dataset(model, dataset):
     hit_at_1 = 0.0
     total_hit = 0.0
     for list_inputs_dict, list_outputs, expr_list in eval_loader:
-      init_state = model.embed_io(list_inputs_dict, list_outputs)
+      init_state = model.embed_io(list_inputs_dict, list_outputs, device=device)
       _, list_pred_progs, _, _ = model.decoder.beam_search(init_state, beam_size=FLAGS.beam_size, max_len=50)        
       for i in range(len(expr_list)):
         hit = -1
@@ -108,10 +105,11 @@ def main(argv):
   if FLAGS.gpu >= 0:
     model = model.cuda()
     device = 'cuda:{}'.format(FLAGS.gpu)
-    model.set_device(device)
+  else:
+    device = 'cpu'    
   if FLAGS.do_test:
     test_dataset = RawTupleOfflineDataset(FLAGS.data_folder, 'test')
-    hit_at_1, total_hit = eval_dataset(model, test_dataset)
+    hit_at_1, total_hit = eval_dataset(model, test_dataset, device)
     print('test hit@1: %.2f, hit@%d: %.2f' % (hit_at_1, FLAGS.beam_size, total_hit))
     sys.exit()
   optimizer = optim.Adam(model.parameters(), lr=FLAGS.lr)
@@ -124,7 +122,7 @@ def main(argv):
     for it in pbar:
       list_inputs_dict, list_outputs, expr_list = next(train_gen)
       optimizer.zero_grad()
-      init_state = model.embed_io(list_inputs_dict, list_outputs)
+      init_state = model.embed_io(list_inputs_dict, list_outputs, device=device)
       ll = model.decoder(init_state, expr_list)
       loss = -torch.mean(ll)
       loss.backward()
@@ -133,7 +131,7 @@ def main(argv):
       optimizer.step()
       pbar.set_description('iter: %d, loss: %.4f' % (it, loss.item()))
     cur_step += FLAGS.eval_every
-    hit_at_1, total_hit = eval_dataset(model, valid_dataset)
+    hit_at_1, total_hit = eval_dataset(model, valid_dataset, device)
     print('valid hit@1: %.2f, hit@%d: %.2f' % (hit_at_1, FLAGS.beam_size, total_hit))
     if hit_at_1 > best_valid:
       print('saving best valid model')
