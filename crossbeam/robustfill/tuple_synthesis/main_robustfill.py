@@ -8,14 +8,13 @@ from tqdm import tqdm
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from functools import partial
+import functools
 
-from torch.utils.data import DataLoader, Dataset, IterableDataset
-from crossbeam.datasets import random_data
-from crossbeam.dsl import arithmetic_operations
-from crossbeam.dsl import tuple_operations
-from crossbeam.dsl import value as value_module
-from crossbeam.datasets.tuple_data_gen import get_consts_and_ops
+from torch.utils.data import DataLoader
+from crossbeam.datasets import data_gen
+from crossbeam.dsl import domains
+
+from crossbeam.experiment.exp_common import set_global_seed
 from crossbeam.model.util import CharacterTable
 from crossbeam.model.encoder import CharIOLSTMEncoder
 from crossbeam.model.op_init import IOPoolProjSummary
@@ -41,11 +40,13 @@ class RobustFill(nn.Module):
     self.io.set_device(device)
 
 
-def init_model(constants):
-  input_table = CharacterTable('0123456789:,', max_len=50)
-  output_table = CharacterTable('0123456789() ,', max_len=50)
+def init_model(domain):
+  input_table = CharacterTable(domain.input_charset,
+                                max_len=domain.input_max_len)
+  output_table = CharacterTable(domain.output_charset,
+                                max_len=domain.output_max_len)
 
-  prog_vocab = ['pad'] + [str(x) for x in constants]
+  prog_vocab = ['pad'] + [str(x) for x in domain.constaints]
   for i in range(1, FLAGS.num_inputs + 1):
       prog_vocab.append('in%d' % i)
   prog_vocab += ['(', ')', ', ', 'sos', 'eos']
@@ -83,18 +84,23 @@ def eval_dataset(model, dataset):
 
 def main(argv):
   del argv
-  torch.manual_seed(FLAGS.seed)
-  random.seed(FLAGS.seed)
-  np.random.seed(FLAGS.seed)
-  constants, operations = get_consts_and_ops()
+  set_global_seed(FLAGS.seed)
+  domain = domains.get_domain(FLAGS.domain)
+  task_gen_func = functools.partial(
+      data_gen.task_gen,
+      min_weight=FLAGS.min_task_weight,
+      max_weight=FLAGS.max_task_weight,
+      num_examples=FLAGS.num_examples,
+      num_inputs=FLAGS.num_inputs,
+      verbose=FLAGS.verbose)
 
-  train_dataset = RawTupleInftyDataset(FLAGS.seed, FLAGS, constants, operations)
+  train_dataset = RawTupleInftyDataset(FLAGS.seed, task_gen_func, domain)
   valid_dataset = RawTupleOfflineDataset(FLAGS.data_folder, 'valid')
   train_loader = DataLoader(train_dataset, batch_size=FLAGS.batch_size, 
                             collate_fn=raw_collate_fn, num_workers=FLAGS.n_para_dataload)
   train_gen = iter(train_loader)
 
-  model = init_model(constants)
+  model = init_model(domain)
   if FLAGS.load_model is not None:
    model_dump = os.path.join(FLAGS.save_dir, FLAGS.load_model)
    print('loading from', model_dump)
