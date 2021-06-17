@@ -33,7 +33,7 @@ COMMON_CONSTANTS = [
 def compute_lcs(str1, str2):
   len1 = len(str1)
   len2 = len(str2)
-  # dp[i][j] = length of longest common substring of str1[0..i] and str2[0..j]
+  # dp[i][j] = length of longest common substring of str1[:i] and str2[:j]
   dp = [[0] * len1 for _ in range(len2)]
 
   bestSubstring = ''
