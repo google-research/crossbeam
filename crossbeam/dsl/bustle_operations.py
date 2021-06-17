@@ -23,7 +23,7 @@ class BustleOperation(operation_base.OperationBase):
   """All Bustle operations have the same form of tokenized expression."""
 
   def tokenized_expression(self, arg_values):
-    tokens = [self.name + '(']
+    tokens = [self.name, '(']
     for i, arg in enumerate(arg_values):
       if i > 0:
         tokens.append(', ')
@@ -442,3 +442,7 @@ def get_operations():
       Gt(),
       Gte(),
   ]
+
+
+def bustle_op_names():
+  return [op.name for op in get_operations()]
