@@ -34,7 +34,7 @@ def compute_lcs(str1, str2):
   len1 = len(str1)
   len2 = len(str2)
   # dp[i][j] = length of longest common substring of str1[:i] and str2[:j]
-  dp = [[0] * len1 for _ in range(len2)]
+  dp = [[0] * (len2+1) for _ in range(len1+1)]
 
   bestSubstring = ''
   bestLength = 0
@@ -63,12 +63,12 @@ def bustle_constants_extractor(task):
   extracted_constants_set = set()
 
   string_columns = list(task.inputs_dict.values())
-  if task.outputs:
+  if None not in task.outputs:
     string_columns.append(task.outputs)
 
   # Criteria 1: longest common substrings.
-  lcs_pairs = sum(itertools.combinations(column)
-                  for column in string_columns)
+  lcs_pairs = sum((list(itertools.combinations(column, 2))
+                   for column in string_columns), [])
   for x, y in lcs_pairs:
     lcs = compute_lcs(x, y)
     if len(lcs) >= 2:
@@ -76,11 +76,11 @@ def bustle_constants_extractor(task):
 
   # Criteria 2: common string constants.
   for common in COMMON_CONSTANTS:
-    if any(common in s for s in column for column in string_columns):
+    if any(common in s for column in string_columns for s in column):
       extracted_constants_set.add(common)
 
   # Sort the constants by length and then alphabetically.
   extracted_constants = list(extracted_constants_set)
-  collections.sort(extracted_constants_set, key=lambda s: (len(s), s))
+  sorted(extracted_constants_set, key=lambda s: (len(s), s))
 
   return ALWAYS_USED_CONSTANTS + extracted_constants

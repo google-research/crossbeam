@@ -190,7 +190,7 @@ def generate_random_task(domain, min_weight, max_weight, num_examples,
       'expected exactly one of constants or constants_extractor')
   if constants is None:
     constants = constants_extractor(
-        task_module.Task(inputs_dict, outputs=None))
+        task_module.Task(inputs_dict, outputs=[None] * num_examples))
 
   if dp_info is None:
     dp_info = num_expressions_dp(domain.operations, num_inputs, constants,
