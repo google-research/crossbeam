@@ -30,10 +30,10 @@ TUPLE_DOMAIN = Domain(
 
 ARITHMETIC_DOMAIN = Domain(
     operations=arithmetic_operations.get_operations(),
-    constants=[0],
+    constants=[-1, 1, 2, 3],
     constants_extractor=None,
     input_generator=random_data.RANDOM_INTEGER,
-    input_charset='0123456789 ,',
+    input_charset='0123456789 ,-',
     input_max_len=50,
     output_charset='0123456789 ,-',
     output_max_len=50,
