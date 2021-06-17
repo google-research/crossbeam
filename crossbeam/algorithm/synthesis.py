@@ -37,7 +37,7 @@ def synthesize(task, domain, model, device,
       'expected exactly one of constants or constants_extractor')
   if constants_extractor is None:
     constants_extractor = lambda unused_inputs_dict: constants
-  for constant in constants_extractor(task.inputs_dict):
+  for constant in constants_extractor(task):
     all_values.append(value_module.ConstantValue(constant,
                                                  num_examples=num_examples))
 
