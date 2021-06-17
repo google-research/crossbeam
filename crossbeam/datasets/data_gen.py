@@ -7,21 +7,12 @@ from absl import flags
 import pickle as cp
 from crossbeam.datasets import random_data
 from crossbeam.datasets import bustle_data
+from crossbeam.datasets import data_gen_flags
 from crossbeam.dsl import domains
 from crossbeam.dsl import value as value_module
 from crossbeam.experiment import exp_common
 
 FLAGS = flags.FLAGS
-
-flags.DEFINE_enum('domain', 'tuple', ['tuple', 'arithmetic', 'bustle'],
-                  'task domain')
-flags.DEFINE_string('output_file', None, 'data dump')
-flags.DEFINE_integer('num_eval', 1000, '# tasks for evaluation')
-flags.DEFINE_integer('num_examples', 3, '')
-flags.DEFINE_integer('num_inputs', 3, '')
-flags.DEFINE_integer('min_task_weight', 3, '')
-flags.DEFINE_integer('max_task_weight', 10, '')
-flags.DEFINE_boolean('verbose', False, 'whether to print generated tasks')
 
 
 def task_gen(domain, min_weight, max_weight, num_examples, num_inputs,
@@ -74,7 +65,7 @@ def main(argv):
 
   domain = domains.get_domain(FLAGS.domain)
   eval_tasks = gen_random_tasks(domain,
-                                num_tasks=FLAGS.num_eval,
+                                num_tasks=FLAGS.num_tasks,
                                 min_weight=FLAGS.min_task_weight,
                                 max_weight=FLAGS.max_task_weight,
                                 num_examples=FLAGS.num_examples,

@@ -26,8 +26,7 @@ from crossbeam.experiment import exp_common
 FLAGS = flags.FLAGS
 
 flags.DEFINE_string('eval_set_pkl', None, 'pkl file for evaluation set tasks')
-flags.DEFINE_float('timeout', 5, 'time limit in seconds')
-flags.DEFINE_integer('num_tasks', 5, 'number of evaluation tasks')
+flags.DEFINE_integer('num_eval_tasks', 5, 'number of evaluation tasks')
 
 
 def run_synthesis(domain, tasks, timeout, verbose=False):
@@ -81,7 +80,7 @@ def main(argv):
       tasks = tasks[:FLAGS.num_tasks]
   else:
     tasks = data_gen.gen_random_tasks(domain,
-                                      num_tasks=FLAGS.num_tasks,
+                                      num_tasks=FLAGS.num_eval_tasks,
                                       min_weight=FLAGS.min_task_weight,
                                       max_weight=FLAGS.max_task_weight,
                                       num_examples=FLAGS.num_examples,
