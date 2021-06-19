@@ -18,7 +18,7 @@ python data_gen.py \
     --domain=tuple \
     --output_file=$eval_file \
     --seed=$seed \
-    --num_eval=1000 \
+    --num_tasks=1000 \
     --num_examples=$ne \
     --num_inputs=$ni \
     --min_task_weight=3 \
@@ -33,7 +33,7 @@ python data_gen.py \
     --domain=tuple \
     --output_file=$eval_file \
     --seed=$seed \
-    --num_eval=1000 \
+    --num_tasks=1000 \
     --num_examples=$ne \
     --num_inputs=$ni \
     --min_task_weight=3 \
