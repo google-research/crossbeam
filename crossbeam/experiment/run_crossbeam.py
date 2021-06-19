@@ -19,6 +19,7 @@ import pickle5 as cp
 from absl import app
 from absl import flags
 import torch
+import random
 
 from crossbeam.datasets import data_gen
 from crossbeam.dsl import domains
