@@ -1,5 +1,3 @@
-from crossbeam.common import config
-
 import random
 import numpy as np
 from absl import app
@@ -61,7 +59,7 @@ def trace_gen(value_node, result=None):
 
 def main(argv):
   del argv
-  exp_common.set_global_seed(FLAGS.seed)
+  exp_common.set_global_seed(FLAGS.data_gen_seed)
 
   domain = domains.get_domain(FLAGS.domain)
   eval_tasks = gen_random_tasks(domain,

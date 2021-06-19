@@ -25,6 +25,7 @@ from crossbeam.algorithm import baseline_enumeration
 from crossbeam.datasets import data_gen_flags
 from crossbeam.dsl import domains
 from crossbeam.dsl import task as task_module
+from crossbeam.experiment import exp_common
 
 FLAGS = flags.FLAGS
 
@@ -35,27 +36,18 @@ def perform_search(domain, max_weight, min_weight, num_examples, num_inputs,
 
   inputs_dict = domain.inputs_dict_generator(num_inputs=num_inputs,
                                              num_examples=num_examples)
-
-  constants = domain.constants
-  constants_extractor = domain.constants_extractor
-  assert (constants is None) != (constants_extractor is None), (
-      'expected exactly one of constants or constants_extractor')
-  if constants is None:
-    constants = constants_extractor(
-        task_module.Task(inputs_dict, outputs=[None] * num_examples))
-
   # Make some dummy outputs. Note that they shouldn't have overlaps with the
   # inputs, or with each other, so that we don't extract unwanted constants.
   assert num_examples <= 4
   dummy_outputs = ['~', '&', '=', '^'][:num_examples]
   task = task_module.Task(inputs_dict, dummy_outputs)
 
-  _, _, values_by_weight = baseline_enumeration.synthesize_baseline(
+  _, value_set, _ = baseline_enumeration.synthesize_baseline(
       task, domain, max_weight=max_weight, timeout=timeout)
 
-  choices = list(itertools.chain(
-      *(values_by_weight[w] for w in range(min_weight, max_weight + 1))))
-
+  choices = [v for v in value_set
+             if min_weight <= v.weight <= max_weight and
+             (domain.output_type is None or v.type == domain.output_type)]
   num_tasks = min(num_tasks, len(choices))
   selected_values = random.sample(choices, k=num_tasks)
   return [task_module.Task(inputs_dict, v.values, solution=v)
@@ -75,6 +67,7 @@ def generate_data(domain, max_weight, min_weight, num_examples, num_inputs,
 
 def main(argv):
   del argv
+  exp_common.set_global_seed(FLAGS.data_gen_seed)
 
   domain = domains.get_domain(FLAGS.domain)
   tasks = generate_data(

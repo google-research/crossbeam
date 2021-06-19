@@ -18,6 +18,7 @@ from absl import flags
 
 FLAGS = flags.FLAGS
 
+flags.DEFINE_integer('data_gen_seed', 1, 'Seed for data generation')
 flags.DEFINE_enum('domain', 'tuple', ['tuple', 'arithmetic', 'bustle'],
                   'task domain')
 flags.DEFINE_string('output_file', None, 'data dump')

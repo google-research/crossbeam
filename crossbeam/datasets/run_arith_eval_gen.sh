@@ -13,7 +13,7 @@ eval_file=$data_dir/valid-tasks.pkl
 python data_gen.py \
     --domain=arithmetic \
     --output_file=$eval_file \
-    --seed=$seed \
+    --data_gen_seed=$seed \
     --num_eval=1000 \
     --num_examples=3 \
     --num_inputs=3 \
@@ -28,7 +28,7 @@ eval_file=$data_dir/test-tasks.pkl
 python data_gen.py \
     --domain=arithmetic \
     --output_file=$eval_file \
-    --seed=$seed \
+    --data_gen_seed=$seed \
     --num_eval=1000 \
     --num_examples=3 \
     --num_inputs=3 \

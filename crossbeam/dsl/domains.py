@@ -12,7 +12,7 @@ Domain = collections.namedtuple(
     'Domain',
     ['operations', 'constants', 'constants_extractor', 'inputs_dict_generator',
      'input_charset', 'input_max_len', 'output_charset', 'output_max_len',
-     'value_charset', 'value_max_len', 'program_tokens'])
+     'value_charset', 'value_max_len', 'program_tokens', 'output_type'])
 
 
 TUPLE_DOMAIN = Domain(
@@ -26,7 +26,8 @@ TUPLE_DOMAIN = Domain(
     output_max_len=50,
     value_charset='0123456789() ,[]intuple:',
     value_max_len=70,
-    program_tokens=['(', ')', ', '])
+    program_tokens=['(', ')', ', '],
+    output_type=None)
 
 ARITHMETIC_DOMAIN = Domain(
     operations=arithmetic_operations.get_operations(),
@@ -39,7 +40,8 @@ ARITHMETIC_DOMAIN = Domain(
     output_max_len=50,
     value_charset='0123456789 ,-[]int:',
     value_max_len=70,
-    program_tokens=['(', ')', ' + ', ' - ', ' * ', ' // '])
+    program_tokens=['(', ')', ' + ', ' - ', ' * ', ' // '],
+    output_type=None)
 
 _BUSTLE_CHARSET = ''.join(bustle_data.CHARSETS) + "'[]:"
 BUSTLE_DOMAIN = Domain(
@@ -53,7 +55,8 @@ BUSTLE_DOMAIN = Domain(
     output_max_len=50,
     value_charset=_BUSTLE_CHARSET,
     value_max_len=70,
-    program_tokens=['(', ')', ', '] + bustle_operations.bustle_op_names())
+    program_tokens=['(', ')', ', '] + bustle_operations.bustle_op_names(),
+    output_type=str)
 
 
 def get_domain(domain_str):

@@ -11,5 +11,5 @@ seed=10
 eval_file=$data_dir/test-tasks.pkl
 
 python logic_data_generator.py \
-    --seed $seed \
+    --data_gen_seed $seed \
     --output_file $eval_file #--num_eval 1000 \
