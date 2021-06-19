@@ -1,6 +1,7 @@
 import itertools
 import random
 
+from crossbeam.datasets import random_data
 
 CHARSETS = [
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ',  # Uppercase letters
@@ -21,6 +22,9 @@ def bustle_input_generator():
   return ''.join(random.choice(random.choice(usable_charsets))
                  for _ in range(length))
 
+
+bustle_inputs_dict_generator = random_data.make_inputs_dict_generator(
+    bustle_input_generator)
 
 # TODO(kshi): Reimplement GenerateData::getRandomExamples
 

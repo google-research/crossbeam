@@ -33,12 +33,8 @@ def perform_search(domain, max_weight, min_weight, num_examples, num_inputs,
                    timeout, num_tasks):
   """Generates training data by running bottom-up synthesizer."""
 
-  # TODO(kshi): Handle generating inputs in a dependent way
-  inputs_dict = {
-      'in{}'.format(input_index + 1):
-          [domain.input_generator() for _ in range(num_examples)]
-      for input_index in range(num_inputs)
-  }
+  inputs_dict = domain.inputs_dict_generator(num_inputs=num_inputs,
+                                             num_examples=num_examples)
 
   constants = domain.constants
   constants_extractor = domain.constants_extractor

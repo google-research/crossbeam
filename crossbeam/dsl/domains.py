@@ -10,7 +10,7 @@ from crossbeam.dsl import tuple_operations
 
 Domain = collections.namedtuple(
     'Domain',
-    ['operations', 'constants', 'constants_extractor', 'input_generator',
+    ['operations', 'constants', 'constants_extractor', 'inputs_dict_generator',
      'input_charset', 'input_max_len', 'output_charset', 'output_max_len',
      'value_charset', 'value_max_len', 'program_tokens'])
 
@@ -19,7 +19,7 @@ TUPLE_DOMAIN = Domain(
     operations=tuple_operations.get_operations(),
     constants=[0],
     constants_extractor=None,
-    input_generator=random_data.RANDOM_INTEGER,
+    inputs_dict_generator=random_data.RANDOM_INTEGER_INPUTS_DICT_GENERATOR,
     input_charset='0123456789 ,',
     input_max_len=50,
     output_charset='0123456789() ,',
@@ -32,7 +32,7 @@ ARITHMETIC_DOMAIN = Domain(
     operations=arithmetic_operations.get_operations(),
     constants=[0],
     constants_extractor=None,
-    input_generator=random_data.RANDOM_INTEGER,
+    inputs_dict_generator=random_data.RANDOM_INTEGER_INPUTS_DICT_GENERATOR,
     input_charset='0123456789 ,',
     input_max_len=50,
     output_charset='0123456789 ,-',
@@ -46,7 +46,7 @@ BUSTLE_DOMAIN = Domain(
     operations=bustle_operations.get_operations(),
     constants=None,
     constants_extractor=bustle_data.bustle_constants_extractor,
-    input_generator=bustle_data.bustle_input_generator,
+    inputs_dict_generator=bustle_data.bustle_inputs_dict_generator,
     input_charset=_BUSTLE_CHARSET,
     input_max_len=50,
     output_charset=_BUSTLE_CHARSET,
