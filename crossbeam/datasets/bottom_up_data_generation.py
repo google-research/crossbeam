@@ -44,8 +44,11 @@ def perform_search(domain, max_weight, min_weight, num_examples, num_inputs,
     constants = constants_extractor(
         task_module.Task(inputs_dict, outputs=[None] * num_examples))
 
-  outputs = ['unreachable output {}'.format(i) for i in range(num_examples)]
-  task = task_module.Task(inputs_dict, outputs)
+  # Make some dummy outputs. Note that they shouldn't have overlaps with the
+  # inputs, or with each other, so that we don't extract unwanted constants.
+  assert num_examples <= 4
+  dummy_outputs = ['~', '&', '=', '^'][:num_examples]
+  task = task_module.Task(inputs_dict, dummy_outputs)
 
   _, _, values_by_weight = baseline_enumeration.synthesize_baseline(
       task, domain, max_weight=max_weight, timeout=timeout)
@@ -76,13 +79,17 @@ def main(argv):
   domain = domains.get_domain(FLAGS.domain)
   tasks = generate_data(
       domain,
-      max_weight=FLAGS.max_weight,
-      min_weight=FLAGS.min_weight,
+      max_weight=FLAGS.max_task_weight,
+      min_weight=FLAGS.min_task_weight,
       num_examples=FLAGS.num_examples,
       num_inputs=FLAGS.num_inputs,
       timeout=FLAGS.data_gen_timeout,
       num_searches=FLAGS.num_searches,
-      num_tasks_per_search=FLAGS.num_tasks_per_search)
+      num_tasks_per_search=FLAGS.num_tasks)
+
+  if FLAGS.verbose:
+    for i, task in enumerate(tasks):
+      print('Task #{}: {}'.format(i, task))
 
   with open(FLAGS.output_file, 'wb') as f:
     cp.dump(tasks, f, cp.HIGHEST_PROTOCOL)
