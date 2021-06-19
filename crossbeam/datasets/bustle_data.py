@@ -23,10 +23,44 @@ def bustle_input_generator():
                  for _ in range(length))
 
 
-bustle_inputs_dict_generator = random_data.make_inputs_dict_generator(
-    bustle_input_generator)
+def bustle_inputs_dict_generator(num_inputs, num_examples):
+  num_formats = random.randint(1, 2)
 
-# TODO(kshi): Reimplement GenerateData::getRandomExamples
+  # formats[f][i] is a list of symbols for the i-th input in the f-th format.
+  formats = []
+  max_symbol = 0
+  for _ in range(num_formats):
+    # Choose number of slots for each input.
+    slots_per_input = [random.randint(1, 3) for _ in range(num_inputs)]
+    num_symbols = sum(slots_per_input)
+    max_symbol = max(max_symbol, num_symbols - 1)
+    # Choose symbols for each input.
+    form = []
+    for num_slots in slots_per_input:
+      form.append([random.randrange(num_symbols) for _ in range(num_slots)])
+    formats.append(form)
+
+  # Choose some symbols to be "example-persistent".
+  example_persistent_symbols = {}
+  for s in range(max_symbol):
+    if random.random() < 0.25:
+      example_persistent_symbols[s] = bustle_input_generator()
+
+  # Create inputs dict.
+  inputs_dict = {'in{}'.format(i + 1): []
+                 for i in range(num_inputs)}
+  for _ in range(num_examples):
+    form = random.choice(formats)
+    symbol_map = example_persistent_symbols.copy()
+    for i in range(num_inputs):
+      inp = ''
+      for symbol in form[i]:
+        if symbol not in symbol_map:
+          symbol_map[symbol] = bustle_input_generator()
+        inp += symbol_map[symbol]
+      inputs_dict['in{}'.format(i + 1)].append(inp)
+  return inputs_dict
+
 
 ALWAYS_USED_CONSTANTS = ['', 0, 1, 2, 3, 99]
 COMMON_CONSTANTS = [
