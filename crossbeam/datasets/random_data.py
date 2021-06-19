@@ -229,6 +229,9 @@ def generate_good_random_task(**kwargs):
     inputs = list(task.inputs_dict.values())
 
     domain = kwargs['domain']
+    if domain.output_type and task.solution.type != domain.output_type:
+      continue
+
     constants = domain.constants
     constants_extractor = domain.constants_extractor
     assert (constants is None) != (constants_extractor is None), (
