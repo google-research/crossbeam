@@ -25,12 +25,14 @@ from crossbeam.dsl import domains
 from crossbeam.experiment.exp_common import set_global_seed
 from crossbeam.experiment.train_eval import main_train_eval
 from crossbeam.model.joint_model import JointModel, IntJointModel
+from crossbeam.model.logic_model import LogicModel
 from crossbeam.model.util import CharacterTable
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string('model_type', 'char', 'int/char')
+flags.DEFINE_string('model_type', 'char', 'int/char/logic')
 flags.DEFINE_bool('stochastic_beam', False, 'do stochastic beam search during test')
+flags.DEFINE_bool('memorize', False, 'train/test on the evaluation set to check memorization ability')
 
 
 def init_model(domain, model_type):
@@ -50,6 +52,8 @@ def init_model(domain, model_type):
                          output_range=(-800, 800),
                          value_range=(-800, 800),
                          operations=domain.operations)
+  elif model_type.startswith('logic'):
+    return LogicModel(FLAGS, operations=domain.operations)
   else:
     raise ValueError('unknown model type %s' % model_type)
 
@@ -72,13 +76,18 @@ def main(argv):
     eval_tasks = cp.load(f)
 
   proc_args = argparse.Namespace(**FLAGS.flag_values_dict())
-  task_gen_func = functools.partial(
-      data_gen.task_gen,
-      min_weight=FLAGS.min_task_weight,
-      max_weight=FLAGS.max_task_weight,
-      num_examples=FLAGS.num_examples,
-      num_inputs=FLAGS.num_inputs,
-      verbose=FLAGS.verbose)
+  if FLAGS.memorize:
+    def task_gen_func(*stuff,**dont_care):
+      return random.choice(eval_tasks)
+  else:
+    task_gen_func = functools.partial(
+        data_gen.task_gen,
+        min_weight=FLAGS.min_task_weight,
+        max_weight=FLAGS.max_task_weight,
+        num_examples=FLAGS.num_examples,
+        num_inputs=FLAGS.num_inputs,
+        verbose=FLAGS.verbose)
+  
   main_train_eval(proc_args, model, eval_tasks, domain,
                   task_gen=task_gen_func,
                   trace_gen=data_gen.trace_gen)

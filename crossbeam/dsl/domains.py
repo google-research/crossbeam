@@ -4,6 +4,7 @@ import collections
 from crossbeam.datasets import bustle_data
 from crossbeam.datasets import random_data
 from crossbeam.dsl import arithmetic_operations
+from crossbeam.dsl import logic_operations
 from crossbeam.dsl import bustle_operations
 from crossbeam.dsl import tuple_operations
 
@@ -55,6 +56,19 @@ BUSTLE_DOMAIN = Domain(
     value_max_len=70,
     program_tokens=['(', ')', ', '] + bustle_operations.bustle_op_names())
 
+LOGIC_DOMAIN = Domain(
+  operations=logic_operations.get_operations(),
+  constants=[],
+  constants_extractor=None,
+  input_generator=None,
+  input_charset=None,
+  input_max_len=50,
+  output_charset=None,
+  output_max_len=None,
+  value_charset=None,
+  value_max_len=70,
+  program_tokens=['(',')',' '] + logic_operations.logic_op_names())
+
 
 def get_domain(domain_str):
   if domain_str == 'tuple':
@@ -63,5 +77,7 @@ def get_domain(domain_str):
     return ARITHMETIC_DOMAIN
   elif domain_str == 'bustle':
     return BUSTLE_DOMAIN
+  elif domain_str == 'logic':
+    return LOGIC_DOMAIN
   else:
     raise ValueError('Unknown domain: {}'.format(domain_str))
