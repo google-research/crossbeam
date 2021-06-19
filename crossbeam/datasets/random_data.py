@@ -240,7 +240,7 @@ def generate_good_random_task(**kwargs):
     assert (constants is None) != (constants_extractor is None), (
         'expected exactly one of constants or constants_extractor')
     if constants is None:
-      constants = constants_extractor(task.inputs_dict)
+      constants = constants_extractor(task)
     good = True
     for to_check, other in itertools.product(inputs + task.outputs,
                                              inputs + constants):

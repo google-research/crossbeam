@@ -63,7 +63,7 @@ def bustle_constants_extractor(task):
   extracted_constants_set = set()
 
   string_columns = list(task.inputs_dict.values())
-  if None not in task.outputs:
+  if all(isinstance(output, str) for output in task.outputs):
     string_columns.append(task.outputs)
 
   # Criteria 1: longest common substrings.

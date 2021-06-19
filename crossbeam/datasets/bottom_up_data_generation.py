@@ -45,7 +45,8 @@ def perform_search(domain, max_weight, min_weight, num_examples, num_inputs,
   assert (constants is None) != (constants_extractor is None), (
       'expected exactly one of constants or constants_extractor')
   if constants is None:
-    constants = constants_extractor(inputs_dict)
+    constants = constants_extractor(
+        task_module.Task(inputs_dict, outputs=[None] * num_examples))
 
   outputs = ['unreachable output {}'.format(i) for i in range(num_examples)]
   task = task_module.Task(inputs_dict, outputs)
