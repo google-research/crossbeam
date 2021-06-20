@@ -64,13 +64,21 @@ def main(argv):
   exp_common.set_global_seed(FLAGS.seed)
 
   domain = domains.get_domain(FLAGS.domain)
-  eval_tasks = gen_random_tasks(domain,
-                                num_tasks=FLAGS.num_tasks,
-                                min_weight=FLAGS.min_task_weight,
-                                max_weight=FLAGS.max_task_weight,
-                                num_examples=FLAGS.num_examples,
-                                num_inputs=FLAGS.num_inputs,
-                                verbose=FLAGS.verbose)
+
+  if FLAGS.domain != 'logic':
+    eval_tasks = gen_random_tasks(domain,
+                                  num_tasks=FLAGS.num_tasks,
+                                  min_weight=FLAGS.min_task_weight,
+                                  max_weight=FLAGS.max_task_weight,
+                                  num_examples=FLAGS.num_examples,
+                                  num_inputs=FLAGS.num_inputs,
+                                  verbose=FLAGS.verbose)
+  else:
+    # FIXME: make it so that logic programming makes random data like everyone else
+    from crossbeam.datasets.logic_data_generator import make_divisible_task, make_connected_task
+    operations = domain.operations
+    eval_tasks = [make_divisible_task(k,operations) for k in [2,3,4] ]
+    eval_tasks.extend([make_connected_task(operations,p=p) for p in [0.05,0.4]])
 
   with open(FLAGS.output_file, 'wb') as f:
     cp.dump(eval_tasks, f, cp.HIGHEST_PROTOCOL)

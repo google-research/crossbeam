@@ -18,7 +18,7 @@ from absl import flags
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_enum('domain', 'tuple', ['tuple', 'arithmetic', 'bustle'],
+flags.DEFINE_enum('domain', 'tuple', ['tuple', 'arithmetic', 'bustle', 'logic'],
                   'task domain')
 flags.DEFINE_string('output_file', None, 'data dump')
 flags.DEFINE_integer('num_tasks', 1000, '# tasks')

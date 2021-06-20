@@ -18,11 +18,11 @@ from crossbeam.dsl import operation_base
 import numpy as np
 
 
-
 class MemorizeDyadicClause(operation_base.OperationBase):
     """
     P(x,y).
     """
+    TOKEN = '(assert/2 '
     def __init__(self):
         super(MemorizeDyadicClause, self).__init__('MemorizeDyadicClause', 3)
 
@@ -33,12 +33,13 @@ class MemorizeDyadicClause(operation_base.OperationBase):
         return new_relation
 
     def tokenized_expression(self, arguments):
-        return ['(assert/2',arguments[0],arguments[1],')']
+        return [self.__class__.TOKEN,arguments[0],arguments[1],')']
 
 class MemorizeMonadicClause(operation_base.OperationBase):
     """
     P(x).
     """
+    TOKEN = '(assert/1 '
     def __init__(self):
         super(MemorizeMonadicClause, self).__init__('MemorizeMonadicClause', 2)
 
@@ -49,7 +50,7 @@ class MemorizeMonadicClause(operation_base.OperationBase):
         return new_relation
 
     def tokenized_expression(self, arguments):
-        return ['(assert/1',arguments[0],')']
+        return [self.__class__.TOKEN,arguments[0],')']
 
 class RecursiveClause(operation_base.OperationBase):
     """
@@ -62,6 +63,7 @@ class RecursiveClause(operation_base.OperationBase):
     P(x) <- R(x,y), P(y). % inductive case
 
     """
+    TOKEN = '(recursive '
     def __init__(self):
         super(RecursiveClause, self).__init__("RecursiveClause",2)
 
@@ -85,13 +87,15 @@ class RecursiveClause(operation_base.OperationBase):
         return truth_values
 
     def tokenized_expression(self, arguments):
-        return ['(recursive '] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + [')']
+        return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + [')']
 
 
 class TransposeClause(operation_base.OperationBase):
     """
     P(x,y) <- Q(y,x).
     """
+
+    TOKEN = '(transpose '
     def __init__(self):
         super(TransposeClause, self).__init__("TransposeClause",1)
     def apply_single(self, raw_arguments):
@@ -100,7 +104,7 @@ class TransposeClause(operation_base.OperationBase):
         return p.T
 
     def tokenized_expression(self, arguments):
-        return ['(transpose '] + arguments[0].tokenized_expression() + [')']
+        return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [')']
 
 
 class DisjunctionClause(operation_base.OperationBase):
@@ -108,6 +112,8 @@ class DisjunctionClause(operation_base.OperationBase):
     P(vars) <- Q(vars).
     P(vars) <- R(vars).
     """
+
+    TOKEN = '(disjunction '
     def __init__(self):
         super(DisjunctionClause, self).__init__("DisjunctionClause",2)
     def apply_single(self, raw_arguments):
@@ -119,7 +125,7 @@ class DisjunctionClause(operation_base.OperationBase):
             
         return (p + q) > 0
     def tokenized_expression(self, arguments):
-        return ['(disjunction'] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + [')']
+        return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + [')']
 
 
 class ChainClause(operation_base.OperationBase):
@@ -127,6 +133,8 @@ class ChainClause(operation_base.OperationBase):
     P(x,y) <- Q(x,y).
     P(x,y) <- R(x,z),T(z,y).
     """
+
+    TOKEN = '(chain '
     def __init__(self):
         super(ChainClause, self).__init__("ChainClause",3)
     def apply_single(self, raw_arguments):
@@ -138,7 +146,7 @@ class ChainClause(operation_base.OperationBase):
 
         return (q + r@t) > 0
     def tokenized_expression(self, arguments):
-        return ['(chain '] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + arguments[2].tokenized_expression() + [')']
+        return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + arguments[2].tokenized_expression() + [')']
     
 def force_dyadic(maybe_monadic):
     if len(maybe_monadic.shape) == 2: return maybe_monadic
@@ -158,3 +166,6 @@ def get_operations():
       ChainClause(),
       DisjunctionClause(),
   ]
+
+def logic_op_names():
+    return [ o.__class__.TOKEN for o in get_operations() ] 
