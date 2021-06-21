@@ -19,9 +19,9 @@ FLAGS = flags.FLAGS
 class MainTupleTest(parameterized.TestCase):
 
   @parameterized.named_parameters(
-      # ('tuple', 'tuple', 'char'),
-      # ('arithmetic_char', 'arithmetic', 'char'),
-      # ('arithmetic_int', 'arithmetic', 'int'),
+      ('tuple', 'tuple', 'char'),
+      ('arithmetic_char', 'arithmetic', 'char'),
+      ('arithmetic_int', 'arithmetic', 'int'),
       ('bustle', 'bustle', 'char'))
   def test_crossbeam_memorizes(self, domain_str, model_type):
     exp_common.set_global_seed(0)
@@ -36,6 +36,7 @@ class MainTupleTest(parameterized.TestCase):
     FLAGS.max_search_weight = 6
     FLAGS.beam_size = 4
     FLAGS.num_inputs = 1
+    FLAGS.grad_accumulate = 2
 
     domain = domains.get_domain(domain_str)
     model = run_crossbeam.init_model(domain, model_type)
