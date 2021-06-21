@@ -19,21 +19,22 @@ FLAGS = flags.FLAGS
 class MainTupleTest(parameterized.TestCase):
 
   @parameterized.named_parameters(
-      ('tuple', 'tuple', 'char'),
-      ('arithmetic_char', 'arithmetic', 'char'),
-      ('arithmetic_int', 'arithmetic', 'int'),
-      ('bustle', 'bustle', 'char'))
-  def test_crossbeam_memorizes(self, domain_str, model_type):
+      ('tuple', 'tuple', 'char', 5),
+      ('arithmetic_char', 'arithmetic', 'char', 5),
+      ('arithmetic_int', 'arithmetic', 'int', 5),
+      ('bustle', 'bustle', 'char', 4))
+  def test_crossbeam_memorizes(self, domain_str, model_type, max_weight):
     exp_common.set_global_seed(0)
 
+    max_search_weight = max_weight + 1
     FLAGS([''])  # Parse flags
-    FLAGS.train_steps = 100
+    FLAGS.train_steps = 150
     FLAGS.eval_every = 50
     FLAGS.num_proc = 1
-    FLAGS.lr = 0.01
+    FLAGS.lr = 0.02
     FLAGS.embed_dim = 32
     FLAGS.decoder_rnn_layers = 1
-    FLAGS.max_search_weight = 6
+    FLAGS.max_search_weight = max_search_weight
     FLAGS.beam_size = 4
     FLAGS.num_inputs = 1
     FLAGS.grad_accumulate = 2
@@ -43,7 +44,8 @@ class MainTupleTest(parameterized.TestCase):
 
     proc_args = argparse.Namespace(**FLAGS.flag_values_dict())
     eval_tasks = data_gen.gen_random_tasks(
-        domain, 4, min_weight=3, max_weight=5, num_examples=3, num_inputs=1)
+        domain, 4, min_weight=3, max_weight=max_weight,
+        num_examples=3, num_inputs=1)
     task_gen_func = lambda _: random.choice(eval_tasks)
     train_eval.main_train_eval(proc_args, model, eval_tasks, domain,
                                task_gen=task_gen_func,
@@ -51,7 +53,8 @@ class MainTupleTest(parameterized.TestCase):
 
     success_rate = train_eval.do_eval(
         eval_tasks, domain, model,
-        max_search_weight=6, beam_size=4, device='cpu', verbose=False)
+        max_search_weight=max_search_weight, beam_size=4, device='cpu',
+        verbose=False)
     self.assertGreaterEqual(success_rate, 3/4)
 
 

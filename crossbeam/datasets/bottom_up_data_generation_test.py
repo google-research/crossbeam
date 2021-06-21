@@ -15,19 +15,24 @@
 """Tests for crossbeam.datasets.bottom_up_data_generation."""
 
 from absl.testing import absltest
+from absl.testing import parameterized
 
 from crossbeam.datasets import bottom_up_data_generation
 from crossbeam.dsl import domains
 
 
-class BottomUpDataGenerationTest(absltest.TestCase):
+class BottomUpDataGenerationTest(parameterized.TestCase):
 
-  def test_runs(self):
-    domain = domains.get_domain('bustle')
+  @parameterized.parameters(
+      ('tuple'),
+      ('arithmetic'),
+      ('bustle'))
+  def test_runs(self, domain_str):
+    domain = domains.get_domain(domain_str)
     tasks = bottom_up_data_generation.generate_data(
         domain,
-        max_weight=8,
-        min_weight=5,
+        max_weight=6,
+        min_weight=4,
         num_examples=3,
         num_inputs=2,
         timeout=5,
@@ -35,7 +40,9 @@ class BottomUpDataGenerationTest(absltest.TestCase):
         num_tasks_per_search=10)
 
     self.assertLen(tasks, 20)
-    self.assertTrue(all(5 <= t.solution.weight <= 8 for t in tasks))
+    self.assertTrue(all(4 <= t.solution.weight <= 6 for t in tasks))
+    if domain.output_type:
+      self.assertTrue(all(t.solution.type == domain.output_type for t in tasks))
 
 
 if __name__ == '__main__':

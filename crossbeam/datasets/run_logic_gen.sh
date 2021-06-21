@@ -10,9 +10,10 @@ fi
 seed=10
 eval_file=$data_dir/test-tasks.pkl
 
+
 python data_gen.py \
     --domain=logic \
-    --seed $seed \
+    --data_gen_seed $seed \
     --output_file $eval_file #--num_eval 1000 \
 
 
@@ -21,5 +22,4 @@ eval_file=$data_dir/valid-tasks.pkl
 
 python data_gen.py \
     --domain=logic \
-    --seed $seed \
-    --output_file $eval_file #--num_eval 1000 \
+    --data_gen_seed $seed \
