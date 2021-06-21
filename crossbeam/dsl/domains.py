@@ -60,17 +60,18 @@ BUSTLE_DOMAIN = Domain(
     output_type=str)
 
 LOGIC_DOMAIN = Domain(
-  operations=logic_operations.get_operations(),
-  constants=[],
-  constants_extractor=None,
-  input_generator=None,
-  input_charset=None,
-  input_max_len=50,
-  output_charset=None,
-  output_max_len=None,
-  value_charset=None,
-  value_max_len=70,
-  program_tokens=['(',')',' '] + logic_operations.logic_op_names())
+    operations=logic_operations.get_operations(),
+    constants=[],
+    constants_extractor=None,
+    inputs_dict_generator=None,
+    input_charset=None,
+    input_max_len=50,
+    output_charset=None,
+    output_max_len=None,
+    value_charset=None,
+    value_max_len=70,
+    program_tokens=['(', ')', ' '] + logic_operations.logic_op_names(),
+    output_type=None)
 
 
 def get_domain(domain_str):

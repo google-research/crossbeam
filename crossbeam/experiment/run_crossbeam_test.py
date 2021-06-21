@@ -28,7 +28,7 @@ class MainTupleTest(parameterized.TestCase):
 
     max_search_weight = max_weight + 1
     FLAGS([''])  # Parse flags
-    FLAGS.train_steps = 100
+    FLAGS.train_steps = 150
     FLAGS.eval_every = 50
     FLAGS.num_proc = 1
     FLAGS.lr = 0.02
