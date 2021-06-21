@@ -14,7 +14,7 @@ python data_gen.py \
     --domain=arithmetic \
     --output_file=$eval_file \
     --data_gen_seed=$seed \
-    --num_eval=1000 \
+    --num_tasks=1000 \
     --num_examples=3 \
     --num_inputs=3 \
     --min_task_weight=3 \
@@ -29,7 +29,7 @@ python data_gen.py \
     --domain=arithmetic \
     --output_file=$eval_file \
     --data_gen_seed=$seed \
-    --num_eval=1000 \
+    --num_tasks=1000 \
     --num_examples=3 \
     --num_inputs=3 \
     --min_task_weight=3 \

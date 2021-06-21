@@ -40,7 +40,6 @@ def synthesize(task, domain, model, device,
   for constant in constants_extractor(task):
     all_values.append(value_module.ConstantValue(constant,
                                                  num_examples=num_examples))
-
   for input_name, input_value in task.inputs_dict.items():
     all_values.append(value_module.InputValue(input_value, name=input_name))
   output_value = value_module.OutputValue(task.outputs)
