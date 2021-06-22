@@ -72,9 +72,7 @@ def eval_dataset(model, dataset, device):
           if checker.check_solution(list_tasks[i], pred_prog):
             hit = j
             break
-          if pred_prog == ''.join(expr_list[i]):
-            hit = j
-            break
+          assert pred_prog != ''.join(expr_list[i])
         if hit >= 0:
           hit_at_1 += hit == 0
           total_hit += 1

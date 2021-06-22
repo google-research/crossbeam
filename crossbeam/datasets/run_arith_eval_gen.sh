@@ -2,7 +2,7 @@
 
 ne=3
 ni=3
-maxw=8
+maxw=10
 
 data_dir=$HOME/data/crossbeam/arithmetic_synthesis/ne-${ne}-ni-${ni}-maxw-${maxw}
 
