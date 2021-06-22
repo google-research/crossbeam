@@ -6,13 +6,13 @@ ne=3
 ni=3
 maxw=8
 
-data_folder=$HOME/data/crossbeam/tuple_synthesis/ne-${ne}-ni-${ni}-maxw-${maxw}
+data_folder=$HOME/data/crossbeam/arithmetic_synthesis/ne-${ne}-ni-${ni}-maxw-${maxw}
 
 embed=128
 bsize=512
 rnn_layers=3
 beam_size=4
-save_dir=$HOME/results/crossbeam/robustfill/tuple_synthesis/e-${embed}-b-${bsize}-r-${rnn_layers}-maxw-${maxw}
+save_dir=$HOME/results/crossbeam/robustfill/arithmetic_synthesis/e-${embed}-b-${bsize}-r-${rnn_layers}-maxw-${maxw}
 
 if [ ! -e $save_dir ];
 then
@@ -21,6 +21,7 @@ fi
 
 python -m crossbeam.robustfill.main_robustfill \
     --gpu 0 \
+    --domain arithmetic \
     --num_examples=$ne \
     --num_inputs=$ni \
     --max_task_weight=$maxw \

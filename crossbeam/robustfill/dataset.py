@@ -7,8 +7,8 @@ from functools import partial
 
 
 def raw_collate_fn(list_tasks):
-  list_inputs_dict, list_outputs, expr_list = zip(*list_tasks)
-  return list_inputs_dict, list_outputs, expr_list
+  list_t, list_inputs_dict, list_outputs, expr_list = zip(*list_tasks)
+  return list_t, list_inputs_dict, list_outputs, expr_list
 
 
 class RawTupleInftyDataset(IterableDataset):
@@ -25,7 +25,7 @@ class RawTupleInftyDataset(IterableDataset):
 
     while True:
       t = self.fn_data_gen(self.domain)
-      yield t.inputs_dict, t.outputs, t.solution.tokenized_expression()
+      yield t, t.inputs_dict, t.outputs, t.solution.tokenized_expression()
 
   def collate_fn(self, list_tasks):
     return list_tasks
@@ -43,4 +43,4 @@ class RawTupleOfflineDataset(Dataset):
 
   def __getitem__(self, index):
     t = self.tasks[index]
-    return t.inputs_dict, t.outputs, t.solution.tokenized_expression()
+    return t, t.inputs_dict, t.outputs, t.solution.tokenized_expression()

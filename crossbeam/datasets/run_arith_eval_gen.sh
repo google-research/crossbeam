@@ -1,6 +1,10 @@
 #!/bin/bash
 
-data_dir=$HOME/data/crossbeam/arithmetic_synthesis
+ne=3
+ni=3
+maxw=8
+
+data_dir=$HOME/data/crossbeam/arithmetic_synthesis/ne-${ne}-ni-${ni}-maxw-${maxw}
 
 if [ ! -e $data_dir ];
 then
@@ -15,10 +19,10 @@ python data_gen.py \
     --output_file=$eval_file \
     --seed=$seed \
     --num_tasks=1000 \
-    --num_examples=3 \
-    --num_inputs=3 \
+    --num_examples=$ne \
+    --num_inputs=$ni \
     --min_task_weight=3 \
-    --max_task_weight=10 \
+    --max_task_weight=$maxw \
     --verbose=False
 
 
@@ -30,8 +34,8 @@ python data_gen.py \
     --output_file=$eval_file \
     --seed=$seed \
     --num_tasks=1000 \
-    --num_examples=3 \
-    --num_inputs=3 \
+    --num_examples=$ne \
+    --num_inputs=$ni \
     --min_task_weight=3 \
-    --max_task_weight=10 \
+    --max_task_weight=$maxw \
     --verbose=False

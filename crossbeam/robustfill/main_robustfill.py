@@ -13,13 +13,13 @@ import functools
 from torch.utils.data import DataLoader
 from crossbeam.datasets import data_gen
 from crossbeam.dsl import domains
-
+from crossbeam.dsl import checker
 from crossbeam.experiment.exp_common import set_global_seed
 from crossbeam.model.util import CharacterTable
 from crossbeam.model.encoder import CharIOLSTMEncoder
 from crossbeam.model.op_init import IOPoolProjSummary
 from crossbeam.robustfill.rnn_prog import RfillAutoreg
-from crossbeam.robustfill.tuple_synthesis.tuple_dataset import raw_collate_fn, RawTupleInftyDataset, RawTupleOfflineDataset
+from crossbeam.robustfill.dataset import raw_collate_fn, RawTupleInftyDataset, RawTupleOfflineDataset
 
 FLAGS = flags.FLAGS
 
@@ -46,7 +46,8 @@ def init_model(domain):
   prog_vocab = ['pad'] + [str(x) for x in domain.constants]
   for i in range(1, FLAGS.num_inputs + 1):
       prog_vocab.append('in%d' % i)
-  prog_vocab += ['(', ')', ', ', 'sos', 'eos']
+  prog_vocab += domain.program_tokens
+  prog_vocab += ['sos', 'eos']
   prog_vdict = {}
   for i, v in enumerate(prog_vocab):
     prog_vdict[v] = i
@@ -61,14 +62,17 @@ def eval_dataset(model, dataset, device):
   with torch.no_grad():
     hit_at_1 = 0.0
     total_hit = 0.0
-    for list_inputs_dict, list_outputs, expr_list in eval_loader:
+    for list_tasks, list_inputs_dict, list_outputs, expr_list in eval_loader:
       init_state = model.embed_io(list_inputs_dict, list_outputs, device=device)
-      _, list_pred_progs, _, _ = model.decoder.beam_search(init_state, beam_size=FLAGS.beam_size, max_len=50)        
-      for i in range(len(expr_list)):
+      _, list_pred_progs, _, _ = model.decoder.beam_search(init_state, beam_size=FLAGS.beam_size, max_len=50)
+      for i in range(len(list_tasks)):
         hit = -1
         for j in range(FLAGS.beam_size):
-          pred = ''.join(list_pred_progs[i * FLAGS.beam_size + j])
-          if pred == ''.join(expr_list[i]):
+          pred_prog = ''.join(list_pred_progs[i * FLAGS.beam_size + j])
+          if checker.check_solution(list_tasks[i], pred_prog):
+            hit = j
+            break
+          if pred_prog == ''.join(expr_list[i]):
             hit = j
             break
         if hit >= 0:
@@ -120,7 +124,7 @@ def main(argv):
     pbar = tqdm(range(cur_step, cur_step + FLAGS.eval_every))
     model.train()
     for it in pbar:
-      list_inputs_dict, list_outputs, expr_list = next(train_gen)
+      _, list_inputs_dict, list_outputs, expr_list = next(train_gen)
       optimizer.zero_grad()
       init_state = model.embed_io(list_inputs_dict, list_outputs, device=device)
       ll = model.decoder(init_state, expr_list)
