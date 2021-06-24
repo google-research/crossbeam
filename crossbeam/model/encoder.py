@@ -30,6 +30,11 @@ def get_int_mapped(v, int_range):
     return d + 1
 
 
+def get_pad(int_range):
+  d = int_range[1] - int_range[0]
+  return d + 2
+
+
 class IntIOEncoder(nn.Module):
   def __init__(self, input_range, output_range, num_input_vars, hidden_size):
     super(IntIOEncoder, self).__init__()
@@ -37,8 +42,8 @@ class IntIOEncoder(nn.Module):
     self.input_range = input_range
     self.output_range = output_range
     self.num_input_vars = num_input_vars
-    self.input_int_embed = nn.Embedding(input_range[1] - input_range[0] + 2, hidden_size)
-    self.output_int_embed = nn.Embedding(output_range[1] - output_range[0] + 2, hidden_size)
+    self.input_int_embed = nn.Embedding(input_range[1] - input_range[0] + 3, hidden_size)
+    self.output_int_embed = nn.Embedding(output_range[1] - output_range[0] + 3, hidden_size)
     self.input_linear = nn.Linear(self.num_input_vars * hidden_size, hidden_size)
 
   def forward(self, list_inputs_dict, list_outputs, device, needs_scatter_idx=False):
@@ -52,6 +57,10 @@ class IntIOEncoder(nn.Module):
       for _, input_value in inputs_dict.items():        
         for i in range(n_ios):
           cur_input[i, v_idx] = get_int_mapped(input_value[i], self.input_range)
+        v_idx += 1
+      while v_idx < self.num_input_vars:
+        for i in range(n_ios):
+          cur_input[i, v_idx] = get_pad(self.input_range)
         v_idx += 1
       assert v_idx == self.num_input_vars
       # n_ios * num_inputs * hidden_size
@@ -79,15 +88,17 @@ class IntValueEncoder(nn.Module):
     self.hidden_size = hidden_size
     self.value_range = value_range
     self.num_samples = num_samples
-    self.value_int_embed = nn.Embedding(value_range[1] - value_range[0] + 2, hidden_size)
+    self.value_int_embed = nn.Embedding(value_range[1] - value_range[0] + 3, hidden_size)
     self.value_linear = nn.Linear(self.num_samples * hidden_size, hidden_size)
 
   def forward(self, all_values, device):
     int_vals = torch.LongTensor(len(all_values), self.num_samples)
     for i, v in enumerate(all_values):
-      assert len(v.values) == self.num_samples
+      assert len(v.values) <= self.num_samples
       for j in range(len(v.values)):
         int_vals[i, j] = get_int_mapped(v[j], self.value_range)
+      for j in range(len(v.values), self.num_samples):
+        int_vals[i, j] = get_pad(self.value_range)
     concat_embed = self.value_int_embed(int_vals.to(device)).view(-1, self.num_samples * self.hidden_size)
     val_embed = self.value_linear(concat_embed)
     return val_embed
