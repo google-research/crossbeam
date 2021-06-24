@@ -15,10 +15,12 @@ python data_gen.py \
     --output_file=$eval_file \
     --data_gen_seed=$seed \
     --num_tasks=1000 \
-    --num_examples=3 \
-    --num_inputs=3 \
     --min_task_weight=3 \
     --max_task_weight=10 \
+    --min_num_examples=3 \
+    --max_num_examples=3 \
+    --min_num_inputs=3 \
+    --max_num_inputs=3 \
     --verbose=False
 
 
@@ -30,8 +32,10 @@ python data_gen.py \
     --output_file=$eval_file \
     --data_gen_seed=$seed \
     --num_tasks=1000 \
-    --num_examples=3 \
-    --num_inputs=3 \
     --min_task_weight=3 \
     --max_task_weight=10 \
+    --min_num_examples=3 \
+    --max_num_examples=3 \
+    --min_num_inputs=3 \
+    --max_num_inputs=3 \
     --verbose=False

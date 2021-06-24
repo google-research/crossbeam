@@ -19,10 +19,12 @@ python data_gen.py \
     --output_file=$eval_file \
     --data_gen_seed=$seed \
     --num_tasks=1000 \
-    --num_examples=$ne \
-    --num_inputs=$ni \
     --min_task_weight=3 \
     --max_task_weight=$maxw \
+    --min_num_examples=$ne \
+    --max_num_examples=$ne \
+    --min_num_inputs=$ni \
+    --max_num_inputs=$ni \
     --verbose=False
 
 
@@ -34,8 +36,10 @@ python data_gen.py \
     --output_file=$eval_file \
     --data_gen_seed=$seed \
     --num_tasks=1000 \
-    --num_examples=$ne \
-    --num_inputs=$ni \
     --min_task_weight=3 \
     --max_task_weight=$maxw \
+    --min_num_examples=$ne \
+    --max_num_examples=$ne \
+    --min_num_inputs=$ni \
+    --max_num_inputs=$ni \
     --verbose=False
