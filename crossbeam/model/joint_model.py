@@ -28,8 +28,8 @@ class JointModel(nn.Module):
 class IntJointModel(nn.Module):
   def __init__(self, args, input_range, output_range, value_range, operations):
     super(IntJointModel, self).__init__()
-    self.io = IntIOEncoder(input_range, output_range, args.num_inputs, hidden_size=args.embed_dim)
-    self.val = IntValueEncoder(value_range, hidden_size=args.embed_dim, num_samples=args.num_examples)
+    self.io = IntIOEncoder(input_range, output_range, args.max_num_inputs, hidden_size=args.embed_dim)
+    self.val = IntValueEncoder(value_range, hidden_size=args.embed_dim, num_samples=args.max_num_examples)
     self.arg = LSTMArgSelector(hidden_size=args.embed_dim,
                                mlp_sizes=[256, 1],
                                step_score_func=args.step_score_func,
