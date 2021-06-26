@@ -81,6 +81,7 @@ def main(argv):
       num_tasks_per_search=FLAGS.num_tasks)
 
   if FLAGS.verbose:
+    print("generated this many tasks: ",len(tasks))
     for i, task in enumerate(tasks):
       print('Task #{}: {}'.format(i, task))
 

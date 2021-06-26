@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#if you want to do train/test on a handful of tasks that I manually designed
+#data_folder=$HOME/data/crossbeam/logic_synthesis_manual
 data_folder=$HOME/data/crossbeam/logic_synthesis
 
 beam_size=4
@@ -22,6 +24,6 @@ python run_crossbeam.py \
     --gpu 0 \
     --eval_every 10000 \
     --train_steps 1000000 \
-    --memorize \
+    --num_examples=1 --num_inputs=4 \
     $@
 

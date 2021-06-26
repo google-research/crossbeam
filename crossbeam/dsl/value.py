@@ -66,7 +66,11 @@ class Value(abc.ABC):
 
   def expression(self):
     """Returns a code expression (as a string) that creates this value."""
-    return ''.join(self.tokenized_expression())
+    try:
+      return ''.join(self.tokenized_expression())
+    except:
+      import pdb; pdb.set_trace()
+      
 
   @abc.abstractmethod
   def tokenized_expression(self):

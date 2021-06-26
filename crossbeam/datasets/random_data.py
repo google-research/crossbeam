@@ -21,6 +21,8 @@ import itertools
 import operator
 import random
 from typing import List
+import numpy as np
+
 
 from crossbeam.dsl import task as task_module
 from crossbeam.dsl import value as value_module
@@ -241,7 +243,29 @@ def generate_good_random_task(**kwargs):
     good = True
     for to_check, other in itertools.product(inputs + task.outputs,
                                              inputs + constants):
-      if to_check is not other and to_check == other:
+      
+      def robust_equality(X, Y):
+        """normal equality unless np.array, and recursively evaluate equality over list/tuple"""
+        if isinstance(X, (list, tuple)):
+          assert isinstance(Y, (list, tuple))
+          return len(X) == len(Y) and all( robust_equality(x, y) for x, y in zip(X, Y) )
+        if isinstance(X,np.ndarray):
+          if not isinstance(Y,np.ndarray):
+            print("you are asking me to compare an np.array with something that is not a np.array")
+            print("namely:",X," and ",Y)
+            print("please debug now.")
+            import pdb; pdb.set_trace()
+            
+          assert isinstance(Y,np.ndarray)
+          return X.shape == Y.shape and np.all( X == Y )
+        try:
+          return X == Y
+        except:
+          print("Failure when deciding equality over",X," and ",Y,"please debug here:")
+          import pdb; pdb.set_trace()
+            
+        
+      if to_check is not other and robust_equality(to_check, other):
         good = False
         break
     if not good:
