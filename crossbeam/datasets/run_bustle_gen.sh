@@ -2,25 +2,33 @@
 
 data_dir=$HOME/data/crossbeam/bustle
 
-if [ ! -e $data_dir ];
+seed=1
+tout=120
+maxw=10
+maxne=4
+maxni=3
+num_proc=4
+out_dir=$data_dir/t-${tout}-maxw-${maxw}-maxne-${maxne}-maxni-${maxni}
+
+if [ ! -e $out_dir ];
 then
-    mkdir -p $data_dir
+    mkdir -p $out_dir
 fi
 
-seed=1
-training_file=$data_dir/train-tasks-${seed}.pkl
+training_file=$out_dir/train-tasks-${seed}.pkl
 
-python3 crossbeam/datasets/bottom_up_data_generation.py \
+python3 -m crossbeam.datasets.bottom_up_data_generation \
     --domain=bustle \
     --output_file=$training_file \
     --data_gen_seed=$seed \
-    --data_gen_timeout=120 \
+    --data_gen_timeout=$tout \
     --num_tasks=1000 \
     --num_searches=500 \
     --min_task_weight=3 \
-    --max_task_weight=10 \
+    --max_task_weight=$maxw \
     --min_num_examples=2 \
-    --max_num_examples=4 \
+    --max_num_examples=$maxne \
     --min_num_inputs=1 \
-    --max_num_inputs=3 \
+    --max_num_inputs=$maxni \
+    --num_datagen_proc=$num_proc \
     --verbose=False
