@@ -80,13 +80,17 @@ def main(argv):
   if FLAGS.memorize:
     def task_gen_func(*stuff,**dont_care):
       return random.choice(eval_tasks)
+  elif FLAGS.train_offline_data:
+    task_gen_func = None
   else:
     task_gen_func = functools.partial(
         data_gen.task_gen,
         min_weight=FLAGS.min_task_weight,
         max_weight=FLAGS.max_task_weight,
-        num_examples=FLAGS.num_examples,
-        num_inputs=FLAGS.num_inputs,
+        min_num_examples=FLAGS.min_num_examples,
+        max_num_examples=FLAGS.max_num_examples,
+        min_num_inputs=FLAGS.min_num_inputs,
+        max_num_inputs=FLAGS.max_num_inputs,
         verbose=FLAGS.verbose)
   
   main_train_eval(proc_args, model, eval_tasks, domain,
