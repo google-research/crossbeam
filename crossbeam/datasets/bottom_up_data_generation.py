@@ -126,7 +126,7 @@ def main(argv):
     save_prefix = '.'.join(FLAGS.output_file.split('.')[:-1])
     all_tasks = []
     def save_shard(t_list, n_shards):
-      with open(save_prefix + '-%d.pkl' % n_shards, 'wb') as f:
+      with open(save_prefix + '-%05d.pkl' % n_shards, 'wb') as f:
         cp.dump(t_list, f, cp.HIGHEST_PROTOCOL)
       return n_shards + 1
     worker_fun = functools.partial(datagen_worker, domain=domain, 
