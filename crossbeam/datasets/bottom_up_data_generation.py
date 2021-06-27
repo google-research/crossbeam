@@ -144,10 +144,10 @@ def main(argv):
       if len(all_tasks) >= FLAGS.shard_size:
         n_shards = save_shard(all_tasks[:FLAGS.shard_size], n_shards)
         all_tasks = all_tasks[FLAGS.shard_size:]
-        n_shards += 1
     if len(all_tasks):
       for i in range(0, len(all_tasks), FLAGS.shard_size):
-        n_shards = save_shard(all_tasks[i : i + FLAGS.shard_size])
+        n_shards = save_shard(all_tasks[i : i + FLAGS.shard_size], n_shards)
+    print('total # generated tasks', total_num_tasks)
 
 
 if __name__ == '__main__':
