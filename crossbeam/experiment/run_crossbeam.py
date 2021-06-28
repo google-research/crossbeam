@@ -74,7 +74,7 @@ def main(argv):
   else:
     eval_prefix = 'valid-tasks'
   eval_files = os.listdir(FLAGS.data_folder)
-  eval_files = [fname + '.pkl' for fname in eval_files if fname.startswith(eval_prefix)]
+  eval_files = [fname for fname in eval_files if fname.startswith(eval_prefix)]
   eval_tasks = []
   for fname in eval_files:
     with open(os.path.join(FLAGS.data_folder, fname), 'rb') as f:

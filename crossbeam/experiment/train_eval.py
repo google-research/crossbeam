@@ -231,10 +231,11 @@ def main_train_eval(args, model, eval_tasks, domain, task_gen, trace_gen):
       devices = ['cpu'] * args.num_proc
     assert len(devices) == args.num_proc
     nq_per_proc = math.ceil(len(eval_tasks) / args.num_proc)
+    nf_per_proc = math.ceil(len(train_files) / args.num_proc)
     procs = []
     for rank, device in enumerate(devices):
       local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
-      local_train_files = train_files[rank * nq_per_proc : (rank + 1) * nq_per_proc]
+      local_train_files = train_files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
       proc = mp.Process(target=train_mp,
                         args=(args, rank, device, model, local_train_files, local_eval_tasks,
                               domain, task_gen, trace_gen))

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tout=0.1
+tout=120
 maxw=10
 maxne=4
 maxni=3
@@ -17,7 +17,7 @@ then
     mkdir -p $save_dir
 fi
 
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 
 
 python3 -m crossbeam.experiment.run_crossbeam \
@@ -34,8 +34,8 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --save_dir $save_dir \
     --grad_accumulate $grad_acc \
     --beam_size $beam_size \
-    --gpu_list=0,1,2,3 \
-    --num_proc=4 \
+    --gpu_list=0,1,2,3,4,5,6,7 \
+    --num_proc=8 \
     --eval_every 10000 \
     --train_steps 1000000 \
     --train_offline_data \

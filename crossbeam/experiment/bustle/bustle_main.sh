@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tout=0.1
+tout=120
 maxw=10
 maxne=4
 maxni=3
