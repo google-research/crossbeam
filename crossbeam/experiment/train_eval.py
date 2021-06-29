@@ -1,6 +1,8 @@
 import numpy as np
 import os
 import sys
+import pickle as cp
+import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -111,14 +113,27 @@ def _gather_eval_info(rank, device, local_acc, local_num):
   return succ
 
 
-def train_eval_loop(args, device, model, eval_tasks, domain,
+def train_eval_loop(args, device, model, train_files, eval_tasks, domain,
                     task_gen, trace_gen):
+  def local_task_gen(domain):
+    if len(train_files) or task_gen is None:
+      while True:
+        for fname in train_files:
+          with open(fname, 'rb') as f:
+            list_tasks = cp.load(f)
+          random.shuffle(list_tasks)
+          for t in list_tasks:
+            yield t
+    else:
+      while True:
+        yield task_gen(domain)
+  train_gen = local_task_gen(domain)
   is_distributed = args.num_proc > 1
   if is_distributed:
     rank = dist.get_rank()
   else:
     rank = 0
-  model = model.to(device)  
+  model = model.to(device)
   eval_func = functools.partial(do_eval,
                                 max_search_weight=args.max_search_weight,
                                 beam_size=args.beam_size,
@@ -153,7 +168,7 @@ def train_eval_loop(args, device, model, eval_tasks, domain,
       loss_acc = []
       optimizer.zero_grad()
       for _ in range(args.grad_accumulate):
-        t = task_gen(domain)
+        t = next(train_gen)
         trace = list(trace_gen(t.solution))
         with torch.no_grad():
           training_samples, all_values = synthesize(
@@ -190,7 +205,7 @@ def train_eval_loop(args, device, model, eval_tasks, domain,
 
 
 @thread_wrapped_func
-def train_mp(args, rank, device, model, eval_tasks, domain, task_gen, trace_gen):
+def train_mp(args, rank, device, model, train_files, eval_tasks, domain, task_gen, trace_gen):
   if args.num_proc > 1:
     torch.set_num_threads(1)
   os.environ['MASTER_ADDR'] = '127.0.0.1'
@@ -200,10 +215,15 @@ def train_mp(args, rank, device, model, eval_tasks, domain, task_gen, trace_gen)
   else:
     backend = 'nccl'
   dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
-  train_eval_loop(args, device, model, eval_tasks, domain, task_gen, trace_gen)
+  train_eval_loop(args, device, model, train_files, eval_tasks, domain, task_gen, trace_gen)
 
 
 def main_train_eval(args, model, eval_tasks, domain, task_gen, trace_gen):
+  if args.train_offline_data:
+    train_files = os.listdir(args.data_folder)
+    train_files = sorted([os.path.join(args.data_folder, fname) for fname in train_files if fname.startswith('train-tasks')])
+  else:
+    train_files = []
   if args.num_proc > 1:
     if args.gpu_list is not None:
       devices = [get_torch_device(int(x.strip())) for x in args.gpu_list.split(',')]
@@ -211,17 +231,19 @@ def main_train_eval(args, model, eval_tasks, domain, task_gen, trace_gen):
       devices = ['cpu'] * args.num_proc
     assert len(devices) == args.num_proc
     nq_per_proc = math.ceil(len(eval_tasks) / args.num_proc)
+    nf_per_proc = math.ceil(len(train_files) / args.num_proc)
     procs = []
     for rank, device in enumerate(devices):
       local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
+      local_train_files = train_files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
       proc = mp.Process(target=train_mp,
-                        args=(args, rank, device, model, local_eval_tasks,
+                        args=(args, rank, device, model, local_train_files, local_eval_tasks,
                               domain, task_gen, trace_gen))
       procs.append(proc)
       proc.start()
     for proc in procs:
       proc.join()
   else:
-    train_eval_loop(args, get_torch_device(args.gpu), model, eval_tasks,
+    train_eval_loop(args, get_torch_device(args.gpu), model, train_files, eval_tasks,
                     domain, task_gen, trace_gen)
   logging.info("Training finished!!")

@@ -18,14 +18,19 @@ from absl import flags
 
 FLAGS = flags.FLAGS
 
+flags.DEFINE_integer('data_gen_seed', 1, 'Seed for data generation')
 flags.DEFINE_enum('domain', 'tuple', ['tuple', 'arithmetic', 'bustle', 'logic'],
                   'task domain')
 flags.DEFINE_string('output_file', None, 'data dump')
+flags.DEFINE_integer('num_datagen_proc', 1, '# processes for data gen')
+flags.DEFINE_integer('shard_size', 100000, '# tasks per file')
 flags.DEFINE_integer('num_tasks', 1000, '# tasks')
 flags.DEFINE_integer('num_searches', 100, '# searches to perform')
-flags.DEFINE_integer('data_gen_timeout', 60, 'timeout per search in seconds')
-flags.DEFINE_integer('num_examples', 3, '')
-flags.DEFINE_integer('num_inputs', 3, '')
+flags.DEFINE_float('data_gen_timeout', 60, 'timeout per search in seconds')
+flags.DEFINE_integer('min_num_examples', 2, '')
+flags.DEFINE_integer('max_num_examples', 4, '')
+flags.DEFINE_integer('min_num_inputs', 1, '')
+flags.DEFINE_integer('max_num_inputs', 3, '')
 flags.DEFINE_integer('min_task_weight', 3, '')
 flags.DEFINE_integer('max_task_weight', 10, '')
 flags.DEFINE_boolean('verbose', False, 'whether to print generated tasks')

@@ -1,12 +1,8 @@
-from crossbeam.common import config
-
 import random
-import numpy as np
 from absl import app
 from absl import flags
 import pickle as cp
 from crossbeam.datasets import random_data
-from crossbeam.datasets import bustle_data
 from crossbeam.datasets import data_gen_flags
 from crossbeam.dsl import domains
 from crossbeam.dsl import value as value_module
@@ -15,9 +11,13 @@ from crossbeam.experiment import exp_common
 FLAGS = flags.FLAGS
 
 
-def task_gen(domain, min_weight, max_weight, num_examples, num_inputs,
+def task_gen(domain, min_weight, max_weight,
+             min_num_examples, max_num_examples,
+             min_num_inputs, max_num_inputs,
              verbose=False):
   """Generates a random task."""
+  num_examples = random.randint(min_num_examples, max_num_examples)
+  num_inputs = random.randint(min_num_inputs, max_num_inputs)
   task = random_data.generate_good_random_task(
       domain=domain,
       min_weight=min_weight,
@@ -30,18 +30,21 @@ def task_gen(domain, min_weight, max_weight, num_examples, num_inputs,
 
 
 def gen_random_tasks(domain, num_tasks,
-                     min_weight, max_weight, num_examples, num_inputs,
-                     verbose=False):
+                     min_weight, max_weight, min_num_examples, max_num_examples,
+                     min_num_inputs, max_num_inputs, verbose=False):
   """Generates multiple random tasks."""
-  return [
-      task_gen(domain=domain,  # pylint: disable=g-complex-comprehension
-               min_weight=min_weight,
-               max_weight=max_weight,
-               num_examples=num_examples,
-               num_inputs=num_inputs,
-               verbose=verbose)
-      for _ in range(num_tasks)
-  ]
+  tasks = []
+  for _ in range(num_tasks):
+    task = task_gen(domain=domain,
+                    min_weight=min_weight,
+                    max_weight=max_weight,
+                    min_num_examples=min_num_examples,
+                    max_num_examples=max_num_examples,
+                    min_num_inputs=min_num_inputs,
+                    max_num_inputs=max_num_inputs,
+                    verbose=verbose)
+    tasks.append(task)
+  return tasks
 
 
 def trace_gen(value_node, result=None):
@@ -61,7 +64,7 @@ def trace_gen(value_node, result=None):
 
 def main(argv):
   del argv
-  exp_common.set_global_seed(FLAGS.seed)
+  exp_common.set_global_seed(FLAGS.data_gen_seed)
 
   domain = domains.get_domain(FLAGS.domain)
 
@@ -70,8 +73,10 @@ def main(argv):
                                   num_tasks=FLAGS.num_tasks,
                                   min_weight=FLAGS.min_task_weight,
                                   max_weight=FLAGS.max_task_weight,
-                                  num_examples=FLAGS.num_examples,
-                                  num_inputs=FLAGS.num_inputs,
+                                  min_num_examples=FLAGS.min_num_examples,
+                                  max_num_examples=FLAGS.max_num_examples,
+                                  min_num_inputs=FLAGS.min_num_inputs,
+                                  max_num_inputs=FLAGS.max_num_inputs,
                                   verbose=FLAGS.verbose)
   else:
     # FIXME: make it so that logic programming makes random data like everyone else

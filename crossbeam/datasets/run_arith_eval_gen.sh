@@ -17,12 +17,14 @@ eval_file=$data_dir/valid-tasks.pkl
 python data_gen.py \
     --domain=arithmetic \
     --output_file=$eval_file \
-    --seed=$seed \
+    --data_gen_seed=$seed \
     --num_tasks=1000 \
-    --num_examples=$ne \
-    --num_inputs=$ni \
     --min_task_weight=3 \
     --max_task_weight=$maxw \
+    --min_num_examples=$ne \
+    --max_num_examples=$ne \
+    --min_num_inputs=$ni \
+    --max_num_inputs=$ni \
     --verbose=False
 
 
@@ -32,10 +34,12 @@ eval_file=$data_dir/test-tasks.pkl
 python data_gen.py \
     --domain=arithmetic \
     --output_file=$eval_file \
-    --seed=$seed \
+    --data_gen_seed=$seed \
     --num_tasks=1000 \
-    --num_examples=$ne \
-    --num_inputs=$ni \
     --min_task_weight=3 \
     --max_task_weight=$maxw \
+    --min_num_examples=$ne \
+    --max_num_examples=$ne \
+    --min_num_inputs=$ni \
+    --max_num_inputs=$ni \
     --verbose=False

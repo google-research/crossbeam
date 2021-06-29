@@ -169,27 +169,22 @@ def generate_value_with_index(inputs_dict, constants, num_examples,
   return op.apply(arg_values)  # This may be None!
 
 
-RANDOM_INTEGER = functools.partial(random.randint, a=0, b=9)
-
-
 def generate_random_task(domain, min_weight, max_weight, num_examples,
                          num_inputs, dp_info=None, random_seed=None):
   """Generate a random Examples object."""
   if random_seed is not None:
     random.seed(random_seed)
 
-  inputs_dict = {
-      'in{}'.format(input_index + 1):
-          [domain.input_generator() for _ in range(num_examples)]
-      for input_index in range(num_inputs)
-  }
+  inputs_dict = domain.inputs_dict_generator(num_inputs=num_inputs,
+                                             num_examples=num_examples)
 
   constants = domain.constants
   constants_extractor = domain.constants_extractor
   assert (constants is None) != (constants_extractor is None), (
       'expected exactly one of constants or constants_extractor')
   if constants is None:
-    constants = constants_extractor(inputs_dict)
+    constants = constants_extractor(
+        task_module.Task(inputs_dict, outputs=[None] * num_examples))
 
   if dp_info is None:
     dp_info = num_expressions_dp(domain.operations, num_inputs, constants,
@@ -234,12 +229,15 @@ def generate_good_random_task(**kwargs):
     inputs = list(task.inputs_dict.values())
 
     domain = kwargs['domain']
+    if domain.output_type and task.solution.type != domain.output_type:
+      continue
+
     constants = domain.constants
     constants_extractor = domain.constants_extractor
     assert (constants is None) != (constants_extractor is None), (
         'expected exactly one of constants or constants_extractor')
     if constants is None:
-      constants = constants_extractor(task.inputs_dict)
+      constants = constants_extractor(task)
     good = True
     for to_check, other in itertools.product(inputs + task.outputs,
                                              inputs + constants):
@@ -262,3 +260,19 @@ def generate_good_random_task(**kwargs):
 
     # The task has passed all checks.
     return task
+
+
+def make_inputs_dict_generator(single_input_generator):
+  def inputs_dict_generator(num_inputs, num_examples):
+    return {
+        'in{}'.format(input_index + 1):
+            [single_input_generator() for _ in range(num_examples)]
+        for input_index in range(num_inputs)
+    }
+  return inputs_dict_generator
+
+
+RANDOM_INTEGER = functools.partial(random.randint, a=0, b=9)
+
+RANDOM_INTEGER_INPUTS_DICT_GENERATOR = make_inputs_dict_generator(
+    RANDOM_INTEGER)
