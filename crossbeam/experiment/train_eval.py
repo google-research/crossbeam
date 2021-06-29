@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import sys
+import glob
 import pickle as cp
 import random
 import torch
@@ -219,9 +220,8 @@ def train_mp(args, rank, device, model, train_files, eval_tasks, domain, task_ge
 
 
 def main_train_eval(args, model, eval_tasks, domain, task_gen, trace_gen):
-  if args.train_offline_data:
-    train_files = os.listdir(args.data_folder)
-    train_files = sorted([os.path.join(args.data_folder, fname) for fname in train_files if fname.startswith('train-tasks')])
+  if args.train_data_glob is not None:
+    train_files = sorted(glob.glob(os.path.join(args.data_folder, args.train_data_glob)))
   else:
     train_files = []
   if args.num_proc > 1:
