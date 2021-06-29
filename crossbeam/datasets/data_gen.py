@@ -11,9 +11,13 @@ from crossbeam.experiment import exp_common
 FLAGS = flags.FLAGS
 
 
-def task_gen(domain, min_weight, max_weight, num_examples, num_inputs,
+def task_gen(domain, min_weight, max_weight,
+             min_num_examples, max_num_examples,
+             min_num_inputs, max_num_inputs,
              verbose=False):
   """Generates a random task."""
+  num_examples = random.randint(min_num_examples, max_num_examples)
+  num_inputs = random.randint(min_num_inputs, max_num_inputs)
   task = random_data.generate_good_random_task(
       domain=domain,
       min_weight=min_weight,
@@ -31,13 +35,13 @@ def gen_random_tasks(domain, num_tasks,
   """Generates multiple random tasks."""
   tasks = []
   for _ in range(num_tasks):
-    num_examples = random.randint(min_num_examples, max_num_examples)
-    num_inputs = random.randint(min_num_inputs, max_num_inputs)
     task = task_gen(domain=domain,
                     min_weight=min_weight,
                     max_weight=max_weight,
-                    num_examples=num_examples,
-                    num_inputs=num_inputs,
+                    min_num_examples=min_num_examples,
+                    max_num_examples=max_num_examples,
+                    min_num_inputs=min_num_inputs,
+                    max_num_inputs=max_num_inputs,
                     verbose=verbose)
     tasks.append(task)
   return tasks

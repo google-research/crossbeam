@@ -21,8 +21,10 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 python3 -m crossbeam.experiment.run_crossbeam \
     --domain=tuple \
     --model_type=char \
-    --num_examples=$ne \
-    --num_inputs=$ni \
+    --min_num_examples=$ne \
+    --max_num_examples=$ne \
+    --min_num_inputs=$ni \
+    --max_num_inputs=$ni \
     --max_task_weight=$maxw \
     --max_search_weight=$maxsw \
     --data_folder $data_folder \
