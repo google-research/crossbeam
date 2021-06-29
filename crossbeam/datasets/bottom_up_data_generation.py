@@ -141,12 +141,11 @@ def main(argv):
     for local_tasks in tqdm(pool.imap_unordered(worker_fun, seeds), total=len(seeds)):
       total_num_tasks += len(local_tasks)
       all_tasks.extend(local_tasks)
-      if len(all_tasks) >= FLAGS.shard_size:
+      while len(all_tasks) >= FLAGS.shard_size:
         n_shards = save_shard(all_tasks[:FLAGS.shard_size], n_shards)
         all_tasks = all_tasks[FLAGS.shard_size:]
     if len(all_tasks):
-      for i in range(0, len(all_tasks), FLAGS.shard_size):
-        n_shards = save_shard(all_tasks[i : i + FLAGS.shard_size], n_shards)
+      save_shard(all_tasks, n_shards)
     print('total # generated tasks', total_num_tasks)
 
 

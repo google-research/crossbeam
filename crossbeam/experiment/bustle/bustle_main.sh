@@ -36,5 +36,5 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --gpu 0 \
     --eval_every 10000 \
     --train_steps 1000000 \
-    --train_offline_data \
+    --train_data_glob train-tasks*.pkl \
     $@

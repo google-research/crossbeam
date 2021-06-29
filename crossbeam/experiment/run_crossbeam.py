@@ -84,7 +84,7 @@ def main(argv):
   if FLAGS.memorize:
     def task_gen_func(*stuff,**dont_care):
       return random.choice(eval_tasks)
-  elif FLAGS.train_offline_data:
+  elif FLAGS.train_data_glob is not None:
     task_gen_func = None
   else:
     task_gen_func = functools.partial(
