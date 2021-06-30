@@ -21,6 +21,8 @@ import itertools
 import operator
 import random
 from typing import List
+import numpy as np
+
 
 from crossbeam.dsl import task as task_module
 from crossbeam.dsl import value as value_module
@@ -217,6 +219,15 @@ def _duplicate_check_dfs(node, ancestors):
   return False
 
 
+def robust_equality(x, y):
+  """Normal equality but handles np.ndarray."""
+  if type(x) is not type(y):
+    return False
+  if isinstance(x, np.ndarray):
+    return x.shape == y.shape and np.all(x == y)
+  return x == y
+
+
 def generate_good_random_task(**kwargs):
   """Generates a task that passes simple quality checks."""
   while True:
@@ -238,10 +249,19 @@ def generate_good_random_task(**kwargs):
         'expected exactly one of constants or constants_extractor')
     if constants is None:
       constants = constants_extractor(task)
+    expanded_constants = [[constant] * task.num_examples
+                          for constant in constants]
     good = True
-    for to_check, other in itertools.product(inputs + task.outputs,
-                                             inputs + constants):
-      if to_check is not other and to_check == other:
+    print('inputs: {}'.format(inputs))
+    print('outputs: {}'.format(task.outputs))
+    print('constants: {}'.format(constants))
+    for x, y in itertools.product(inputs + [task.outputs],
+                                  inputs + expanded_constants):
+      assert isinstance(x, list)
+      assert isinstance(y, list)
+      assert len(x) == len(y) == task.num_examples
+      if x is not y and all(robust_equality(elem_x, elem_y)
+                            for elem_x, elem_y in zip(x, y)):
         good = False
         break
     if not good:
