@@ -232,6 +232,10 @@ def generate_good_random_task(**kwargs):
     if domain.output_type and task.solution.type != domain.output_type:
       continue
 
+    if (domain.small_value_filter and
+        not all(domain.small_value_filter(v) for v in task.outputs)):
+      continue
+
     constants = domain.constants
     constants_extractor = domain.constants_extractor
     assert (constants is None) != (constants_extractor is None), (
