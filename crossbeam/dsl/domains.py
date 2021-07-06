@@ -2,6 +2,7 @@
 import collections
 
 from crossbeam.datasets import bustle_data
+from crossbeam.datasets import logic_data
 from crossbeam.datasets import random_data
 from crossbeam.dsl import arithmetic_operations
 from crossbeam.dsl import logic_operations
@@ -81,7 +82,7 @@ LOGIC_DOMAIN = Domain(
     operations=logic_operations.get_operations(),
     constants=[],
     constants_extractor=None,
-    inputs_dict_generator=None,
+    inputs_dict_generator=logic_data.logic_inputs_dict_generator,
     input_charset=None,
     input_max_len=50,
     output_charset=None,
