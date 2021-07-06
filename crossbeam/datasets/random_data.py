@@ -219,6 +219,15 @@ def _duplicate_check_dfs(node, ancestors):
   return False
 
 
+def robust_equality(x, y):
+  """Normal equality but handles np.ndarray."""
+  if type(x) is not type(y):
+    return False
+  if isinstance(x, np.ndarray):
+    return x.shape == y.shape and np.all(x == y)
+  return x == y
+
+
 def generate_good_random_task(**kwargs):
   """Generates a task that passes simple quality checks."""
   while True:
@@ -234,38 +243,29 @@ def generate_good_random_task(**kwargs):
     if domain.output_type and task.solution.type != domain.output_type:
       continue
 
+    if (domain.small_value_filter and
+        not all(domain.small_value_filter(v) for v in task.outputs)):
+      continue
+
     constants = domain.constants
     constants_extractor = domain.constants_extractor
     assert (constants is None) != (constants_extractor is None), (
         'expected exactly one of constants or constants_extractor')
     if constants is None:
       constants = constants_extractor(task)
+    expanded_constants = [[constant] * task.num_examples
+                          for constant in constants]
     good = True
-    for to_check, other in itertools.product(inputs + task.outputs,
-                                             inputs + constants):
-      
-      def robust_equality(X, Y):
-        """normal equality unless np.array, and recursively evaluate equality over list/tuple"""
-        if isinstance(X, (list, tuple)):
-          assert isinstance(Y, (list, tuple))
-          return len(X) == len(Y) and all( robust_equality(x, y) for x, y in zip(X, Y) )
-        if isinstance(X,np.ndarray):
-          if not isinstance(Y,np.ndarray):
-            print("you are asking me to compare an np.array with something that is not a np.array")
-            print("namely:",X," and ",Y)
-            print("please debug now.")
-            import pdb; pdb.set_trace()
-            
-          assert isinstance(Y,np.ndarray)
-          return X.shape == Y.shape and np.all( X == Y )
-        try:
-          return X == Y
-        except:
-          print("Failure when deciding equality over",X," and ",Y,"please debug here:")
-          import pdb; pdb.set_trace()
-            
-        
-      if to_check is not other and robust_equality(to_check, other):
+    print('inputs: {}'.format(inputs))
+    print('outputs: {}'.format(task.outputs))
+    print('constants: {}'.format(constants))
+    for x, y in itertools.product(inputs + [task.outputs],
+                                  inputs + expanded_constants):
+      assert isinstance(x, list)
+      assert isinstance(y, list)
+      assert len(x) == len(y) == task.num_examples
+      if x is not y and all(robust_equality(elem_x, elem_y)
+                            for elem_x, elem_y in zip(x, y)):
         good = False
         break
     if not good:

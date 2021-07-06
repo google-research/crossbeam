@@ -70,23 +70,31 @@ def main(argv):
     print('loading model from', model_dump)
     model.load_state_dict(torch.load(model_dump))
   if FLAGS.do_test:
-    eval_file = 'test-tasks.pkl'
+    eval_prefix = 'test-tasks'
   else:
-    eval_file = 'valid-tasks.pkl'
-  with open(os.path.join(FLAGS.data_folder, eval_file), 'rb') as f:
-    eval_tasks = cp.load(f)
+    eval_prefix = 'valid-tasks'
+  eval_files = os.listdir(FLAGS.data_folder)
+  eval_files = [fname for fname in eval_files if fname.startswith(eval_prefix)]
+  eval_tasks = []
+  for fname in eval_files:
+    with open(os.path.join(FLAGS.data_folder, fname), 'rb') as f:
+      eval_tasks += cp.load(f)
 
   proc_args = argparse.Namespace(**FLAGS.flag_values_dict())
   if FLAGS.memorize:
     def task_gen_func(*stuff,**dont_care):
       return random.choice(eval_tasks)
+  elif FLAGS.train_data_glob is not None:
+    task_gen_func = None
   else:
     task_gen_func = functools.partial(
         data_gen.task_gen,
         min_weight=FLAGS.min_task_weight,
         max_weight=FLAGS.max_task_weight,
-        num_examples=FLAGS.num_examples,
-        num_inputs=FLAGS.num_inputs,
+        min_num_examples=FLAGS.min_num_examples,
+        max_num_examples=FLAGS.max_num_examples,
+        min_num_inputs=FLAGS.min_num_inputs,
+        max_num_inputs=FLAGS.max_num_inputs,
         verbose=FLAGS.verbose)
   
   main_train_eval(proc_args, model, eval_tasks, domain,

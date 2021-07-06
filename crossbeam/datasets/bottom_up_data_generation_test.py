@@ -31,10 +31,12 @@ class BottomUpDataGenerationTest(parameterized.TestCase):
     domain = domains.get_domain(domain_str)
     tasks = bottom_up_data_generation.generate_data(
         domain,
-        max_weight=6,
         min_weight=4,
-        num_examples=3,
-        num_inputs=2,
+        max_weight=6,
+        min_num_examples=2,
+        max_num_examples=4,
+        min_num_inputs=1,
+        max_num_inputs=3,
         timeout=5,
         num_searches=2,
         num_tasks_per_search=10)

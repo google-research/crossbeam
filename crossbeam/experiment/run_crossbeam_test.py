@@ -28,24 +28,24 @@ class MainTupleTest(parameterized.TestCase):
 
     max_search_weight = max_weight + 1
     FLAGS([''])  # Parse flags
-    FLAGS.train_steps = 150
+    FLAGS.train_steps = 100
     FLAGS.eval_every = 50
     FLAGS.num_proc = 1
-    FLAGS.lr = 0.02
+    FLAGS.lr = 0.01
     FLAGS.embed_dim = 32
     FLAGS.decoder_rnn_layers = 1
     FLAGS.max_search_weight = max_search_weight
     FLAGS.beam_size = 4
-    FLAGS.num_inputs = 1
-    FLAGS.grad_accumulate = 2
+    FLAGS.grad_accumulate = 3
 
     domain = domains.get_domain(domain_str)
     model = run_crossbeam.init_model(domain, model_type)
 
     proc_args = argparse.Namespace(**FLAGS.flag_values_dict())
     eval_tasks = data_gen.gen_random_tasks(
-        domain, 4, min_weight=3, max_weight=max_weight,
-        num_examples=3, num_inputs=1)
+        domain, num_tasks=4, min_weight=3, max_weight=max_weight,
+        min_num_examples=2, max_num_examples=3,
+        min_num_inputs=1, max_num_inputs=2)
     task_gen_func = lambda _: random.choice(eval_tasks)
     train_eval.main_train_eval(proc_args, model, eval_tasks, domain,
                                task_gen=task_gen_func,
