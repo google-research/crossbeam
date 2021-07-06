@@ -24,6 +24,7 @@ python run_crossbeam.py \
     --gpu 0 \
     --eval_every 10000 \
     --train_steps 1000000 \
-    --num_examples=1 --num_inputs=4 \
+    --max_num_examples=1 --min_num_examples=1 \
+    --max_num_inputs=4 --min_num_inputs=4 \
     $@
 

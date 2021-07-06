@@ -256,9 +256,10 @@ def generate_good_random_task(**kwargs):
     expanded_constants = [[constant] * task.num_examples
                           for constant in constants]
     good = True
-    print('inputs: {}'.format(inputs))
-    print('outputs: {}'.format(task.outputs))
-    print('constants: {}'.format(constants))
+    # do we want these print statements? they clog up the screen during training
+    # print('inputs: {}'.format(inputs))
+    # print('outputs: {}'.format(task.outputs))
+    # print('constants: {}'.format(constants))
     for x, y in itertools.product(inputs + [task.outputs],
                                   inputs + expanded_constants):
       assert isinstance(x, list)

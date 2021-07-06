@@ -40,8 +40,8 @@ fi
 
 echo "making validation/training"
 eval_file=$data_dir/valid-tasks.pkl
-python bottom_up_data_generation.py --domain=logic --num_examples=1 --num_inputs=4 --output_file $eval_file
+python bottom_up_data_generation.py --domain=logic --max_num_examples=1 --min_num_examples=1 --max_num_inputs=4 --min_num_inputs=4 --output_file $eval_file
 
 echo "making testing"
 eval_file=$data_dir/test-tasks.pkl
-python bottom_up_data_generation.py --domain=logic --num_examples=1 --num_inputs=4 --output_file $eval_file
+python bottom_up_data_generation.py --domain=logic --max_num_examples=1 --min_num_examples=1 --max_num_inputs=4 --min_num_inputs=4 --output_file $eval_file
