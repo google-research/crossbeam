@@ -52,6 +52,46 @@ class CheckerTest(parameterized.TestCase):
     task = task_module.Task(inputs_dict, outputs)
     self.assertEqual(checker.check_solution(task, solution_string), expected)
 
+  @parameterized.named_parameters(
+      ('right_good', {'in1': ['abc', '12345', '?']}, ['bc', '45', '?'],
+       'Right(in1, 2)', True),
+      ('right_bad', {'in1': ['abc', '12345', '?']}, ['bc', '45', '?'],
+       'Right(in1, 3)', False),
+      ('concat_good', {'in1': ['abc', '12345', '?'], 'in2': ['XYZ', '0', '!!']},
+       ['abcXYZ', '123450', '?!!'],
+       'Concatenate(in1, in2)', True),
+      ('concat_bad', {'in1': ['abc', '12345', '?'], 'in2': ['XYZ', '0', '!!']},
+       ['abcXYZ', '123450', '?!!'],
+       'Concatenate(in2, in1)', False),
+      ('substitute_3_good', {'x': ['1?2?3', '???', '?']}, ['1!2!3', '!!!', '!'],
+       'Substitute(x, "?", "!")', True),
+      ('substitute_3_bad', {'x': ['1?2?3', '???', '?']}, ['1!2!3', '!!!', '!'],
+       'Substitute(x, "?", "!!")', False),
+      ('substitute_4_good', {'x': ['1?2?3', '???', '?']}, ['1?2!3', '?!?', '?'],
+       'Substitute(x, "?", "!", 2)', True),
+      ('substitute_4_bad', {'x': ['1?2?3', '???', '?']}, ['1?2!3', '?!?', '?'],
+       'Substitute(x, "?", "!", 1)', False),
+
+      ('path_depth_good', {'var_0': ['/this/is/a/path', '/home', '/a/b']},
+       ['4', '1', '2'],
+       'TO_TEXT(MINUS(LEN(var_0), LEN(SUBSTITUTE(var_0, "/", ""))))', True),
+      ('path_depth_bad', {'var_0': ['/this/is/a/path', '/home', '/a/b']},
+       ['4', '11', '2'],
+       'TO_TEXT(MINUS(LEN(var_0), LEN(SUBSTITUTE(var_0, "/", ""))))', False),
+
+      ('two_letter_acronym_capitalization_good',
+       {'x': ['product area', 'Vice president']}, ['PA', 'VP'],
+       'LEFT(REPLACE(UPPER(x), 2, MINUS(FIND(" ", x), 1), ""), 2)', True),
+      ('two_letter_acronym_capitalization_bad',
+       {'x': ['product area', 'Vice president']}, ['PA', 'VP'],
+       'LEFT(REPLACE(x, 2, MINUS(FIND(" ", x), 1), ""), 2)', False),
+  )
+  def test_check_solutions_bustle(self, inputs_dict, outputs, solution_string,
+                                  expected):
+    task = task_module.Task(inputs_dict, outputs)
+    self.assertEqual(checker.check_bustle_solution(task, solution_string),
+                     expected)
+
 
 if __name__ == '__main__':
   absltest.main()
