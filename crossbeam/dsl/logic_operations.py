@@ -33,7 +33,8 @@ class MemorizeDyadicClause(operation_base.OperationBase):
         return new_relation
 
     def tokenized_expression(self, arguments):
-        return [self.__class__.TOKEN,arguments[0],arguments[1],')']
+        return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + \
+            arguments[1].tokenized_expression() + [')']
 
 class MemorizeMonadicClause(operation_base.OperationBase):
     """
@@ -50,7 +51,7 @@ class MemorizeMonadicClause(operation_base.OperationBase):
         return new_relation
 
     def tokenized_expression(self, arguments):
-        return [self.__class__.TOKEN,arguments[0],')']
+        return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [')']
 
 class RecursiveClause(operation_base.OperationBase):
     """

@@ -80,7 +80,7 @@ def main(argv):
                                   verbose=FLAGS.verbose)
   else:
     # FIXME: make it so that logic programming makes random data like everyone else
-    from crossbeam.datasets.logic_data_generator import make_divisible_task, make_connected_task
+    from crossbeam.datasets.logic_data import make_divisible_task, make_connected_task
     operations = domain.operations
     eval_tasks = [make_divisible_task(k,operations) for k in [2,3,4] ]
     eval_tasks.extend([make_connected_task(operations,p=p) for p in [0.05,0.4]])

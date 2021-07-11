@@ -2,6 +2,7 @@
 import collections
 
 from crossbeam.datasets import bustle_data
+from crossbeam.datasets import logic_data
 from crossbeam.datasets import random_data
 from crossbeam.dsl import arithmetic_operations
 from crossbeam.dsl import logic_operations
@@ -13,7 +14,8 @@ Domain = collections.namedtuple(
     'Domain',
     ['operations', 'constants', 'constants_extractor', 'inputs_dict_generator',
      'input_charset', 'input_max_len', 'output_charset', 'output_max_len',
-     'value_charset', 'value_max_len', 'program_tokens', 'output_type'])
+     'value_charset', 'value_max_len', 'program_tokens', 'output_type',
+     'small_value_filter'])
 
 
 TUPLE_DOMAIN = Domain(
@@ -28,7 +30,8 @@ TUPLE_DOMAIN = Domain(
     value_charset='0123456789() ,[]intuple:',
     value_max_len=70,
     program_tokens=['(', ')', ', '],
-    output_type=None)
+    output_type=None,
+    small_value_filter=None)
 
 ARITHMETIC_DOMAIN = Domain(
     operations=arithmetic_operations.get_operations(),
@@ -42,9 +45,24 @@ ARITHMETIC_DOMAIN = Domain(
     value_charset='0123456789 ,-[]int:',
     value_max_len=70,
     program_tokens=['(', ')', ' + ', ' - ', ' * ', ' // '],
-    output_type=None)
+    output_type=None,
+    small_value_filter=lambda x: abs(x) < 1000)
+
 
 _BUSTLE_CHARSET = ''.join(bustle_data.CHARSETS) + "'[]:"
+
+
+def _bustle_small_value_filter(x):
+  if isinstance(x, int):
+    return abs(x) < 100
+  elif isinstance(x, str):
+    return len(x) < 100
+  elif isinstance(x, bool):
+    return True
+  else:
+    raise TypeError('Intermediate value {} has unknown type {}'.format(
+        x, type(x)))
+
 BUSTLE_DOMAIN = Domain(
     operations=bustle_operations.get_operations(),
     constants=None,
@@ -57,13 +75,14 @@ BUSTLE_DOMAIN = Domain(
     value_charset=_BUSTLE_CHARSET,
     value_max_len=70,
     program_tokens=['(', ')', ', '] + bustle_operations.bustle_op_names(),
-    output_type=str)
+    output_type=str,
+    small_value_filter=_bustle_small_value_filter)
 
 LOGIC_DOMAIN = Domain(
     operations=logic_operations.get_operations(),
     constants=[],
     constants_extractor=None,
-    inputs_dict_generator=None,
+    inputs_dict_generator=logic_data.logic_inputs_dict_generator,
     input_charset=None,
     input_max_len=50,
     output_charset=None,
@@ -71,7 +90,8 @@ LOGIC_DOMAIN = Domain(
     value_charset=None,
     value_max_len=70,
     program_tokens=['(', ')', ' '] + logic_operations.logic_op_names(),
-    output_type=None)
+    output_type=None,
+    small_value_filter=None)
 
 
 def get_domain(domain_str):

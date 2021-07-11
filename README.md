@@ -43,6 +43,14 @@ From the root `crossbeam` directory:
 pytest
 ```
 
+## Running domains
+
+### Logic programming
+```
+cd crossbeam/datasets; ./run_logic_gen.sh; cd ../..
+cd crossbeam/experiment; ./run_logic.sh
+```
+
 ## Disclaimer
 
 This is not an official Google product.

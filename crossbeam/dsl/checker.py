@@ -14,11 +14,16 @@
 
 """Checks whether string solutions adhere to the I/O examples."""
 
+import collections
+import functools
 
-def check_solution(task, solution_string):
+from crossbeam.dsl import bustle_operations
+
+
+def check_solution(task, solution_string, ops_namespace=None):
   """Checks whether solution_string passes all examples in the task."""
   for example_index in range(task.num_examples):
-    namespace = {}
+    namespace = ops_namespace.copy() if ops_namespace else {}
     for input_name, input_values in task.inputs_dict.items():
       namespace[input_name] = input_values[example_index]
     try:
@@ -28,3 +33,29 @@ def check_solution(task, solution_string):
     except:  # pylint: disable=bare-except
       return False
   return True
+
+
+def _bustle_ops_namespace():
+  """Constructs a namespace that supports calling BUSTLE operations."""
+  name_to_ops = collections.defaultdict(list)
+  for op in bustle_operations.get_operations():
+    name_to_ops[op.name].append(op)
+  ops_namespace = {}
+  for name, ops_with_name in name_to_ops.items():
+    def run_op(name, ops_with_name, *args):
+      for op in ops_with_name:
+        if len(args) == op.arity:
+          return op.apply_single(args)
+      raise ValueError('Op {} got bad arity {}'.format(name, len(args)))
+    partial_run_op = functools.partial(run_op, name, ops_with_name)
+    ops_namespace[name] = partial_run_op
+    ops_namespace[name.upper()] = partial_run_op
+  return ops_namespace
+
+
+BUSTLE_OPS_NAMESPACE = _bustle_ops_namespace()
+
+
+def check_bustle_solution(task, solution_string):
+  """Checks whether solution_string passes all examples in the task."""
+  return check_solution(task, solution_string, BUSTLE_OPS_NAMESPACE)

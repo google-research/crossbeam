@@ -68,7 +68,25 @@ def make_divisible_task(k, operators):
                 solution)
     
     
+def logic_inputs_dict_generator(num_inputs, num_examples):
+  assert num_inputs == 4, "number of inputs must be 4"
+  assert num_examples == 1, "number of examples must be 1"
 
+  is_zero = np.zeros(MAXIMUM_ENTITIES) > 0
+  is_zero[0] = True
+
+  S = np.roll(np.eye(MAXIMUM_ENTITIES),1)
+  S[0,0] = 0
+  S = S > 0
+
+  bottom1 = np.zeros(MAXIMUM_ENTITIES) > 0
+  bottom2 = np.zeros((MAXIMUM_ENTITIES,MAXIMUM_ENTITIES)) > 0
+  
+  return {"zero": [is_zero],
+          "successor": [S],
+          "_|_/1": [bottom1],
+          "_|_/2": [bottom2]}
+  
     
 
 

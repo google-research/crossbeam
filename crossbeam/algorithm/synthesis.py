@@ -71,6 +71,9 @@ def synthesize(task, domain, model, device,
         result_value = operation.apply(arg_list)
         if result_value is None or result_value.weight > max_weight:
           continue
+        if (domain.small_value_filter and
+            not all(domain.small_value_filter(v) for v in result_value.values)):
+          continue
         if result_value in all_value_dict:
           # TODO: replace existing one if this way is simpler (less weight)
           continue
