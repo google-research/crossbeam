@@ -4,7 +4,7 @@ export CUDA_VISIBLE_DEVICES=1
 
 ne=3
 ni=3
-maxw=6
+maxw=8
 
 data_folder=$HOME/data/crossbeam/arithmetic_synthesis/ne-${ne}-ni-${ni}-maxw-${maxw}
 
@@ -22,8 +22,10 @@ fi
 python -m crossbeam.robustfill.main_robustfill \
     --gpu 0 \
     --domain arithmetic \
-    --num_examples=$ne \
-    --num_inputs=$ni \
+    --min_num_examples=$ne \
+    --max_num_examples=$ne \
+    --min_num_inputs=$ni \
+    --max_num_inputs=$ni \
     --max_task_weight=$maxw \
     --decoder_rnn_layers $rnn_layers \
     --data_folder $data_folder \
