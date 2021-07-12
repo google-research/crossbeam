@@ -7,7 +7,7 @@ ni=3
 tout=10
 maxw=10
 
-data_folder=$HOME/data/crossbeam/bustle/t-${tout}-maxw-${maxw}-maxne-${maxne}-maxni-${maxni}
+data_folder=$HOME/data/crossbeam/bustle/t-${tout}-maxw-${maxw}-maxne-${ne}-maxni-${ni}
 
 embed=128
 bsize=512

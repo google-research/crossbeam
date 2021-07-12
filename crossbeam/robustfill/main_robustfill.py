@@ -44,10 +44,14 @@ def init_model(domain):
   output_table = CharacterTable(domain.output_charset,
                                 max_len=domain.output_max_len)
 
-  prog_vocab = ['pad'] + [str(x) for x in domain.constants]
+  prog_vocab = []
+  if domain.constants is not None:
+    prog_vocab += [str(x) for x in domain.constants]
   for i in range(1, FLAGS.max_num_inputs + 1):
-      prog_vocab.append('in%d' % i)
+    prog_vocab.append('in%d' % i)
   prog_vocab += domain.program_tokens
+  prog_vocab = list(set(prog_vocab))
+  prog_vocab = ['pad'] + prog_vocab
   prog_vocab += ['sos', 'eos']
   prog_vdict = {}
   for i, v in enumerate(prog_vocab):
@@ -96,7 +100,7 @@ def main(argv):
       max_num_inputs=FLAGS.max_num_inputs,
       verbose=FLAGS.verbose)
 
-  valid_dataset = RawOfflineDataset(glob.glob(os.path.join(FLAGS.data_folder, 'valid-tasks'))[0])
+  valid_dataset = RawOfflineDataset(glob.glob(os.path.join(FLAGS.data_folder, 'valid-tasks*'))[0])
   if FLAGS.train_data_glob is None:
     train_dataset = RawInftyDataset(FLAGS.seed, task_gen_func, domain)
     train_loader = DataLoader(train_dataset, batch_size=FLAGS.batch_size,
@@ -117,7 +121,7 @@ def main(argv):
   else:
     device = 'cpu'    
   if FLAGS.do_test:
-    test_dataset = RawOfflineDataset(glob.glob(os.path.join(FLAGS.data_folder, 'test-tasks'))[0])
+    test_dataset = RawOfflineDataset(glob.glob(os.path.join(FLAGS.data_folder, 'test-tasks*'))[0])
     hit_at_1, total_hit = eval_dataset(model, test_dataset, device)
     print('test hit@1: %.2f, hit@%d: %.2f' % (hit_at_1, FLAGS.beam_size, total_hit))
     sys.exit()

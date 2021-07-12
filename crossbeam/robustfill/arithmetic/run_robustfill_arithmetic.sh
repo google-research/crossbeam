@@ -1,10 +1,10 @@
 #!/bin/bash
 
-export CUDA_VISIBLE_DEVICES=1
+export CUDA_VISIBLE_DEVICES=2
 
 ne=3
 ni=3
-maxw=8
+maxw=10
 
 data_folder=$HOME/data/crossbeam/arithmetic_synthesis/ne-${ne}-ni-${ni}-maxw-${maxw}
 
