@@ -21,8 +21,10 @@ fi
 
 python -m crossbeam.robustfill.main_robustfill \
     --gpu 0 \
-    --num_examples=$ne \
-    --num_inputs=$ni \
+    --min_num_examples=$ne \
+    --max_num_examples=$ne \
+    --min_num_inputs=$ni \
+    --max_num_inputs=$ni \
     --max_task_weight=$maxw \
     --decoder_rnn_layers $rnn_layers \
     --data_folder $data_folder \
@@ -34,3 +36,4 @@ python -m crossbeam.robustfill.main_robustfill \
     --train_steps 1000000 \
     --batch_size $bsize \
     --n_para_dataload 4 \
+    $@
