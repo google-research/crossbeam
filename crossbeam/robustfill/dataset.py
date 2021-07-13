@@ -13,8 +13,12 @@ def raw_collate_fn(list_tasks):
 
 
 class RawInftyDataset(IterableDataset):
-  def __init__(self, seed, task_gen_func, domain):
+  def __init__(self, seed, task_gen_func, domain, prog_tokenizer=None):
     super(RawInftyDataset, self).__init__()
+    if prog_tokenizer is None:
+      self.prog_tokenizer = lambda x: x
+    else:
+      self.prog_tokenizer = prog_tokenizer
     self.seed = seed    
     self.fn_data_gen = task_gen_func
     self.domain = domain
@@ -26,15 +30,19 @@ class RawInftyDataset(IterableDataset):
 
     while True:
       t = self.fn_data_gen(self.domain)
-      yield t, t.inputs_dict, t.outputs, t.solution.tokenized_expression()
+      yield t, t.inputs_dict, t.outputs, self.prog_tokenizer(t.solution.tokenized_expression())
 
   def collate_fn(self, list_tasks):
     return list_tasks
 
 
 class RawOfflineDataset(Dataset):
-  def __init__(self, pkl_name, verbose=True):
+  def __init__(self, pkl_name, prog_tokenizer=None, verbose=True):
     super(RawOfflineDataset, self).__init__()
+    if prog_tokenizer is None:
+      self.prog_tokenizer = lambda x: x
+    else:
+      self.prog_tokenizer = prog_tokenizer
     with open(pkl_name, 'rb') as f:
       self.tasks = cp.load(f)
     if verbose:
@@ -45,14 +53,14 @@ class RawOfflineDataset(Dataset):
 
   def __getitem__(self, index):
     t = self.tasks[index]
-    return t, t.inputs_dict, t.outputs, t.solution.tokenized_expression()
+    return t, t.inputs_dict, t.outputs, self.prog_tokenizer(t.solution.tokenized_expression())
 
 
-def sharded_iterator(train_data_glob, batch_size, collate_fn=raw_collate_fn, drop_last=True):
+def sharded_iterator(train_data_glob, batch_size, prog_tokenizer=None, collate_fn=raw_collate_fn, drop_last=True):
   train_files = sorted(glob.glob(train_data_glob))
   while True:
     for fname in train_files:
-      db = RawOfflineDataset(fname, verbose=False)
+      db = RawOfflineDataset(fname, prog_tokenizer, verbose=False)
       idx = list(range(len(db)))
       random.shuffle(idx)
       for i in range(0, len(idx), batch_size):

@@ -60,7 +60,9 @@ def init_model(domain):
   return model
 
 
-def eval_dataset(model, dataset, device):
+def eval_dataset(model, dataset, device, fn_unparse=None):
+  if fn_unparse is None:
+    fn_unparse = lambda x : x
   eval_loader = DataLoader(dataset, batch_size=FLAGS.batch_size, collate_fn=raw_collate_fn, num_workers=0,
                             shuffle=False, drop_last=False)
   model.eval()
@@ -73,7 +75,8 @@ def eval_dataset(model, dataset, device):
       for i in range(len(list_tasks)):
         hit = -1
         for j in range(FLAGS.beam_size):
-          pred_prog = ''.join(list_pred_progs[i * FLAGS.beam_size + j])
+          raw_prog_tokens = fn_unparse(list_pred_progs[i * FLAGS.beam_size + j])
+          pred_prog = ''.join(raw_prog_tokens)
           if checker.check_solution(list_tasks[i], pred_prog):
             hit = j
             break
@@ -90,6 +93,13 @@ def main(argv):
   del argv
   set_global_seed(FLAGS.seed)
   domain = domains.get_domain(FLAGS.domain)
+  fn_tokenizer = fn_unparse = None
+  if FLAGS.domain == 'bustle':
+    from crossbeam.robustfill.bustle.bustle_domain import get_bustle_char_domain
+    from crossbeam.robustfill.bustle.tokenizer import process_prog, unprocess_prog
+    domain = get_bustle_char_domain()
+    fn_tokenizer = process_prog
+    fn_unparse = unprocess_prog
   task_gen_func = functools.partial(
       data_gen.task_gen,
       min_weight=FLAGS.min_task_weight,
@@ -100,15 +110,15 @@ def main(argv):
       max_num_inputs=FLAGS.max_num_inputs,
       verbose=FLAGS.verbose)
 
-  valid_dataset = RawOfflineDataset(glob.glob(os.path.join(FLAGS.data_folder, 'valid-tasks*'))[0])
+  valid_dataset = RawOfflineDataset(glob.glob(os.path.join(FLAGS.data_folder, 'valid-tasks*'))[0], prog_tokenizer=fn_tokenizer)
   if FLAGS.train_data_glob is None:
-    train_dataset = RawInftyDataset(FLAGS.seed, task_gen_func, domain)
+    train_dataset = RawInftyDataset(FLAGS.seed, task_gen_func, domain, prog_tokenizer=fn_tokenizer)
     train_loader = DataLoader(train_dataset, batch_size=FLAGS.batch_size,
                               collate_fn=raw_collate_fn, num_workers=FLAGS.n_para_dataload)
     train_gen = iter(train_loader)
   else:
     train_gen = sharded_iterator(os.path.join(FLAGS.data_folder, FLAGS.train_data_glob),
-                                 batch_size=FLAGS.batch_size)
+                                 batch_size=FLAGS.batch_size, prog_tokenizer=fn_tokenizer)
 
   model = init_model(domain)
   if FLAGS.load_model is not None:
@@ -122,7 +132,7 @@ def main(argv):
     device = 'cpu'    
   if FLAGS.do_test:
     test_dataset = RawOfflineDataset(glob.glob(os.path.join(FLAGS.data_folder, 'test-tasks*'))[0])
-    hit_at_1, total_hit = eval_dataset(model, test_dataset, device)
+    hit_at_1, total_hit = eval_dataset(model, test_dataset, device, fn_unparse)
     print('test hit@1: %.2f, hit@%d: %.2f' % (hit_at_1, FLAGS.beam_size, total_hit))
     sys.exit()
   optimizer = optim.Adam(model.parameters(), lr=FLAGS.lr)
@@ -144,7 +154,7 @@ def main(argv):
       optimizer.step()
       pbar.set_description('iter: %d, loss: %.4f' % (it, loss.item()))
     cur_step += FLAGS.eval_every
-    hit_at_1, total_hit = eval_dataset(model, valid_dataset, device)
+    hit_at_1, total_hit = eval_dataset(model, valid_dataset, device, fn_unparse)
     print('valid hit@1: %.2f, hit@%d: %.2f' % (hit_at_1, FLAGS.beam_size, total_hit))
     if hit_at_1 > best_valid:
       print('saving best valid model')
