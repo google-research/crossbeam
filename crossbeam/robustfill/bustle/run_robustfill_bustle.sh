@@ -2,17 +2,18 @@
 
 export CUDA_VISIBLE_DEVICES=0
 
-ne=3
+ne=4
 ni=3
-maxw=6
+tout=10
+maxw=10
 
-data_folder=$HOME/data/crossbeam/tuple_synthesis/ne-${ne}-ni-${ni}-maxw-${maxw}
+data_folder=$HOME/data/crossbeam/bustle/t-${tout}-maxw-${maxw}-maxne-${ne}-maxni-${ni}
 
 embed=128
 bsize=512
 rnn_layers=3
 beam_size=4
-save_dir=$HOME/results/crossbeam/robustfill/tuple_synthesis/e-${embed}-b-${bsize}-r-${rnn_layers}-maxw-${maxw}
+save_dir=$HOME/results/crossbeam/robustfill/bustle/e-${embed}-b-${bsize}-r-${rnn_layers}-maxw-${maxw}-t-${tout}
 
 if [ ! -e $save_dir ];
 then
@@ -21,10 +22,12 @@ fi
 
 python -m crossbeam.robustfill.main_robustfill \
     --gpu 0 \
-    --min_num_examples=$ne \
+    --domain=bustle \
+    --min_num_examples=2 \
     --max_num_examples=$ne \
-    --min_num_inputs=$ni \
+    --min_num_inputs=2 \
     --max_num_inputs=$ni \
+    --min_task_weight=3 \
     --max_task_weight=$maxw \
     --decoder_rnn_layers $rnn_layers \
     --data_folder $data_folder \
@@ -36,4 +39,5 @@ python -m crossbeam.robustfill.main_robustfill \
     --train_steps 1000000 \
     --batch_size $bsize \
     --n_para_dataload 4 \
+    --train_data_glob train-tasks*.pkl \
     $@

@@ -63,6 +63,7 @@ def bustle_inputs_dict_generator(num_inputs, num_examples):
 
 
 ALWAYS_USED_CONSTANTS = ['', 0, 1, 2, 3, 99]
+ALWAYS_CONST_STR = ["''", "0", "1", "2", "3", "99"]
 COMMON_CONSTANTS = [
     ' ', ',', '.', '!', '?', '(', ')', '[', ']', '<', '>', '{', '}', '-', '+',
     '_', '/', '$', '#', ':', ';', '@', '%', '0']

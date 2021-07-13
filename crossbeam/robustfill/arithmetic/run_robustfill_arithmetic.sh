@@ -1,18 +1,18 @@
 #!/bin/bash
 
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=2
 
 ne=3
 ni=3
-maxw=6
+maxw=10
 
-data_folder=$HOME/data/crossbeam/tuple_synthesis/ne-${ne}-ni-${ni}-maxw-${maxw}
+data_folder=$HOME/data/crossbeam/arithmetic_synthesis/ne-${ne}-ni-${ni}-maxw-${maxw}
 
 embed=128
 bsize=512
 rnn_layers=3
 beam_size=4
-save_dir=$HOME/results/crossbeam/robustfill/tuple_synthesis/e-${embed}-b-${bsize}-r-${rnn_layers}-maxw-${maxw}
+save_dir=$HOME/results/crossbeam/robustfill/arithmetic_synthesis/e-${embed}-b-${bsize}-r-${rnn_layers}-maxw-${maxw}
 
 if [ ! -e $save_dir ];
 then
@@ -21,6 +21,7 @@ fi
 
 python -m crossbeam.robustfill.main_robustfill \
     --gpu 0 \
+    --domain arithmetic \
     --min_num_examples=$ne \
     --max_num_examples=$ne \
     --min_num_inputs=$ni \
@@ -36,4 +37,3 @@ python -m crossbeam.robustfill.main_robustfill \
     --train_steps 1000000 \
     --batch_size $bsize \
     --n_para_dataload 4 \
-    $@
