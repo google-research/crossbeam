@@ -19,7 +19,7 @@ from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
 
 
-def synthesize(task, domain, model, device,
+def synthesize(task, domain, model, device, op_in_beam,
                trace=None, max_weight=10, k=2, is_training=False,
                include_as_train=None, timeout=None, is_stochastic=False):
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
@@ -29,7 +29,8 @@ def synthesize(task, domain, model, device,
     include_as_train = lambda trace_in_beam: True
   num_examples = task.num_examples
 
-  all_values = []
+  all_values = domain.operations if op_in_beam else []
+  beam_steps = max([op.arity for op in domain.operations]) + 1
 
   constants = domain.constants
   constants_extractor = domain.constants_extractor
