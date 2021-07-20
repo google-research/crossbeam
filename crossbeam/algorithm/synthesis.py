@@ -53,18 +53,20 @@ def synthesize(task, domain, model, device,
 
     for operation in domain.operations:
       num_values_before_op = len(all_values)
-      val_embed = model.val(all_values, device=device)
-      op_state = model.init(io_embed, val_embed, operation)
-      args, _ = beam_search(operation.arity, k,
-                            val_embed,
-                            op_state,
-                            model.arg,
-                            device=device,
-                            is_stochastic=is_stochastic)
-      args = args.data.cpu().numpy().astype(np.int32)
-      if k > (len(all_values) ** operation.arity):
-        args = args[:len(all_values) ** operation.arity]
-      beam = [[all_values[i] for i in arg_list] for arg_list in args]
+      # val_embed = model.val(all_values, device=device)
+      # op_state = model.init(io_embed, val_embed, operation)
+      # args, _ = beam_search(operation.arity, k,
+      #                       val_embed,
+      #                       op_state,
+      #                       model.arg,
+      #                       device=device,
+      #                       is_stochastic=is_stochastic)
+      # args = args.data.cpu().numpy().astype(np.int32)
+      # if k > (len(all_values) ** operation.arity):
+      #   args = args[:len(all_values) ** operation.arity]
+      # beam = [[all_values[i] for i in arg_list] for arg_list in args]
+      beam = [[random.choice(all_values) for _ in range(operation.arity)]
+              for _ in range(min(k, len(all_values) ** operation.arity))]
 
       trace_in_beam = -1
       for i, arg_list in enumerate(beam):
