@@ -14,6 +14,7 @@
 
 import numpy as np
 import timeit
+import torch
 
 from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
@@ -49,12 +50,15 @@ def synthesize(task, domain, model, device, op_in_beam,
   io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
   training_samples = []
 
+  val_embed = model.val(all_values, device=device)
   while True:
     cur_num_values = len(all_values)
 
     for operation in domain.operations:
       num_values_before_op = len(all_values)
-      val_embed = model.val(all_values, device=device)
+      if len(all_values) > val_embed.shape[0]:
+        more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device)
+        val_embed = torch.cat((val_embed, more_val_embed), dim=0)
       op_state = model.init(io_embed, val_embed, operation)
       args, _ = beam_search(operation.arity, k,
                             val_embed,
