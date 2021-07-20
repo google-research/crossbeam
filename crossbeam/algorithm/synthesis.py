@@ -15,12 +15,12 @@
 import numpy as np
 import timeit
 import torch
-
+from copy import deepcopy
 from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
 
 
-def synthesize(task, domain, model, device, op_in_beam,
+def synthesize(task, domain, model, device,
                trace=None, max_weight=10, k=2, is_training=False,
                include_as_train=None, timeout=None, is_stochastic=False):
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
@@ -30,8 +30,8 @@ def synthesize(task, domain, model, device, op_in_beam,
     include_as_train = lambda trace_in_beam: True
   num_examples = task.num_examples
 
-  all_values = domain.operations if op_in_beam else []
-  beam_steps = max([op.arity for op in domain.operations]) + 1
+  all_values = deepcopy(domain.operations) if model.op_in_beam else []
+  max_beam_steps = max([op.arity for op in domain.operations]) + 1
 
   constants = domain.constants
   constants_extractor = domain.constants_extractor
@@ -51,28 +51,34 @@ def synthesize(task, domain, model, device, op_in_beam,
   training_samples = []
 
   val_embed = model.val(all_values, device=device)
+  ops_outer_loop = ['dummy'] if model.op_in_beam else domain.operations  
   while True:
     cur_num_values = len(all_values)
 
-    for operation in domain.operations:
+    for operation in ops_outer_loop:
       num_values_before_op = len(all_values)
       if len(all_values) > val_embed.shape[0]:
         more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device)
         val_embed = torch.cat((val_embed, more_val_embed), dim=0)
       op_state = model.init(io_embed, val_embed, operation)
-      args, _ = beam_search(operation.arity, k,
+      beam_steps = max_beam_steps if model.op_in_beam else operation.arity
+      args, _ = beam_search(beam_steps, k,
                             val_embed,
                             op_state,
                             model.arg,
                             device=device,
+                            num_op_candidates=len(domain.operations) if model.op_in_beam else 0,
                             is_stochastic=is_stochastic)
       args = args.data.cpu().numpy().astype(np.int32)
-      if k > (len(all_values) ** operation.arity):
-        args = args[:len(all_values) ** operation.arity]
+      if k > (len(all_values) ** beam_steps):
+        args = args[:len(all_values) ** beam_steps]
       beam = [[all_values[i] for i in arg_list] for arg_list in args]
 
       trace_in_beam = -1
-      for i, arg_list in enumerate(beam):
+      for i, arg_list in enumerate(beam):        
+        if model.op_in_beam:
+          operation = arg_list[0]
+          arg_list = arg_list[1:operation.arity + 1]        
         result_value = operation.apply(arg_list)
         if result_value is None or result_value.weight > max_weight:
           continue
@@ -92,10 +98,13 @@ def synthesize(task, domain, model, device, op_in_beam,
           trace_in_beam = i
       if end_time is not None and timeit.default_timer() > end_time:
         return None, None
-      if is_training and len(trace) and trace[0].operation == operation:
+      if is_training and len(trace) and (model.op_in_beam or trace[0].operation == operation):
         if include_as_train(trace_in_beam):  # construct training example
           if trace_in_beam < 0:  # true arg not found
             true_args = []
+            if model.op_in_beam:
+              operation = trace[0].operation
+              true_args.append(all_value_dict[operation])              
             true_val = trace[0]
             if not true_val in all_value_dict:
               all_value_dict[true_val] = len(all_values)
@@ -104,10 +113,12 @@ def synthesize(task, domain, model, device, op_in_beam,
             for i in range(operation.arity):
               assert true_arg_vals[i] in all_value_dict
               true_args.append(all_value_dict[true_arg_vals[i]])
+            true_args += [0] * (beam_steps - len(true_args))
             true_args = np.array(true_args, dtype=np.int32)
             args = np.concatenate((args, np.expand_dims(true_args, 0)), axis=0)
-            trace_in_beam = args.shape[0] - 1
-          training_samples.append((args, trace_in_beam, num_values_before_op, operation))
+            trace_in_beam = args.shape[0] - 1          
+          decision_lens = [domain.operations[i].arity + 1 for i in args[:, 0]] if model.op_in_beam else []
+          training_samples.append((args, decision_lens, trace_in_beam, num_values_before_op, operation))
         trace.pop(0)
         if len(trace) == 0:
           return training_samples, all_values
