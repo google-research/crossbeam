@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import random
 import timeit
 
 from crossbeam.algorithm.beam_search import beam_search
@@ -21,7 +22,8 @@ from crossbeam.dsl import value as value_module
 
 def synthesize(task, domain, model, device,
                trace=None, max_weight=10, k=2, is_training=False,
-               include_as_train=None, timeout=None, is_stochastic=False):
+               include_as_train=None, timeout=None, is_stochastic=False,
+               random_beam=False):
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
   if trace is None:
     trace = []
@@ -53,20 +55,22 @@ def synthesize(task, domain, model, device,
 
     for operation in domain.operations:
       num_values_before_op = len(all_values)
-      # val_embed = model.val(all_values, device=device)
-      # op_state = model.init(io_embed, val_embed, operation)
-      # args, _ = beam_search(operation.arity, k,
-      #                       val_embed,
-      #                       op_state,
-      #                       model.arg,
-      #                       device=device,
-      #                       is_stochastic=is_stochastic)
-      # args = args.data.cpu().numpy().astype(np.int32)
-      # if k > (len(all_values) ** operation.arity):
-      #   args = args[:len(all_values) ** operation.arity]
-      # beam = [[all_values[i] for i in arg_list] for arg_list in args]
-      beam = [[random.choice(all_values) for _ in range(operation.arity)]
-              for _ in range(min(k, len(all_values) ** operation.arity))]
+      if random_beam:
+        args = [[random.randrange(len(all_values)) for _ in range(operation.arity)]
+                for _ in range(k)]
+      else:
+        val_embed = model.val(all_values, device=device)
+        op_state = model.init(io_embed, val_embed, operation)
+        args, _ = beam_search(operation.arity, k,
+                              val_embed,
+                              op_state,
+                              model.arg,
+                              device=device,
+                              is_stochastic=is_stochastic)
+        args = args.data.cpu().numpy().astype(np.int32)
+      if k > (len(all_values) ** operation.arity):
+        args = args[:len(all_values) ** operation.arity]
+      beam = [[all_values[i] for i in arg_list] for arg_list in args]
 
       trace_in_beam = -1
       for i, arg_list in enumerate(beam):
