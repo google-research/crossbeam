@@ -47,7 +47,8 @@ def synthesize(task, domain, model, device,
   output_value = value_module.OutputValue(task.outputs)
   all_value_dict = {v: i for i, v in enumerate(all_values)}
 
-  io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
+  if not random_beam:
+    io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
   training_samples = []
 
   while True:
