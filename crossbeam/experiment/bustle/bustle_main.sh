@@ -37,4 +37,5 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --eval_every 10000 \
     --train_steps 1000000 \
     --train_data_glob train-tasks*.pkl \
+    --random_beam=False \
     $@
