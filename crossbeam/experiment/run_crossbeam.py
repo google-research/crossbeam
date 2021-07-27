@@ -33,6 +33,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('model_type', 'char', 'int/char/logic')
 flags.DEFINE_bool('stochastic_beam', False, 'do stochastic beam search during test')
+flags.DEFINE_bool('random_beam', False, 'replace beam search with random choices?')
 
 
 def init_model(domain, model_type):

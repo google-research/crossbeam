@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import random
 import timeit
 import torch
 from copy import deepcopy
@@ -22,7 +23,8 @@ from crossbeam.dsl import value as value_module
 
 def synthesize(task, domain, model, device,
                trace=None, max_weight=10, k=2, is_training=False,
-               include_as_train=None, timeout=None, is_stochastic=False):
+               include_as_train=None, timeout=None, is_stochastic=False,
+               random_beam=False):
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
   if trace is None:
     trace = []
@@ -47,7 +49,8 @@ def synthesize(task, domain, model, device,
   output_value = value_module.OutputValue(task.outputs)
   all_value_dict = {v: i for i, v in enumerate(all_values)}
 
-  io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
+  if not random_beam:
+    io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
   training_samples = []
 
   val_embed = model.val(all_values, device=device)
@@ -56,20 +59,30 @@ def synthesize(task, domain, model, device,
     cur_num_values = len(all_values)
 
     for operation in ops_outer_loop:
-      num_values_before_op = len(all_values)
-      if len(all_values) > val_embed.shape[0]:
-        more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device)
-        val_embed = torch.cat((val_embed, more_val_embed), dim=0)
-      op_state = model.init(io_embed, val_embed, operation)
       beam_steps = max_beam_steps if model.op_in_beam else operation.arity
-      args, _ = beam_search(beam_steps, k,
-                            val_embed,
-                            op_state,
-                            model.arg,
-                            device=device,
-                            num_op_candidates=len(domain.operations) if model.op_in_beam else 0,
-                            is_stochastic=is_stochastic)
-      args = args.data.cpu().numpy().astype(np.int32)
+      num_values_before_op = len(all_values)
+      if random_beam:
+        if model.op_in_beam:
+          val_offset = len(domain.operations)
+          args = [[np.random.randint(len(domain.operations))] for _ in range(k)]
+        else:
+          args = [[] for _ in range(k)]
+          val_offset = 0
+        for b in range(k):
+          args[b] += [np.random.randint(val_offset, len(all_values)) for _ in range(beam_steps)]
+      else:
+        if len(all_values) > val_embed.shape[0]:
+          more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device)
+          val_embed = torch.cat((val_embed, more_val_embed), dim=0)
+        op_state = model.init(io_embed, val_embed, operation)        
+        args, _ = beam_search(beam_steps, k,
+                              val_embed,
+                              op_state,
+                              model.arg,
+                              device=device,
+                              num_op_candidates=len(domain.operations) if model.op_in_beam else 0,
+                              is_stochastic=is_stochastic)
+        args = args.data.cpu().numpy().astype(np.int32)
       if k > (len(all_values) ** beam_steps):
         args = args[:len(all_values) ** beam_steps]
       beam = [[all_values[i] for i in arg_list] for arg_list in args]
