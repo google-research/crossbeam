@@ -24,6 +24,7 @@ python run_crossbeam.py \
     --gpu 0 \
     --eval_every 10000 \
     --train_steps 1000000 \
+    --train_data_glob $HOME/data/crossbeam/logic_synthesis/train*.pkl \
     --max_num_examples=1 --min_num_examples=1 \
     --max_num_inputs=4 --min_num_inputs=4 \
     $@

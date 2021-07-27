@@ -5,20 +5,22 @@ from crossbeam.datasets import bustle_data
 from crossbeam.datasets import logic_data
 from crossbeam.datasets import random_data
 from crossbeam.dsl import arithmetic_operations
-from crossbeam.dsl import logic_operations
+from crossbeam.dsl import checker
 from crossbeam.dsl import bustle_operations
+from crossbeam.dsl import logic_operations
 from crossbeam.dsl import tuple_operations
 
 
 Domain = collections.namedtuple(
     'Domain',
-    ['operations', 'constants', 'constants_extractor', 'inputs_dict_generator',
-     'input_charset', 'input_max_len', 'output_charset', 'output_max_len',
-     'value_charset', 'value_max_len', 'program_tokens', 'output_type',
-     'small_value_filter'])
+    ['name', 'operations', 'constants', 'constants_extractor',
+     'inputs_dict_generator', 'input_charset', 'input_max_len',
+     'output_charset', 'output_max_len', 'value_charset', 'value_max_len',
+     'program_tokens', 'output_type', 'small_value_filter', 'checker_function'])
 
 
 TUPLE_DOMAIN = Domain(
+    name='tuple',
     operations=tuple_operations.get_operations(),
     constants=[0],
     constants_extractor=None,
@@ -31,9 +33,11 @@ TUPLE_DOMAIN = Domain(
     value_max_len=70,
     program_tokens=['(', ')', ', '],
     output_type=None,
-    small_value_filter=None)
+    small_value_filter=None,
+    checker_function=checker.check_solution)
 
 ARITHMETIC_DOMAIN = Domain(
+    name='arithmetic',
     operations=arithmetic_operations.get_operations(),
     constants=[-1, 1, 2, 3],
     constants_extractor=None,
@@ -46,7 +50,8 @@ ARITHMETIC_DOMAIN = Domain(
     value_max_len=70,
     program_tokens=['(', ')', ' + ', ' - ', ' * ', ' // '],
     output_type=None,
-    small_value_filter=lambda x: abs(x) < 1000)
+    small_value_filter=lambda x: abs(x) < 1000,
+    checker_function=checker.check_solution)
 
 
 _BUSTLE_CHARSET = ''.join(bustle_data.CHARSETS) + "'[]:"
@@ -64,6 +69,7 @@ def _bustle_small_value_filter(x):
         x, type(x)))
 
 BUSTLE_DOMAIN = Domain(
+    name='bustle',
     operations=bustle_operations.get_operations(),
     constants=None,
     constants_extractor=bustle_data.bustle_constants_extractor,
@@ -76,9 +82,11 @@ BUSTLE_DOMAIN = Domain(
     value_max_len=70,
     program_tokens=['(', ')', ', '] + bustle_operations.bustle_op_names(),
     output_type=str,
-    small_value_filter=_bustle_small_value_filter)
+    small_value_filter=_bustle_small_value_filter,
+    checker_function=checker.check_bustle_solution)
 
 LOGIC_DOMAIN = Domain(
+    name='logic',
     operations=logic_operations.get_operations(),
     constants=[],
     constants_extractor=None,
@@ -91,7 +99,8 @@ LOGIC_DOMAIN = Domain(
     value_max_len=70,
     program_tokens=['(', ')', ' '] + logic_operations.logic_op_names(),
     output_type=None,
-    small_value_filter=None)
+    small_value_filter=None,
+    checker_function=None)
 
 
 def get_domain(domain_str):

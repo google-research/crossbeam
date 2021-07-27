@@ -33,7 +33,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('model_type', 'char', 'int/char/logic')
 flags.DEFINE_bool('stochastic_beam', False, 'do stochastic beam search during test')
-flags.DEFINE_bool('memorize', False, 'train/test on the evaluation set to check memorization ability')
+flags.DEFINE_bool('random_beam', False, 'replace beam search with random choices?')
 
 
 def init_model(domain, model_type):
@@ -81,10 +81,7 @@ def main(argv):
       eval_tasks += cp.load(f)
 
   proc_args = argparse.Namespace(**FLAGS.flag_values_dict())
-  if FLAGS.memorize:
-    def task_gen_func(*stuff,**dont_care):
-      return random.choice(eval_tasks)
-  elif FLAGS.train_data_glob is not None:
+  if FLAGS.train_data_glob is not None:
     task_gen_func = None
   else:
     task_gen_func = functools.partial(

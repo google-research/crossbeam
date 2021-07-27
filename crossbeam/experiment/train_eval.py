@@ -2,7 +2,7 @@ import numpy as np
 import os
 import sys
 import glob
-import pickle as cp
+import pickle5 as cp
 import random
 import torch
 import torch.nn as nn
@@ -91,7 +91,8 @@ def do_eval(eval_tasks, domain, model,
                         k=beam_size,
                         is_training=False,
                         timeout=timeout,
-                        is_stochastic=is_stochastic)
+                        is_stochastic=is_stochastic,
+                        random_beam=False)
     if out is not None:
       if verbose and i in should_show:
         print("successfully synthesized a solution to",t)
@@ -177,7 +178,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks, domain,
               trace=trace,
               max_weight=args.max_search_weight,
               k=args.beam_size,
-              is_training=True)
+              is_training=True,
+              random_beam=args.random_beam)
         
         if isinstance(training_samples, list):
           loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
