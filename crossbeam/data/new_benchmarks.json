@@ -1,0 +1,3086 @@
+[
+  {
+    "name": "addDecimal",
+    "description": "add decimal point if not present",
+    "trainExamples": [
+      {
+        "inputs": [
+          "1.23"
+        ],
+        "output": "1.23"
+      },
+      {
+        "inputs": [
+          "45"
+        ],
+        "output": "45.0"
+      },
+      {
+        "inputs": [
+          "67.0"
+        ],
+        "output": "67.0"
+      },
+      {
+        "inputs": [
+          "9876"
+        ],
+        "output": "9876.0"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "1.111"
+        ],
+        "output": "1.111"
+      },
+      {
+        "inputs": [
+          "11111"
+        ],
+        "output": "11111.0"
+      },
+      {
+        "inputs": [
+          "0.00000001"
+        ],
+        "output": "0.00000001"
+      },
+      {
+        "inputs": [
+          "1000000000"
+        ],
+        "output": "1000000000.0"
+      },
+      {
+        "inputs": [
+          "10000000.0"
+        ],
+        "output": "10000000.0"
+      },
+      {
+        "inputs": [
+          "54321.54321"
+        ],
+        "output": "54321.54321"
+      },
+      {
+        "inputs": [
+          "54321054321"
+        ],
+        "output": "54321054321.0"
+      },
+      {
+        "inputs": [
+          "0"
+        ],
+        "output": "0.0"
+      },
+      {
+        "inputs": [
+          "1"
+        ],
+        "output": "1.0"
+      },
+      {
+        "inputs": [
+          "1.1"
+        ],
+        "output": "1.1"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "IF(ISERROR(FIND(\".\", var_0)), CONCATENATE(var_0, \".0\"), var_0)",
+    "tags": [
+      "CONSTANT",
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "addPlusSign",
+    "description": "add plus sign to positive integers",
+    "trainExamples": [
+      {
+        "inputs": [
+          "12"
+        ],
+        "output": "+12"
+      },
+      {
+        "inputs": [
+          "-34"
+        ],
+        "output": "-34"
+      },
+      {
+        "inputs": [
+          "567"
+        ],
+        "output": "+567"
+      },
+      {
+        "inputs": [
+          "-8"
+        ],
+        "output": "-8"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "1"
+        ],
+        "output": "+1"
+      },
+      {
+        "inputs": [
+          "55"
+        ],
+        "output": "+55"
+      },
+      {
+        "inputs": [
+          "1111"
+        ],
+        "output": "+1111"
+      },
+      {
+        "inputs": [
+          "402340234"
+        ],
+        "output": "+402340234"
+      },
+      {
+        "inputs": [
+          "-1"
+        ],
+        "output": "-1"
+      },
+      {
+        "inputs": [
+          "-70"
+        ],
+        "output": "-70"
+      },
+      {
+        "inputs": [
+          "-1111"
+        ],
+        "output": "-1111"
+      },
+      {
+        "inputs": [
+          "-98765"
+        ],
+        "output": "-98765"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "IF(EXACT(LEFT(var_0, 1), \"-\"), var_0, CONCATENATE(\"+\", var_0))",
+    "tags": [
+      "CONSTANT",
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "appendAmOrPm",
+    "description": "append AM or PM to the hour depending on if it's morning",
+    "trainExamples": [
+      {
+        "inputs": [
+          "9:00",
+          "morning"
+        ],
+        "output": "9 AM"
+      },
+      {
+        "inputs": [
+          "11:00",
+          "morning"
+        ],
+        "output": "11 AM"
+      },
+      {
+        "inputs": [
+          "3:00",
+          "afternoon"
+        ],
+        "output": "3 PM"
+      },
+      {
+        "inputs": [
+          "9:00",
+          "night"
+        ],
+        "output": "9 PM"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "1:00",
+          "morning"
+        ],
+        "output": "1 AM"
+      },
+      {
+        "inputs": [
+          "3:00",
+          "morning"
+        ],
+        "output": "3 AM"
+      },
+      {
+        "inputs": [
+          "10:00",
+          "morning"
+        ],
+        "output": "10 AM"
+      },
+      {
+        "inputs": [
+          "12:00",
+          "morning"
+        ],
+        "output": "12 AM"
+      },
+      {
+        "inputs": [
+          "1:00",
+          "evening"
+        ],
+        "output": "1 PM"
+      },
+      {
+        "inputs": [
+          "3:00",
+          "night"
+        ],
+        "output": "3 PM"
+      },
+      {
+        "inputs": [
+          "10:00",
+          "afternoon"
+        ],
+        "output": "10 PM"
+      },
+      {
+        "inputs": [
+          "12:00",
+          "noon"
+        ],
+        "output": "12 PM"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "CONCATENATE(LEFT(var_0, MINUS(FIND(\":\", var_0), 1)), IF(EXACT(var_1, \"morning\"), \" AM\", \" PM\"))",
+    "tags": [
+      "CONSTANT",
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "capitalizeCityAndState",
+    "description": "fix capitalization of city and state",
+    "trainExamples": [
+      {
+        "inputs": [
+          "mountain view, ca"
+        ],
+        "output": "Mountain View, CA"
+      },
+      {
+        "inputs": [
+          "HOUSTON, TX"
+        ],
+        "output": "Houston, TX"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "seattle, wa"
+        ],
+        "output": "Seattle, WA"
+      },
+      {
+        "inputs": [
+          "St. LOUIS, mo"
+        ],
+        "output": "St. Louis, MO"
+      },
+      {
+        "inputs": [
+          "sAcRaMeNtO, Ca"
+        ],
+        "output": "Sacramento, CA"
+      },
+      {
+        "inputs": [
+          "new York, nY"
+        ],
+        "output": "New York, NY"
+      },
+      {
+        "inputs": [
+          "a, bc"
+        ],
+        "output": "A, BC"
+      },
+      {
+        "inputs": [
+          "aa aaa a, bc"
+        ],
+        "output": "Aa Aaa A, BC"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "CONCATENATE(LEFT(PROPER(var_0), MINUS(LEN(var_0), 1)), UPPER(RIGHT(var_0, 1)))",
+    "tags": []
+  },
+  {
+    "name": "capitalizeSentence",
+    "description": "capitalize the first word and lowercase the rest",
+    "trainExamples": [
+      {
+        "inputs": [
+          "this is a sentence."
+        ],
+        "output": "This is a sentence."
+      },
+      {
+        "inputs": [
+          "FIX CAPITALIZATION."
+        ],
+        "output": "Fix capitalization."
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "a!"
+        ],
+        "output": "A!"
+      },
+      {
+        "inputs": [
+          "A!"
+        ],
+        "output": "A!"
+      },
+      {
+        "inputs": [
+          "a a?"
+        ],
+        "output": "A a?"
+      },
+      {
+        "inputs": [
+          "a A?"
+        ],
+        "output": "A a?"
+      },
+      {
+        "inputs": [
+          "abC DEFGH iJ"
+        ],
+        "output": "Abc defgh ij"
+      },
+      {
+        "inputs": [
+          "aaaaaa"
+        ],
+        "output": "Aaaaaa"
+      },
+      {
+        "inputs": [
+          "12345 XYZ"
+        ],
+        "output": "12345 xyz"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "REPLACE(LOWER(var_0), 1, 1, UPPER(LEFT(var_0, 1)))",
+    "tags": []
+  },
+  {
+    "name": "containsString",
+    "description": "whether the first string contains the second",
+    "trainExamples": [
+      {
+        "inputs": [
+          "same",
+          "same"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "the text to search in",
+          "find this"
+        ],
+        "output": "FALSE"
+      },
+      {
+        "inputs": [
+          "the text to search in",
+          "SEARCH"
+        ],
+        "output": "FALSE"
+      },
+      {
+        "inputs": [
+          "the text to search in",
+          "search"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "the text to search in",
+          "t to s"
+        ],
+        "output": "TRUE"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "1234567890",
+          "5678"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "1234567890",
+          "5768"
+        ],
+        "output": "FALSE"
+      },
+      {
+        "inputs": [
+          "alphabet",
+          "alphabet"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "alphabet",
+          "alphabets"
+        ],
+        "output": "FALSE"
+      },
+      {
+        "inputs": [
+          "Alphabet",
+          "alphAbet"
+        ],
+        "output": "FALSE"
+      },
+      {
+        "inputs": [
+          "Abcabc",
+          "abc"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "Abcabc",
+          "abca"
+        ],
+        "output": "FALSE"
+      },
+      {
+        "inputs": [
+          "a",
+          "a"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "a",
+          "A"
+        ],
+        "output": "FALSE"
+      },
+      {
+        "inputs": [
+          "a",
+          "b"
+        ],
+        "output": "FALSE"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "TO_TEXT(ISNUMBER(FIND(var_1, var_0)))",
+    "tags": [
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "containsStringIgnoreCase",
+    "description": "whether the first string contains the second, ignoring case",
+    "trainExamples": [
+      {
+        "inputs": [
+          "the text to search in",
+          "find this"
+        ],
+        "output": "FALSE"
+      },
+      {
+        "inputs": [
+          "the text to search in",
+          "s.arch"
+        ],
+        "output": "FALSE"
+      },
+      {
+        "inputs": [
+          "the text to search in",
+          "SeArCh"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "THE TEXT TO SEARCH IN",
+          "t to s"
+        ],
+        "output": "TRUE"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "1234567890",
+          "5678"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "1234567890",
+          "5768"
+        ],
+        "output": "FALSE"
+      },
+      {
+        "inputs": [
+          "alphabet",
+          "alphabet"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "alphabet",
+          "alphabets"
+        ],
+        "output": "FALSE"
+      },
+      {
+        "inputs": [
+          "Alphabet",
+          "alphAbet"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "Abcabc",
+          "abc"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "Abcabc",
+          "abca"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "a",
+          "a"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "a",
+          "A"
+        ],
+        "output": "TRUE"
+      },
+      {
+        "inputs": [
+          "a",
+          "b"
+        ],
+        "output": "FALSE"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "TO_TEXT(ISNUMBER(FIND(LOWER(var_1), LOWER(var_0))))",
+    "tags": [
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "countStringOccurrences",
+    "description": "count the number of times the second string appears in the first",
+    "trainExamples": [
+      {
+        "inputs": [
+          "the text to search in",
+          "to"
+        ],
+        "output": "1"
+      },
+      {
+        "inputs": [
+          "the text to search in",
+          " "
+        ],
+        "output": "4"
+      },
+      {
+        "inputs": [
+          "the text to search in",
+          "t"
+        ],
+        "output": "4"
+      },
+      {
+        "inputs": [
+          "the text to search in",
+          " t"
+        ],
+        "output": "2"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "aaaa",
+          "a"
+        ],
+        "output": "4"
+      },
+      {
+        "inputs": [
+          "aaaa",
+          "aa"
+        ],
+        "output": "2"
+      },
+      {
+        "inputs": [
+          "aaaa",
+          "aaa"
+        ],
+        "output": "1"
+      },
+      {
+        "inputs": [
+          "aaaa",
+          "aaaa"
+        ],
+        "output": "1"
+      },
+      {
+        "inputs": [
+          "aaaa",
+          "aaaaa"
+        ],
+        "output": "0"
+      },
+      {
+        "inputs": [
+          "aaaa",
+          "A"
+        ],
+        "output": "0"
+      },
+      {
+        "inputs": [
+          "insinsideide",
+          "inside"
+        ],
+        "output": "1"
+      },
+      {
+        "inputs": [
+          "repeatrepeatrepeat",
+          "repeat"
+        ],
+        "output": "3"
+      },
+      {
+        "inputs": [
+          "repeatrePeatrepeat",
+          "repeat"
+        ],
+        "output": "2"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "TO_TEXT(DIVIDE(MINUS(LEN(var_0), LEN(SUBSTITUTE(var_0, var_1, \"\"))), LEN(var_1)))",
+    "tags": []
+  },
+  {
+    "name": "createEmailAddress",
+    "description": "create email address from name and company",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Larry",
+          "Page",
+          "Google"
+        ],
+        "output": "lpage@google.com"
+      },
+      {
+        "inputs": [
+          "Bill",
+          "Gates",
+          "Microsoft"
+        ],
+        "output": "bgates@microsoft.com"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "A",
+          "B",
+          "C"
+        ],
+        "output": "ab@c.com"
+      },
+      {
+        "inputs": [
+          "Richard",
+          "McDonald",
+          "burgers"
+        ],
+        "output": "rmcdonald@burgers.com"
+      },
+      {
+        "inputs": [
+          "First",
+          "Last",
+          "Company"
+        ],
+        "output": "flast@company.com"
+      },
+      {
+        "inputs": [
+          "X",
+          "Longlastname",
+          "Area120"
+        ],
+        "output": "xlonglastname@area120.com"
+      },
+      {
+        "inputs": [
+          "Longfirstname",
+          "X",
+          "Area120"
+        ],
+        "output": "lx@area120.com"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "LOWER(CONCATENATE(LEFT(var_0, 1), var_1, \"@\", var_2, \".com\"))",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "dateTransformation1",
+    "description": "change DDMMYYYY date to MM/DD/YYYY",
+    "trainExamples": [
+      {
+        "inputs": [
+          "08092019"
+        ],
+        "output": "09/08/2019"
+      },
+      {
+        "inputs": [
+          "12032020"
+        ],
+        "output": "03/12/2020"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "30092016"
+        ],
+        "output": "09/30/2016"
+      },
+      {
+        "inputs": [
+          "23121637"
+        ],
+        "output": "12/23/1637"
+      },
+      {
+        "inputs": [
+          "01023456"
+        ],
+        "output": "02/01/3456"
+      },
+      {
+        "inputs": [
+          "11111111"
+        ],
+        "output": "11/11/1111"
+      },
+      {
+        "inputs": [
+          "10101010"
+        ],
+        "output": "10/10/1010"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "CONCATENATE(MID(var_0, 3, 2), \"/\", REPLACE(var_0, 3, 2, \"/\"))",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "dateTransformation2",
+    "description": "change YYYY-MM-DD date to YYYY/MM/DD",
+    "trainExamples": [
+      {
+        "inputs": [
+          "2019-11-23"
+        ],
+        "output": "2019/11/23"
+      },
+      {
+        "inputs": [
+          "2020-03-07"
+        ],
+        "output": "2020/03/07"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "2016-09-30"
+        ],
+        "output": "2016/09/30"
+      },
+      {
+        "inputs": [
+          "1637-12-23"
+        ],
+        "output": "1637/12/23"
+      },
+      {
+        "inputs": [
+          "3456-02-01"
+        ],
+        "output": "3456/02/01"
+      },
+      {
+        "inputs": [
+          "1111-11-11"
+        ],
+        "output": "1111/11/11"
+      },
+      {
+        "inputs": [
+          "1010-10-10"
+        ],
+        "output": "1010/10/10"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "SUBSTITUTE(var_0, \"-\", \"/\")",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "dateTransformation3",
+    "description": "change YYYY-MM-DD date to MM/DD",
+    "trainExamples": [
+      {
+        "inputs": [
+          "2019-11-23"
+        ],
+        "output": "11/23"
+      },
+      {
+        "inputs": [
+          "2020-03-07"
+        ],
+        "output": "03/07"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "2016-09-30"
+        ],
+        "output": "09/30"
+      },
+      {
+        "inputs": [
+          "1637-12-23"
+        ],
+        "output": "12/23"
+      },
+      {
+        "inputs": [
+          "3456-02-01"
+        ],
+        "output": "02/01"
+      },
+      {
+        "inputs": [
+          "1111-11-11"
+        ],
+        "output": "11/11"
+      },
+      {
+        "inputs": [
+          "1010-10-10"
+        ],
+        "output": "10/10"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "SUBSTITUTE(RIGHT(var_0, 5), \"-\", \"/\")",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "extractUrl1",
+    "description": "extract the part of a URL between the 2nd and 3rd slash",
+    "trainExamples": [
+      {
+        "inputs": [
+          "https://www.google.com/"
+        ],
+        "output": "www.google.com"
+      },
+      {
+        "inputs": [
+          "http://www.stanford.edu/news/"
+        ],
+        "output": "www.stanford.edu"
+      },
+      {
+        "inputs": [
+          "http://a.b.c.org/d/e/f.g"
+        ],
+        "output": "a.b.c.org"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "https://google.com/"
+        ],
+        "output": "google.com"
+      },
+      {
+        "inputs": [
+          "https://google.com/stuff"
+        ],
+        "output": "google.com"
+      },
+      {
+        "inputs": [
+          "http://www.stanford.edu/"
+        ],
+        "output": "www.stanford.edu"
+      },
+      {
+        "inputs": [
+          "http://a.b.c.org/"
+        ],
+        "output": "a.b.c.org"
+      },
+      {
+        "inputs": [
+          "http://a.b/c.org/"
+        ],
+        "output": "a.b"
+      },
+      {
+        "inputs": [
+          "https://a.b/c.org"
+        ],
+        "output": "a.b"
+      },
+      {
+        "inputs": [
+          "http://a.b/x.y.z"
+        ],
+        "output": "a.b"
+      },
+      {
+        "inputs": [
+          "http://1.23.4/5/6.7/"
+        ],
+        "output": "1.23.4"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "MID(var_0, ADD(FIND(\"//\", var_0), 2), MINUS(MINUS(FIND(\"/\", var_0, 9), FIND(\"/\", var_0)), 2))",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "extractUrl2",
+    "description": "extract the part of a URL starting from the 3rd slash",
+    "trainExamples": [
+      {
+        "inputs": [
+          "https://www.google.com/"
+        ],
+        "output": "/"
+      },
+      {
+        "inputs": [
+          "http://www.stanford.edu/news/"
+        ],
+        "output": "/news/"
+      },
+      {
+        "inputs": [
+          "http://a.b.c.org/d/e/f.g"
+        ],
+        "output": "/d/e/f.g"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "https://google.com/"
+        ],
+        "output": "/"
+      },
+      {
+        "inputs": [
+          "https://google.com/stuff"
+        ],
+        "output": "/stuff"
+      },
+      {
+        "inputs": [
+          "https://google.com/stuff/"
+        ],
+        "output": "/stuff/"
+      },
+      {
+        "inputs": [
+          "http://www.stanford.edu/"
+        ],
+        "output": "/"
+      },
+      {
+        "inputs": [
+          "http://a.b.c.org/"
+        ],
+        "output": "/"
+      },
+      {
+        "inputs": [
+          "http://a.b/c.org/"
+        ],
+        "output": "/c.org/"
+      },
+      {
+        "inputs": [
+          "https://a.b/c.org"
+        ],
+        "output": "/c.org"
+      },
+      {
+        "inputs": [
+          "http://a.b/x.y.z"
+        ],
+        "output": "/x.y.z"
+      },
+      {
+        "inputs": [
+          "http://1.23.4/5/6.7/"
+        ],
+        "output": "/5/6.7/"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "RIGHT(var_0, ADD(1, MINUS(LEN(var_0), FIND(\"/\", var_0, ADD(FIND(\"//\", var_0), 2)))))",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "firstNameSecondColumn",
+    "description": "get first name from second column",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Larry Page",
+          "Sergey Brin"
+        ],
+        "output": "Sergey"
+      },
+      {
+        "inputs": [
+          "",
+          "Bill Gates"
+        ],
+        "output": "Bill"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Sergey Brin",
+          "Larry Page"
+        ],
+        "output": "Larry"
+      },
+      {
+        "inputs": [
+          "",
+          "George Washington"
+        ],
+        "output": "George"
+      },
+      {
+        "inputs": [
+          "A B",
+          "C D"
+        ],
+        "output": "C"
+      },
+      {
+        "inputs": [
+          "junk",
+          "X Longlastname"
+        ],
+        "output": "X"
+      },
+      {
+        "inputs": [
+          "12345",
+          "Longfirstname X"
+        ],
+        "output": "Longfirstname"
+      },
+      {
+        "inputs": [
+          "very-long-string",
+          "Aa Bb"
+        ],
+        "output": "Aa"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "LEFT(var_1, MINUS(FIND(\" \", var_1), 1))",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "isLowerCase",
+    "description": "whether the string is lowercase",
+    "trainExamples": [
+      {
+        "inputs": [
+          "this text is lowercase"
+        ],
+        "output": "true"
+      },
+      {
+        "inputs": [
+          "Not Lowercase"
+        ],
+        "output": "false"
+      },
+      {
+        "inputs": [
+          "123"
+        ],
+        "output": "true"
+      },
+      {
+        "inputs": [
+          "XYZ"
+        ],
+        "output": "false"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "text"
+        ],
+        "output": "true"
+      },
+      {
+        "inputs": [
+          "TEXT"
+        ],
+        "output": "false"
+      },
+      {
+        "inputs": [
+          "tExt"
+        ],
+        "output": "false"
+      },
+      {
+        "inputs": [
+          "1"
+        ],
+        "output": "true"
+      },
+      {
+        "inputs": [
+          "1a"
+        ],
+        "output": "true"
+      },
+      {
+        "inputs": [
+          "1A"
+        ],
+        "output": "false"
+      },
+      {
+        "inputs": [
+          "a"
+        ],
+        "output": "true"
+      },
+      {
+        "inputs": [
+          "A"
+        ],
+        "output": "false"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "IF(EXACT(var_0, LOWER(var_0)), \"true\", \"false\")",
+    "tags": [
+      "CONSTANT",
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "lastNameFirstColumn",
+    "description": "get last name from first column",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Larry Page",
+          "Sergey Brin"
+        ],
+        "output": "Page"
+      },
+      {
+        "inputs": [
+          "George Washington",
+          ""
+        ],
+        "output": "Washington"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Sergey Brin",
+          "Larry Page"
+        ],
+        "output": "Brin"
+      },
+      {
+        "inputs": [
+          "George Washington",
+          ""
+        ],
+        "output": "Washington"
+      },
+      {
+        "inputs": [
+          "A B",
+          "C D"
+        ],
+        "output": "B"
+      },
+      {
+        "inputs": [
+          "X Longlastname",
+          "junk"
+        ],
+        "output": "Longlastname"
+      },
+      {
+        "inputs": [
+          "Longfirstname X",
+          "12345"
+        ],
+        "output": "X"
+      },
+      {
+        "inputs": [
+          "Aa Bb",
+          "very-long-string"
+        ],
+        "output": "Bb"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "RIGHT(var_0, MINUS(LEN(var_0), FIND(\" \", var_0)))",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "multipleIfStatus",
+    "description": "output \"Completed\" if 100%, \"Not Yet Started\" if 0%, and \"In Progress\" if between 0% and 100%",
+    "trainExamples": [
+      {
+        "inputs": [
+          "43%"
+        ],
+        "output": "In Progress"
+      },
+      {
+        "inputs": [
+          "0%"
+        ],
+        "output": "Not Yet Started"
+      },
+      {
+        "inputs": [
+          "52%"
+        ],
+        "output": "In Progress"
+      },
+      {
+        "inputs": [
+          "100%"
+        ],
+        "output": "Completed"
+      },
+      {
+        "inputs": [
+          "47%"
+        ],
+        "output": "In Progress"
+      },
+      {
+        "inputs": [
+          "100%"
+        ],
+        "output": "Completed"
+      },
+      {
+        "inputs": [
+          "58%"
+        ],
+        "output": "In Progress"
+      },
+      {
+        "inputs": [
+          "0%"
+        ],
+        "output": "Not Yet Started"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "34%"
+        ],
+        "output": "In Progress"
+      },
+      {
+        "inputs": [
+          "44%"
+        ],
+        "output": "In Progress"
+      },
+      {
+        "inputs": [
+          "56%"
+        ],
+        "output": "In Progress"
+      },
+      {
+        "inputs": [
+          "0%"
+        ],
+        "output": "Not Yet Started"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "IF(var_0=\"100%\", \"Completed\", IF(var_0=\"0%\", \"Not Yet Started\", \"In Progress\"))",
+    "tags": [
+      "CONSTANT",
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "negativeInParentheses",
+    "description": "enclose negative numbers in parentheses",
+    "trainExamples": [
+      {
+        "inputs": [
+          "12"
+        ],
+        "output": "12"
+      },
+      {
+        "inputs": [
+          "-34"
+        ],
+        "output": "(34)"
+      },
+      {
+        "inputs": [
+          "567"
+        ],
+        "output": "567"
+      },
+      {
+        "inputs": [
+          "-8"
+        ],
+        "output": "(8)"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "1"
+        ],
+        "output": "1"
+      },
+      {
+        "inputs": [
+          "55"
+        ],
+        "output": "55"
+      },
+      {
+        "inputs": [
+          "1111"
+        ],
+        "output": "1111"
+      },
+      {
+        "inputs": [
+          "402340234"
+        ],
+        "output": "402340234"
+      },
+      {
+        "inputs": [
+          "-1"
+        ],
+        "output": "(1)"
+      },
+      {
+        "inputs": [
+          "-70"
+        ],
+        "output": "(70)"
+      },
+      {
+        "inputs": [
+          "-1111"
+        ],
+        "output": "(1111)"
+      },
+      {
+        "inputs": [
+          "-98765"
+        ],
+        "output": "(98765)"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "IF(EXACT(LEFT(var_0, 1), \"-\"), CONCATENATE(SUBSTITUTE(var_0, \"-\", \"(\"), \")\"), var_0)",
+    "tags": [
+      "CONSTANT",
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "padSpaceToGivenWidth",
+    "description": "pad text with spaces to a given width",
+    "trainExamples": [
+      {
+        "inputs": [
+          "string",
+          "10"
+        ],
+        "output": "    string"
+      },
+      {
+        "inputs": [
+          "text",
+          "5"
+        ],
+        "output": " text"
+      },
+      {
+        "inputs": [
+          "multiple words",
+          "17"
+        ],
+        "output": "   multiple words"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "string",
+          "6"
+        ],
+        "output": "string"
+      },
+      {
+        "inputs": [
+          "string",
+          "7"
+        ],
+        "output": " string"
+      },
+      {
+        "inputs": [
+          "string",
+          "8"
+        ],
+        "output": "  string"
+      },
+      {
+        "inputs": [
+          "text",
+          "4"
+        ],
+        "output": "text"
+      },
+      {
+        "inputs": [
+          " ",
+          "3"
+        ],
+        "output": "   "
+      },
+      {
+        "inputs": [
+          "",
+          "3"
+        ],
+        "output": "   "
+      },
+      {
+        "inputs": [
+          "",
+          "1"
+        ],
+        "output": " "
+      },
+      {
+        "inputs": [
+          "",
+          "0"
+        ],
+        "output": ""
+      },
+      {
+        "inputs": [
+          "  a b c d e  ",
+          "20"
+        ],
+        "output": "         a b c d e  "
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "CONCATENATE(REPT(\" \", MINUS(VALUE(var_1), LEN(var_0))), var_0)",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "padZerosToFixedWidth",
+    "description": "pad number with 0 to width 5",
+    "trainExamples": [
+      {
+        "inputs": [
+          "123"
+        ],
+        "output": "00123"
+      },
+      {
+        "inputs": [
+          "45"
+        ],
+        "output": "00045"
+      },
+      {
+        "inputs": [
+          "6780"
+        ],
+        "output": "06780"
+      },
+      {
+        "inputs": [
+          "9"
+        ],
+        "output": "00009"
+      },
+      {
+        "inputs": [
+          "54321"
+        ],
+        "output": "54321"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "0"
+        ],
+        "output": "00000"
+      },
+      {
+        "inputs": [
+          "3"
+        ],
+        "output": "00003"
+      },
+      {
+        "inputs": [
+          "33"
+        ],
+        "output": "00033"
+      },
+      {
+        "inputs": [
+          "303"
+        ],
+        "output": "00303"
+      },
+      {
+        "inputs": [
+          "4444"
+        ],
+        "output": "04444"
+      },
+      {
+        "inputs": [
+          "6000"
+        ],
+        "output": "06000"
+      },
+      {
+        "inputs": [
+          "7007"
+        ],
+        "output": "07007"
+      },
+      {
+        "inputs": [
+          "55555"
+        ],
+        "output": "55555"
+      },
+      {
+        "inputs": [
+          "56078"
+        ],
+        "output": "56078"
+      },
+      {
+        "inputs": [
+          "60000"
+        ],
+        "output": "60000"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "CONCATENATE(REPT(\"0\", MINUS(5, LEN(var_0))), var_0)",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "pathDepth",
+    "description": "the depth of a path, i.e., count the number of /",
+    "trainExamples": [
+      {
+        "inputs": [
+          "/this/is/a/path"
+        ],
+        "output": "4"
+      },
+      {
+        "inputs": [
+          "/home"
+        ],
+        "output": "1"
+      },
+      {
+        "inputs": [
+          "/a/b"
+        ],
+        "output": "2"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "/this/is/a/very/long/path"
+        ],
+        "output": "6"
+      },
+      {
+        "inputs": [
+          "/x"
+        ],
+        "output": "1"
+      },
+      {
+        "inputs": [
+          "/abcde"
+        ],
+        "output": "1"
+      },
+      {
+        "inputs": [
+          "/a/c/e"
+        ],
+        "output": "3"
+      },
+      {
+        "inputs": [
+          "/a/cde"
+        ],
+        "output": "2"
+      },
+      {
+        "inputs": [
+          "/abc/e"
+        ],
+        "output": "2"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "TO_TEXT(MINUS(LEN(var_0), LEN(SUBSTITUTE(var_0, \"/\", \"\"))))",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "prefixRemainder",
+    "description": "extract the rest of a word given a prefix",
+    "trainExamples": [
+      {
+        "inputs": [
+          "prefix",
+          "pre"
+        ],
+        "output": "fix"
+      },
+      {
+        "inputs": [
+          "nonsense",
+          "non"
+        ],
+        "output": "sense"
+      },
+      {
+        "inputs": [
+          "atypical",
+          "a"
+        ],
+        "output": "typical"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "a",
+          "a"
+        ],
+        "output": ""
+      },
+      {
+        "inputs": [
+          "aaaaaa",
+          "aa"
+        ],
+        "output": "aaaa"
+      },
+      {
+        "inputs": [
+          "aaaaaa",
+          "aaaaa"
+        ],
+        "output": "a"
+      },
+      {
+        "inputs": [
+          "word",
+          "word"
+        ],
+        "output": ""
+      },
+      {
+        "inputs": [
+          "substrings",
+          "substring"
+        ],
+        "output": "s"
+      },
+      {
+        "inputs": [
+          "repeatedrepeat",
+          "repeat"
+        ],
+        "output": "edrepeat"
+      },
+      {
+        "inputs": [
+          "repeatrepeat",
+          "repeat"
+        ],
+        "output": "repeat"
+      },
+      {
+        "inputs": [
+          "abcdefg",
+          "abcd"
+        ],
+        "output": "efg"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "RIGHT(var_0, MINUS(LEN(var_0), LEN(var_1)))",
+    "tags": []
+  },
+  {
+    "name": "prependMr",
+    "description": "prepend Mr. to last name",
+    "trainExamples": [
+      {
+        "inputs": [
+          "George Washington"
+        ],
+        "output": "Mr. Washington"
+      },
+      {
+        "inputs": [
+          "Alan Turing"
+        ],
+        "output": "Mr. Turing"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "A A"
+        ],
+        "output": "Mr. A"
+      },
+      {
+        "inputs": [
+          "A B"
+        ],
+        "output": "Mr. B"
+      },
+      {
+        "inputs": [
+          "Xyz Xyz"
+        ],
+        "output": "Mr. Xyz"
+      },
+      {
+        "inputs": [
+          "Longfirstname X"
+        ],
+        "output": "Mr. X"
+      },
+      {
+        "inputs": [
+          "X Longlastname"
+        ],
+        "output": "Mr. Longlastname"
+      },
+      {
+        "inputs": [
+          "Sundar Pichai"
+        ],
+        "output": "Mr. Pichai"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "CONCATENATE(\"Mr. \", RIGHT(var_0, MINUS(LEN(var_0), FIND(\" \", var_0))))",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "prependMrOrMs",
+    "description": "prepend Mr. or Ms. to last name depending on gender",
+    "trainExamples": [
+      {
+        "inputs": [
+          "George Washington",
+          "male"
+        ],
+        "output": "Mr. Washington"
+      },
+      {
+        "inputs": [
+          "Alan Turing",
+          "male"
+        ],
+        "output": "Mr. Turing"
+      },
+      {
+        "inputs": [
+          "Grace Hopper",
+          "female"
+        ],
+        "output": "Ms. Hopper"
+      },
+      {
+        "inputs": [
+          "Ruth Porat",
+          "female"
+        ],
+        "output": "Ms. Porat"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Sundar Pichai",
+          "male"
+        ],
+        "output": "Mr. Pichai"
+      },
+      {
+        "inputs": [
+          "Susan Wojcicki",
+          "female"
+        ],
+        "output": "Ms. Wojcicki"
+      },
+      {
+        "inputs": [
+          "A A",
+          "male"
+        ],
+        "output": "Mr. A"
+      },
+      {
+        "inputs": [
+          "A A",
+          "female"
+        ],
+        "output": "Ms. A"
+      },
+      {
+        "inputs": [
+          "X Longlastname",
+          "male"
+        ],
+        "output": "Mr. Longlastname"
+      },
+      {
+        "inputs": [
+          "X Longlastname",
+          "female"
+        ],
+        "output": "Ms. Longlastname"
+      },
+      {
+        "inputs": [
+          "Longfirstname X",
+          "male"
+        ],
+        "output": "Mr. X"
+      },
+      {
+        "inputs": [
+          "Longfirstname X",
+          "female"
+        ],
+        "output": "Ms. X"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "CONCATENATE(IF(EXACT(var_1, \"male\"), \"Mr. \", \"Ms. \"), RIGHT(var_0, MINUS(LEN(var_0), FIND(\" \", var_0))))",
+    "tags": [
+      "CONSTANT",
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "removeWhitespaceLowercase",
+    "description": "remove leading and trailing spaces and tabs, and lowercase",
+    "trainExamples": [
+      {
+        "inputs": [
+          "  TEXT "
+        ],
+        "output": "text"
+      },
+      {
+        "inputs": [
+          "Two words    "
+        ],
+        "output": "two words"
+      },
+      {
+        "inputs": [
+          "   before and after  "
+        ],
+        "output": "before and after"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "a"
+        ],
+        "output": "a"
+      },
+      {
+        "inputs": [
+          "                   A"
+        ],
+        "output": "a"
+      },
+      {
+        "inputs": [
+          "X                   "
+        ],
+        "output": "x"
+      },
+      {
+        "inputs": [
+          "             a B                  "
+        ],
+        "output": "a b"
+      },
+      {
+        "inputs": [
+          " "
+        ],
+        "output": ""
+      },
+      {
+        "inputs": [
+          "  . "
+        ],
+        "output": "."
+      },
+      {
+        "inputs": [
+          "    "
+        ],
+        "output": ""
+      },
+      {
+        "inputs": [
+          "nothing to change!"
+        ],
+        "output": "nothing to change!"
+      },
+      {
+        "inputs": [
+          "Nothing to Remove!"
+        ],
+        "output": "nothing to remove!"
+      },
+      {
+        "inputs": [
+          " multiple SPACEs to remove... "
+        ],
+        "output": "multiple spaces to remove..."
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "TRIM(LOWER(var_0))",
+    "tags": []
+  },
+  {
+    "name": "replaceAllCompany",
+    "description": "replace <COMPANY> in a string with a given company name",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Employees at <COMPANY> love its culture.",
+          "Google"
+        ],
+        "output": "Employees at Google love its culture."
+      },
+      {
+        "inputs": [
+          "<COMPANY> employees are excited for <COMPANY>'s future.",
+          "Microsoft"
+        ],
+        "output": "Microsoft employees are excited for Microsoft's future."
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "<COMPANY>",
+          "Facebook"
+        ],
+        "output": "Facebook"
+      },
+      {
+        "inputs": [
+          "<COMPANY><COMPANY>",
+          "Area120"
+        ],
+        "output": "Area120Area120"
+      },
+      {
+        "inputs": [
+          " <COMPANY> <COMPANY> <COMPANY> ",
+          "Area120"
+        ],
+        "output": " Area120 Area120 Area120 "
+      },
+      {
+        "inputs": [
+          "jeff@<COMPANY>.com",
+          "google"
+        ],
+        "output": "jeff@google.com"
+      },
+      {
+        "inputs": [
+          "jeff@<COMPANY>.com",
+          ""
+        ],
+        "output": "jeff@.com"
+      },
+      {
+        "inputs": [
+          "No replacement at all!",
+          "Google"
+        ],
+        "output": "No replacement at all!"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "SUBSTITUTE(var_0, \"<COMPANY>\", var_1)",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "replaceInUrl",
+    "description": "replace com with org",
+    "trainExamples": [
+      {
+        "inputs": [
+          "https://www.google.com/company-strategy.html"
+        ],
+        "output": "https://www.google.org/company-strategy.html"
+      },
+      {
+        "inputs": [
+          "https://www.google.com/some/path"
+        ],
+        "output": "https://www.google.org/some/path"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "https://www.google.com/"
+        ],
+        "output": "https://www.google.org/"
+      },
+      {
+        "inputs": [
+          "https://www.google.com/com.org.com"
+        ],
+        "output": "https://www.google.org/com.org.com"
+      },
+      {
+        "inputs": [
+          "https://www.google.com/org/com/"
+        ],
+        "output": "https://www.google.org/org/com/"
+      },
+      {
+        "inputs": [
+          "https://www.google.com/google.com"
+        ],
+        "output": "https://www.google.org/google.com"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "SUBSTITUTE(var_0, \"com\", \"org\", 1)",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "secondStringIfFirstIsNone",
+    "description": "select the first string, or the second if the first is NONE",
+    "trainExamples": [
+      {
+        "inputs": [
+          "primary",
+          "secondary"
+        ],
+        "output": "primary"
+      },
+      {
+        "inputs": [
+          "ABC",
+          "XYZ"
+        ],
+        "output": "ABC"
+      },
+      {
+        "inputs": [
+          "NOT NONE",
+          "123"
+        ],
+        "output": "NOT NONE"
+      },
+      {
+        "inputs": [
+          "NONE",
+          "select this instead"
+        ],
+        "output": "select this instead"
+      },
+      {
+        "inputs": [
+          "NONE",
+          "<BACKUP>"
+        ],
+        "output": "<BACKUP>"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "1",
+          "2"
+        ],
+        "output": "1"
+      },
+      {
+        "inputs": [
+          "2",
+          "1"
+        ],
+        "output": "2"
+      },
+      {
+        "inputs": [
+          "NONE",
+          "NONE"
+        ],
+        "output": "NONE"
+      },
+      {
+        "inputs": [
+          "none",
+          "NONE"
+        ],
+        "output": "none"
+      },
+      {
+        "inputs": [
+          "NONE",
+          "??"
+        ],
+        "output": "??"
+      },
+      {
+        "inputs": [
+          "a",
+          "b"
+        ],
+        "output": "a"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "IF(EXACT(var_0, \"NONE\"), var_1, var_0)",
+    "tags": [
+      "CONSTANT",
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "selectLongerString",
+    "description": "select the longer of 2 strings, defaulting to the first if equal length",
+    "trainExamples": [
+      {
+        "inputs": [
+          "length,",
+          "is same"
+        ],
+        "output": "length,"
+      },
+      {
+        "inputs": [
+          "123",
+          "45"
+        ],
+        "output": "123"
+      },
+      {
+        "inputs": [
+          "xyz",
+          "abcdef"
+        ],
+        "output": "abcdef"
+      },
+      {
+        "inputs": [
+          "aa",
+          "aaa"
+        ],
+        "output": "aaa"
+      },
+      {
+        "inputs": [
+          "aa",
+          "a"
+        ],
+        "output": "aa"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "1234567890",
+          "1234567890!"
+        ],
+        "output": "1234567890!"
+      },
+      {
+        "inputs": [
+          "1234567890!",
+          "1234567890"
+        ],
+        "output": "1234567890!"
+      },
+      {
+        "inputs": [
+          "identical",
+          "identical"
+        ],
+        "output": "identical"
+      },
+      {
+        "inputs": [
+          "   ",
+          "  "
+        ],
+        "output": "   "
+      },
+      {
+        "inputs": [
+          "  ",
+          "   "
+        ],
+        "output": "   "
+      },
+      {
+        "inputs": [
+          "a",
+          "this is a long string"
+        ],
+        "output": "this is a long string"
+      },
+      {
+        "inputs": [
+          "also a long string",
+          "!"
+        ],
+        "output": "also a long string"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "IF(GT(LEN(var_1), LEN(var_0)), var_1, var_0)",
+    "tags": [
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "stringEqual",
+    "description": "whether the two strings are exactly equal, yes or no",
+    "trainExamples": [
+      {
+        "inputs": [
+          "string",
+          "string"
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "string",
+          "STRING"
+        ],
+        "output": "no"
+      },
+      {
+        "inputs": [
+          "match this",
+          "match this"
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "match this",
+          "match that"
+        ],
+        "output": "no"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "a",
+          "a"
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "a",
+          "b"
+        ],
+        "output": "no"
+      },
+      {
+        "inputs": [
+          "A",
+          "a"
+        ],
+        "output": "no"
+      },
+      {
+        "inputs": [
+          " ",
+          " "
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "   ",
+          "   "
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "   ",
+          "    "
+        ],
+        "output": "no"
+      },
+      {
+        "inputs": [
+          "some random text",
+          "some random text"
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "some random-text",
+          "some random text"
+        ],
+        "output": "no"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "IF(EXACT(var_0, var_1), \"yes\", \"no\")",
+    "tags": [
+      "CONSTANT",
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "stringEqualIgnoreCase",
+    "description": "whether the two strings are exactly equal ignoring case, yes or no",
+    "trainExamples": [
+      {
+        "inputs": [
+          "text",
+          "text"
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "StRiNg",
+          "sTrInG"
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "match this",
+          "match this"
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "match those",
+          "match that"
+        ],
+        "output": "no"
+      },
+      {
+        "inputs": [
+          "substring",
+          "substring."
+        ],
+        "output": "no"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "a",
+          "a"
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "a",
+          "b"
+        ],
+        "output": "no"
+      },
+      {
+        "inputs": [
+          "A",
+          "a"
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          " ",
+          " "
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "   ",
+          "   "
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "   ",
+          "    "
+        ],
+        "output": "no"
+      },
+      {
+        "inputs": [
+          "some random text",
+          "some random text"
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "some RaNdoM text",
+          "some rAnDom text"
+        ],
+        "output": "yes"
+      },
+      {
+        "inputs": [
+          "some RaNdoM text",
+          "some rAnDom-text"
+        ],
+        "output": "no"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "IF(EXACT(LOWER(var_0), LOWER(var_1)), \"yes\", \"no\")",
+    "tags": [
+      "CONSTANT",
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "stringLength",
+    "description": "length of string",
+    "trainExamples": [
+      {
+        "inputs": [
+          "alphabet"
+        ],
+        "output": "8"
+      },
+      {
+        "inputs": [
+          "google"
+        ],
+        "output": "6"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          ""
+        ],
+        "output": "0"
+      },
+      {
+        "inputs": [
+          "7"
+        ],
+        "output": "1"
+      },
+      {
+        "inputs": [
+          "This is a sentence."
+        ],
+        "output": "19"
+      },
+      {
+        "inputs": [
+          "     "
+        ],
+        "output": "5"
+      },
+      {
+        "inputs": [
+          "What's the length of this string?"
+        ],
+        "output": "33"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "TO_TEXT(LEN(var_0))",
+    "tags": []
+  },
+  {
+    "name": "suffixRemainder",
+    "description": "extract the rest of a word given a suffix",
+    "trainExamples": [
+      {
+        "inputs": [
+          "suffix",
+          "fix"
+        ],
+        "output": "suf"
+      },
+      {
+        "inputs": [
+          "declaration",
+          "tion"
+        ],
+        "output": "declara"
+      },
+      {
+        "inputs": [
+          "analyticly",
+          "ly"
+        ],
+        "output": "analytic"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "a",
+          "a"
+        ],
+        "output": ""
+      },
+      {
+        "inputs": [
+          "aaaaaa",
+          "aa"
+        ],
+        "output": "aaaa"
+      },
+      {
+        "inputs": [
+          "aaaaaa",
+          "aaaaa"
+        ],
+        "output": "a"
+      },
+      {
+        "inputs": [
+          "word",
+          "word"
+        ],
+        "output": ""
+      },
+      {
+        "inputs": [
+          "asubstring",
+          "substring"
+        ],
+        "output": "a"
+      },
+      {
+        "inputs": [
+          "repeatedrepeat",
+          "repeat"
+        ],
+        "output": "repeated"
+      },
+      {
+        "inputs": [
+          "repeatrepeat",
+          "repeat"
+        ],
+        "output": "repeat"
+      },
+      {
+        "inputs": [
+          "abcdefg",
+          "defg"
+        ],
+        "output": "abc"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "LEFT(var_0, MINUS(LEN(var_0), LEN(var_1)))",
+    "tags": []
+  },
+  {
+    "name": "swapCase",
+    "description": "swap the case of a string that is entirely uppercase or lowercase",
+    "trainExamples": [
+      {
+        "inputs": [
+          "lowercase"
+        ],
+        "output": "LOWERCASE"
+      },
+      {
+        "inputs": [
+          "UPPERCASE"
+        ],
+        "output": "uppercase"
+      },
+      {
+        "inputs": [
+          "swap"
+        ],
+        "output": "SWAP"
+      },
+      {
+        "inputs": [
+          "CASE"
+        ],
+        "output": "case"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "a"
+        ],
+        "output": "A"
+      },
+      {
+        "inputs": [
+          "A"
+        ],
+        "output": "a"
+      },
+      {
+        "inputs": [
+          "123"
+        ],
+        "output": "123"
+      },
+      {
+        "inputs": [
+          " "
+        ],
+        "output": " "
+      },
+      {
+        "inputs": [
+          "12345abcd"
+        ],
+        "output": "12345ABCD"
+      },
+      {
+        "inputs": [
+          "12345ABCD"
+        ],
+        "output": "12345abcd"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "IF(EXACT(var_0, LOWER(var_0)), UPPER(var_0), LOWER(var_0))",
+    "tags": [
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "truncateIfTooLong",
+    "description": "truncate and add ... if longer than 15 characters",
+    "trainExamples": [
+      {
+        "inputs": [
+          "short text"
+        ],
+        "output": "short text"
+      },
+      {
+        "inputs": [
+          "max length text"
+        ],
+        "output": "max length text"
+      },
+      {
+        "inputs": [
+          "extremely lengthy text"
+        ],
+        "output": "extremely lengt..."
+      },
+      {
+        "inputs": [
+          "this text should be truncated"
+        ],
+        "output": "this text shoul..."
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "a"
+        ],
+        "output": "a"
+      },
+      {
+        "inputs": [
+          "  "
+        ],
+        "output": "  "
+      },
+      {
+        "inputs": [
+          "1234567890123456789"
+        ],
+        "output": "123456789012345..."
+      },
+      {
+        "inputs": [
+          "12345678901234567"
+        ],
+        "output": "123456789012345..."
+      },
+      {
+        "inputs": [
+          "1234567890123456"
+        ],
+        "output": "123456789012345..."
+      },
+      {
+        "inputs": [
+          "123456789012345"
+        ],
+        "output": "123456789012345"
+      },
+      {
+        "inputs": [
+          "12345678901234"
+        ],
+        "output": "12345678901234"
+      },
+      {
+        "inputs": [
+          "Acknowledgements"
+        ],
+        "output": "Acknowledgement..."
+      },
+      {
+        "inputs": [
+          "Acknowledgement"
+        ],
+        "output": "Acknowledgement"
+      },
+      {
+        "inputs": [
+          "infrastructure"
+        ],
+        "output": "infrastructure"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "IF(GT(LEN(var_0), 15), CONCATENATE(LEFT(var_0, 15), \"...\"), var_0)",
+    "tags": [
+      "CONSTANT",
+      "CONDITIONAL"
+    ]
+  },
+  {
+    "name": "twoLetterAcronym",
+    "description": "create acronym from two words in one cell",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Product Area"
+        ],
+        "output": "PA"
+      },
+      {
+        "inputs": [
+          "Vice President"
+        ],
+        "output": "VP"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Principal Investigator"
+        ],
+        "output": "PI"
+      },
+      {
+        "inputs": [
+          "Medical Doctor"
+        ],
+        "output": "MD"
+      },
+      {
+        "inputs": [
+          "Artificial Intelligence"
+        ],
+        "output": "AI"
+      },
+      {
+        "inputs": [
+          "Reinforcement Learning"
+        ],
+        "output": "RL"
+      },
+      {
+        "inputs": [
+          "Programming Languages"
+        ],
+        "output": "PL"
+      },
+      {
+        "inputs": [
+          "Abc Xyz"
+        ],
+        "output": "AX"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "CONCATENATE(LEFT(var_0, 1), MID(var_0, ADD(FIND(\" \", var_0), 1), 1))",
+    "tags": [
+      "CONSTANT"
+    ]
+  },
+  {
+    "name": "twoLetterAcronymCapitalization",
+    "description": "create capitalized acronym from two words in one cell",
+    "trainExamples": [
+      {
+        "inputs": [
+          "product area"
+        ],
+        "output": "PA"
+      },
+      {
+        "inputs": [
+          "Vice president"
+        ],
+        "output": "VP"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "principal investigator"
+        ],
+        "output": "PI"
+      },
+      {
+        "inputs": [
+          "medical Doctor"
+        ],
+        "output": "MD"
+      },
+      {
+        "inputs": [
+          "ARTIFICIAL INTELLIGENCE"
+        ],
+        "output": "AI"
+      },
+      {
+        "inputs": [
+          "reinforcement learning"
+        ],
+        "output": "RL"
+      },
+      {
+        "inputs": [
+          "pROGRAMMING lANGUAGES"
+        ],
+        "output": "PL"
+      },
+      {
+        "inputs": [
+          "abc xyz"
+        ],
+        "output": "AX"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "UPPER(CONCATENATE(LEFT(var_0, 1), MID(var_0, ADD(FIND(\" \", var_0), 1), 1)))",
+    "tags": [
+      "CONSTANT"
+    ]
+  }
+]
