@@ -94,7 +94,7 @@ def main(argv):
         max_num_inputs=FLAGS.max_num_inputs,
         verbose=FLAGS.verbose)
   
-  main_train_eval(proc_args, model, eval_tasks, domain,
+  main_train_eval(proc_args, model, eval_tasks,
                   task_gen=task_gen_func,
                   trace_gen=data_gen.trace_gen)
 
