@@ -14,7 +14,6 @@ import functools
 from torch.utils.data import DataLoader
 from crossbeam.datasets import data_gen
 from crossbeam.dsl import domains
-from crossbeam.dsl import checker
 from crossbeam.experiment.exp_common import set_global_seed
 from crossbeam.model.util import CharacterTable
 from crossbeam.model.encoder import CharIOLSTMEncoder
@@ -43,14 +42,13 @@ def init_model(domain):
                                 max_len=domain.input_max_len)
   output_table = CharacterTable(domain.output_charset,
                                 max_len=domain.output_max_len)
-
   prog_vocab = []
   if domain.constants is not None:
     prog_vocab += [str(x) for x in domain.constants]
   for i in range(1, FLAGS.max_num_inputs + 1):
     prog_vocab.append('in%d' % i)
   prog_vocab += domain.program_tokens
-  prog_vocab = list(set(prog_vocab))
+  prog_vocab = sorted(list(set(prog_vocab)))
   prog_vocab = ['pad'] + prog_vocab
   prog_vocab += ['sos', 'eos']
   prog_vdict = {}
@@ -60,7 +58,7 @@ def init_model(domain):
   return model
 
 
-def eval_dataset(model, dataset, device, fn_unparse=None):
+def eval_dataset(domain, model, dataset, device, fn_unparse=None):
   if fn_unparse is None:
     fn_unparse = lambda x : x
   eval_loader = DataLoader(dataset, batch_size=FLAGS.batch_size, collate_fn=raw_collate_fn, num_workers=0,
@@ -77,7 +75,7 @@ def eval_dataset(model, dataset, device, fn_unparse=None):
         for j in range(FLAGS.beam_size):
           raw_prog_tokens = fn_unparse(list_pred_progs[i * FLAGS.beam_size + j])
           pred_prog = ''.join(raw_prog_tokens)
-          if checker.check_solution(list_tasks[i], pred_prog):
+          if domain.checker_function(list_tasks[i], pred_prog):
             hit = j
             break
           assert pred_prog != ''.join(expr_list[i])
@@ -131,8 +129,8 @@ def main(argv):
   else:
     device = 'cpu'    
   if FLAGS.do_test:
-    test_dataset = RawOfflineDataset(glob.glob(os.path.join(FLAGS.data_folder, 'test-tasks*'))[0])
-    hit_at_1, total_hit = eval_dataset(model, test_dataset, device, fn_unparse)
+    test_dataset = RawOfflineDataset(glob.glob(os.path.join(FLAGS.data_folder, 'test-tasks*'))[0], prog_tokenizer=fn_tokenizer)
+    hit_at_1, total_hit = eval_dataset(domain, model, test_dataset, device, fn_unparse)
     print('test hit@1: %.2f, hit@%d: %.2f' % (hit_at_1, FLAGS.beam_size, total_hit))
     sys.exit()
   optimizer = optim.Adam(model.parameters(), lr=FLAGS.lr)
@@ -154,7 +152,7 @@ def main(argv):
       optimizer.step()
       pbar.set_description('iter: %d, loss: %.4f' % (it, loss.item()))
     cur_step += FLAGS.eval_every
-    hit_at_1, total_hit = eval_dataset(model, valid_dataset, device, fn_unparse)
+    hit_at_1, total_hit = eval_dataset(domain, model, valid_dataset, device, fn_unparse)
     print('valid hit@1: %.2f, hit@%d: %.2f' % (hit_at_1, FLAGS.beam_size, total_hit))
     if hit_at_1 > best_valid:
       print('saving best valid model')
