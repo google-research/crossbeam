@@ -17,7 +17,7 @@ then
     mkdir -p $save_dir
 fi
 
-export CUDA_VISIBLE_DEVICES=0,1
+export CUDA_VISIBLE_DEVICES=0
 
 
 python3 -m crossbeam.experiment.run_crossbeam \
@@ -35,8 +35,8 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --load_model=saved/model-best-valid.ckpt \
     --grad_accumulate=$grad_acc \
     --beam_size=$beam_size \
-    --gpu_list=0,1 \
-    --num_proc=2 \
+    --gpu_list=0 \
+    --num_proc=1 \
     --eval_every=1 \
     --train_steps=0 \
     --train_data_glob=train-tasks*.pkl \
