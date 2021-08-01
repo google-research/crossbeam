@@ -69,6 +69,7 @@ def main(argv):
     model_dump = os.path.join(FLAGS.save_dir, FLAGS.load_model)
     print('loading model from', model_dump)
     model.load_state_dict(torch.load(model_dump))
+    print('model loaded.')
   if FLAGS.do_test:
     eval_prefix = 'test-tasks'
   else:

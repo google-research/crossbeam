@@ -143,9 +143,11 @@ def train_eval_loop(args, device, model, train_files, eval_tasks, domain,
                                 timeout=args.timeout,
                                 is_stochastic=args.stochastic_beam)
   if args.do_test: # test only
+    print('Doing test only!')
     succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
     if args.num_proc > 1:
       succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
+    print('Done testing! Exiting.')
     sys.exit()
   optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
   best_succ = -1
