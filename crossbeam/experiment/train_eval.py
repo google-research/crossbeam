@@ -19,7 +19,7 @@ import torch.distributed as dist
 import traceback
 from crossbeam.common.config import get_torch_device
 from absl import logging
-
+import timeit
 
 def thread_wrapped_func(func):
     """Wrapped func for torch.multiprocessing.Process.
@@ -85,6 +85,8 @@ def do_eval(eval_tasks, domain, model,
       should_show = range(len(eval_tasks))
   succ = 0.0
   for i,t in enumerate(eval_tasks):
+    start_time = timeit.default_timer()
+    print('Task: ', t)
     out, _ = synthesize(t, domain, model,
                         device=device,
                         max_weight=max_search_weight,
@@ -93,10 +95,13 @@ def do_eval(eval_tasks, domain, model,
                         timeout=timeout,
                         is_stochastic=is_stochastic,
                         random_beam=False)
+    elapsed_time = timeit.default_timer() - start_time
+    print('Elapsed time: {:.2f}'.format(elapsed_time))
+    print('out: {}'.format(out))
     if out is not None:
       if verbose and i in should_show:
         print("successfully synthesized a solution to",t)
-        print(out)
+        print(out, out.expression())
       succ += 1.0
     elif verbose and i in should_show:
       print("could not successfully solve",t)
