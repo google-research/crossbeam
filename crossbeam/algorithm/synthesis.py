@@ -18,12 +18,13 @@ import timeit
 
 from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
+from crossbeam.unique_randomizer import unique_randomizer as ur
 
 
 def synthesize(task, domain, model, device,
-               trace=None, max_weight=10, k=2, is_training=False,
+               trace=None, max_weight=15, k=2, is_training=False,
                include_as_train=None, timeout=None, is_stochastic=False,
-               random_beam=False):
+               random_beam=False, use_ur=False):
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
   if trace is None:
     trace = []
@@ -56,6 +57,14 @@ def synthesize(task, domain, model, device,
 
     for operation in domain.operations:
       num_values_before_op = len(all_values)
+
+      if use_ur:
+        randomizer = ur.UniqueRandomizer() if use_ur else None
+        val_embed = model.val(all_values, device=device)
+        op_state = model.init(io_embed, val_embed, operation)
+
+        continue
+
       if random_beam:
         args = [[random.randrange(len(all_values)) for _ in range(operation.arity)]
                 for _ in range(k)]
