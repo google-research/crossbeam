@@ -86,7 +86,7 @@ def do_eval(eval_tasks, domain, model,
   succ = 0.0
   for i,t in enumerate(eval_tasks):
     start_time = timeit.default_timer()
-    print('Task: ', t)
+    print('\nTask: ', t)
     out, _ = synthesize(t, domain, model,
                         device=device,
                         max_weight=max_search_weight,
@@ -97,7 +97,7 @@ def do_eval(eval_tasks, domain, model,
                         random_beam=False)
     elapsed_time = timeit.default_timer() - start_time
     print('Elapsed time: {:.2f}'.format(elapsed_time))
-    print('out: {}'.format(out))
+    print('out: {} {}'.format(out, out.expression()))
     if out is not None:
       if verbose and i in should_show:
         print("successfully synthesized a solution to",t)

@@ -49,6 +49,7 @@ class _TrieNode(object):
     self.parent = parent
     self.index_in_parent = index_in_parent
     self.children = None
+    self.cache = {}
     self._sum_unnorm_unsampled_mass = None  # Will compute later.
 
   def sample_child(self, unnorm_probs):

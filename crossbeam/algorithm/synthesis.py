@@ -63,6 +63,39 @@ def synthesize(task, domain, model, device,
         val_embed = model.val(all_values, device=device)
         op_state = model.init(io_embed, val_embed, operation)
 
+        new_values = []
+        score_model = model.arg
+        while len(new_samples) < k and not randomizer.exhausted():
+          cur_state = score_model.get_init_state(val_embed, batch_size=1)
+          randomizer.current_node.cache['state'] = cur_state
+          arg_list = []
+          for _ in range(operation.arity):
+            scores = score_model.step_score(cur_state, val_embed)
+            prob = torch.softmax(joint_scores, dim=0)
+            choice_index = randomizer.sample_distribution(prob)
+            arg_list.append(all_values[choice_index])
+            choice_embed = val_embed[choice_index]
+            cur_state = score_model.step_state(prev_state[0], choice_embed)
+            randomizer.current_node.cache['state'] = cur_state
+          randomizer.mark_sequence_complete()
+
+          result_value = operation.apply(arg_list)
+          if result_value is None or result_value.weight > max_weight:
+            continue
+          if (domain.small_value_filter and
+              not all(domain.small_value_filter(v) for v in result_value.values)):
+            continue
+          if result_value in all_value_dict:
+            # TODO: replace existing one if this way is simpler (less weight)
+            continue
+          new_values.append(result_value)
+
+        for new_value in new_values:
+          all_value_dict[new_value] = len(all_values)
+          all_values.append(new_value)
+          if new_value == output_value:
+            return new_value, all_values
+
         continue
 
       if random_beam:

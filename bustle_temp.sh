@@ -4,7 +4,7 @@ tout=120
 maxw=10
 maxne=4
 maxni=3
-maxsw=12
+maxsw=20
 
 data_folder=$HOME/crossbeam/crossbeam/data
 
@@ -42,4 +42,5 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --train_data_glob=train-tasks*.pkl \
     --random_beam=False \
     --do_test=True \
+    --timeout=30 \
     $@
