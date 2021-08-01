@@ -94,10 +94,11 @@ def do_eval(eval_tasks, domain, model,
                         is_training=False,
                         timeout=timeout,
                         is_stochastic=is_stochastic,
-                        random_beam=False)
+                        random_beam=False,
+                        use_ur=True)
     elapsed_time = timeit.default_timer() - start_time
     print('Elapsed time: {:.2f}'.format(elapsed_time))
-    print('out: {} {}'.format(out, out.expression()))
+    print('out: {} {}'.format(out, out.expression()) if out else None)
     if out is not None:
       if verbose and i in should_show:
         print("successfully synthesized a solution to",t)

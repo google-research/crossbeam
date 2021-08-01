@@ -16,6 +16,8 @@ import numpy as np
 import random
 import timeit
 
+import torch
+
 from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
 from crossbeam.unique_randomizer import unique_randomizer as ur
@@ -25,6 +27,7 @@ def synthesize(task, domain, model, device,
                trace=None, max_weight=15, k=2, is_training=False,
                include_as_train=None, timeout=None, is_stochastic=False,
                random_beam=False, use_ur=False):
+  verbose = False
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
   if trace is None:
     trace = []
@@ -56,26 +59,33 @@ def synthesize(task, domain, model, device,
     cur_num_values = len(all_values)
 
     for operation in domain.operations:
+      if end_time is not None and timeit.default_timer() > end_time:
+        return None, None
+      if verbose:
+        print('Operation: {}'.format(operation))
       num_values_before_op = len(all_values)
 
       if use_ur:
         randomizer = ur.UniqueRandomizer() if use_ur else None
         val_embed = model.val(all_values, device=device)
-        op_state = model.init(io_embed, val_embed, operation)
+        init_embed = model.init(io_embed, val_embed, operation)
 
         new_values = []
         score_model = model.arg
-        while len(new_samples) < k and not randomizer.exhausted():
-          cur_state = score_model.get_init_state(val_embed, batch_size=1)
-          randomizer.current_node.cache['state'] = cur_state
+        num_tries = 0
+        init_state = score_model.get_init_state(init_embed, batch_size=1)
+        randomizer.current_node.cache['state'] = init_state
+        while len(new_values) < k and num_tries < 5*k and not randomizer.exhausted():
+          num_tries += 1
+          cur_state = init_state
           arg_list = []
           for _ in range(operation.arity):
             scores = score_model.step_score(cur_state, val_embed)
-            prob = torch.softmax(joint_scores, dim=0)
+            prob = torch.softmax(scores, dim=1).squeeze(0)
             choice_index = randomizer.sample_distribution(prob)
             arg_list.append(all_values[choice_index])
-            choice_embed = val_embed[choice_index]
-            cur_state = score_model.step_state(prev_state[0], choice_embed)
+            choice_embed = val_embed[[choice_index]]
+            cur_state = score_model.step_state(cur_state, choice_embed)
             randomizer.current_node.cache['state'] = cur_state
           randomizer.mark_sequence_complete()
 
@@ -87,7 +97,11 @@ def synthesize(task, domain, model, device,
             continue
           if result_value in all_value_dict:
             # TODO: replace existing one if this way is simpler (less weight)
+            if verbose:
+              print('duplicate value: {}, {}'.format(result_value, result_value.expression()))
             continue
+          if verbose:
+            print('new value: {}, {}'.format(result_value, result_value.expression()))
           new_values.append(result_value)
 
         for new_value in new_values:
@@ -134,8 +148,6 @@ def synthesize(task, domain, model, device,
         # one easy fix would to include this into trace_generation stage (add stochasticity)
         if len(trace) and result_value == trace[0] and trace_in_beam < 0:
           trace_in_beam = i
-      if end_time is not None and timeit.default_timer() > end_time:
-        return None, None
       if is_training and len(trace) and trace[0].operation == operation:
         if include_as_train(trace_in_beam):  # construct training example
           if trace_in_beam < 0:  # true arg not found
