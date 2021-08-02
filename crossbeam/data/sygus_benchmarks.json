@@ -1,0 +1,5683 @@
+[
+  {
+    "name": "bikes.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/bikes.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Ducati100"
+        ],
+        "output": "Ducati"
+      },
+      {
+        "inputs": [
+          "Honda125"
+        ],
+        "output": "Honda"
+      },
+      {
+        "inputs": [
+          "Ducati250"
+        ],
+        "output": "Ducati"
+      },
+      {
+        "inputs": [
+          "Honda250"
+        ],
+        "output": "Honda"
+      },
+      {
+        "inputs": [
+          "Honda550"
+        ],
+        "output": "Honda"
+      },
+      {
+        "inputs": [
+          "Ducati125"
+        ],
+        "output": "Ducati"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Ducati100"
+        ],
+        "output": "Ducati"
+      },
+      {
+        "inputs": [
+          "Honda125"
+        ],
+        "output": "Honda"
+      },
+      {
+        "inputs": [
+          "Ducati250"
+        ],
+        "output": "Ducati"
+      },
+      {
+        "inputs": [
+          "Honda250"
+        ],
+        "output": "Honda"
+      },
+      {
+        "inputs": [
+          "Honda550"
+        ],
+        "output": "Honda"
+      },
+      {
+        "inputs": [
+          "Ducati125"
+        ],
+        "output": "Ducati"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "dr-name.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/dr-name.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Nancy FreeHafer"
+        ],
+        "output": "Dr. Nancy"
+      },
+      {
+        "inputs": [
+          "Andrew Cencici"
+        ],
+        "output": "Dr. Andrew"
+      },
+      {
+        "inputs": [
+          "Jan Kotas"
+        ],
+        "output": "Dr. Jan"
+      },
+      {
+        "inputs": [
+          "Mariya Sergienko"
+        ],
+        "output": "Dr. Mariya"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Nancy FreeHafer"
+        ],
+        "output": "Dr. Nancy"
+      },
+      {
+        "inputs": [
+          "Andrew Cencici"
+        ],
+        "output": "Dr. Andrew"
+      },
+      {
+        "inputs": [
+          "Jan Kotas"
+        ],
+        "output": "Dr. Jan"
+      },
+      {
+        "inputs": [
+          "Mariya Sergienko"
+        ],
+        "output": "Dr. Mariya"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "firstname.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/firstname.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Nancy FreeHafer"
+        ],
+        "output": "Nancy"
+      },
+      {
+        "inputs": [
+          "Andrew Cencici"
+        ],
+        "output": "Andrew"
+      },
+      {
+        "inputs": [
+          "Jan Kotas"
+        ],
+        "output": "Jan"
+      },
+      {
+        "inputs": [
+          "Mariya Sergienko"
+        ],
+        "output": "Mariya"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Nancy FreeHafer"
+        ],
+        "output": "Nancy"
+      },
+      {
+        "inputs": [
+          "Andrew Cencici"
+        ],
+        "output": "Andrew"
+      },
+      {
+        "inputs": [
+          "Jan Kotas"
+        ],
+        "output": "Jan"
+      },
+      {
+        "inputs": [
+          "Mariya Sergienko"
+        ],
+        "output": "Mariya"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "initials.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/initials.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Nancy FreeHafer"
+        ],
+        "output": "N.F."
+      },
+      {
+        "inputs": [
+          "Andrew Cencici"
+        ],
+        "output": "A.C."
+      },
+      {
+        "inputs": [
+          "Jan Kotas"
+        ],
+        "output": "J.K."
+      },
+      {
+        "inputs": [
+          "Mariya Sergienko"
+        ],
+        "output": "M.S."
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Nancy FreeHafer"
+        ],
+        "output": "N.F."
+      },
+      {
+        "inputs": [
+          "Andrew Cencici"
+        ],
+        "output": "A.C."
+      },
+      {
+        "inputs": [
+          "Jan Kotas"
+        ],
+        "output": "J.K."
+      },
+      {
+        "inputs": [
+          "Mariya Sergienko"
+        ],
+        "output": "M.S."
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "lastname.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/lastname.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Nancy FreeHafer"
+        ],
+        "output": "FreeHafer"
+      },
+      {
+        "inputs": [
+          "Andrew Cencici"
+        ],
+        "output": "Cencici"
+      },
+      {
+        "inputs": [
+          "Jan Kotas"
+        ],
+        "output": "Kotas"
+      },
+      {
+        "inputs": [
+          "Mariya Sergienko"
+        ],
+        "output": "Sergienko"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Nancy FreeHafer"
+        ],
+        "output": "FreeHafer"
+      },
+      {
+        "inputs": [
+          "Andrew Cencici"
+        ],
+        "output": "Cencici"
+      },
+      {
+        "inputs": [
+          "Jan Kotas"
+        ],
+        "output": "Kotas"
+      },
+      {
+        "inputs": [
+          "Mariya Sergienko"
+        ],
+        "output": "Sergienko"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "name-combine-2.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/name-combine-2.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Nancy",
+          "FreeHafer"
+        ],
+        "output": "Nancy F."
+      },
+      {
+        "inputs": [
+          "Andrew",
+          "Cencici"
+        ],
+        "output": "Andrew C."
+      },
+      {
+        "inputs": [
+          "Jan",
+          "Kotas"
+        ],
+        "output": "Jan K."
+      },
+      {
+        "inputs": [
+          "Mariya",
+          "Sergienko"
+        ],
+        "output": "Mariya S."
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Nancy",
+          "FreeHafer"
+        ],
+        "output": "Nancy F."
+      },
+      {
+        "inputs": [
+          "Andrew",
+          "Cencici"
+        ],
+        "output": "Andrew C."
+      },
+      {
+        "inputs": [
+          "Jan",
+          "Kotas"
+        ],
+        "output": "Jan K."
+      },
+      {
+        "inputs": [
+          "Mariya",
+          "Sergienko"
+        ],
+        "output": "Mariya S."
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "name-combine-3.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/name-combine-3.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Launa",
+          "Withers"
+        ],
+        "output": "L. Withers"
+      },
+      {
+        "inputs": [
+          "Lakenya",
+          "Edison"
+        ],
+        "output": "L. Edison"
+      },
+      {
+        "inputs": [
+          "Brendan",
+          "Hage"
+        ],
+        "output": "B. Hage"
+      },
+      {
+        "inputs": [
+          "Bradford",
+          "Lango"
+        ],
+        "output": "B. Lango"
+      },
+      {
+        "inputs": [
+          "Rudolf",
+          "Akiyama"
+        ],
+        "output": "R. Akiyama"
+      },
+      {
+        "inputs": [
+          "Lara",
+          "Constable"
+        ],
+        "output": "L. Constable"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Launa",
+          "Withers"
+        ],
+        "output": "L. Withers"
+      },
+      {
+        "inputs": [
+          "Lakenya",
+          "Edison"
+        ],
+        "output": "L. Edison"
+      },
+      {
+        "inputs": [
+          "Brendan",
+          "Hage"
+        ],
+        "output": "B. Hage"
+      },
+      {
+        "inputs": [
+          "Bradford",
+          "Lango"
+        ],
+        "output": "B. Lango"
+      },
+      {
+        "inputs": [
+          "Rudolf",
+          "Akiyama"
+        ],
+        "output": "R. Akiyama"
+      },
+      {
+        "inputs": [
+          "Lara",
+          "Constable"
+        ],
+        "output": "L. Constable"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "name-combine-4.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/name-combine-4.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Launa",
+          "Withers"
+        ],
+        "output": "Withers, L."
+      },
+      {
+        "inputs": [
+          "Lakenya",
+          "Edison"
+        ],
+        "output": "Edison, L."
+      },
+      {
+        "inputs": [
+          "Brendan",
+          "Hage"
+        ],
+        "output": "Hage, B."
+      },
+      {
+        "inputs": [
+          "Bradford",
+          "Lango"
+        ],
+        "output": "Lango, B."
+      },
+      {
+        "inputs": [
+          "Rudolf",
+          "Akiyama"
+        ],
+        "output": "Akiyama, R."
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Launa",
+          "Withers"
+        ],
+        "output": "Withers, L."
+      },
+      {
+        "inputs": [
+          "Lakenya",
+          "Edison"
+        ],
+        "output": "Edison, L."
+      },
+      {
+        "inputs": [
+          "Brendan",
+          "Hage"
+        ],
+        "output": "Hage, B."
+      },
+      {
+        "inputs": [
+          "Bradford",
+          "Lango"
+        ],
+        "output": "Lango, B."
+      },
+      {
+        "inputs": [
+          "Rudolf",
+          "Akiyama"
+        ],
+        "output": "Akiyama, R."
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "name-combine.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/name-combine.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Launa",
+          "Withers"
+        ],
+        "output": "Launa Withers"
+      },
+      {
+        "inputs": [
+          "Lakenya",
+          "Edison"
+        ],
+        "output": "Lakenya Edison"
+      },
+      {
+        "inputs": [
+          "Brendan",
+          "Hage"
+        ],
+        "output": "Brendan Hage"
+      },
+      {
+        "inputs": [
+          "Bradford",
+          "Lango"
+        ],
+        "output": "Bradford Lango"
+      },
+      {
+        "inputs": [
+          "Rudolf",
+          "Akiyama"
+        ],
+        "output": "Rudolf Akiyama"
+      },
+      {
+        "inputs": [
+          "Lara",
+          "Constable"
+        ],
+        "output": "Lara Constable"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Launa",
+          "Withers"
+        ],
+        "output": "Launa Withers"
+      },
+      {
+        "inputs": [
+          "Lakenya",
+          "Edison"
+        ],
+        "output": "Lakenya Edison"
+      },
+      {
+        "inputs": [
+          "Brendan",
+          "Hage"
+        ],
+        "output": "Brendan Hage"
+      },
+      {
+        "inputs": [
+          "Bradford",
+          "Lango"
+        ],
+        "output": "Bradford Lango"
+      },
+      {
+        "inputs": [
+          "Rudolf",
+          "Akiyama"
+        ],
+        "output": "Rudolf Akiyama"
+      },
+      {
+        "inputs": [
+          "Lara",
+          "Constable"
+        ],
+        "output": "Lara Constable"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "phone-1.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-1.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "938-242-504"
+        ],
+        "output": "242"
+      },
+      {
+        "inputs": [
+          "308-916-545"
+        ],
+        "output": "916"
+      },
+      {
+        "inputs": [
+          "623-599-749"
+        ],
+        "output": "599"
+      },
+      {
+        "inputs": [
+          "981-424-843"
+        ],
+        "output": "424"
+      },
+      {
+        "inputs": [
+          "118-980-214"
+        ],
+        "output": "980"
+      },
+      {
+        "inputs": [
+          "244-655-094"
+        ],
+        "output": "655"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "938-242-504"
+        ],
+        "output": "242"
+      },
+      {
+        "inputs": [
+          "308-916-545"
+        ],
+        "output": "916"
+      },
+      {
+        "inputs": [
+          "623-599-749"
+        ],
+        "output": "599"
+      },
+      {
+        "inputs": [
+          "981-424-843"
+        ],
+        "output": "424"
+      },
+      {
+        "inputs": [
+          "118-980-214"
+        ],
+        "output": "980"
+      },
+      {
+        "inputs": [
+          "244-655-094"
+        ],
+        "output": "655"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "phone-10.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-10.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "+106 769-858-438"
+        ],
+        "output": "+106 (769) 858-438"
+      },
+      {
+        "inputs": [
+          "+83 973-757-831"
+        ],
+        "output": "+83 (973) 757-831"
+      },
+      {
+        "inputs": [
+          "+62 647-787-775"
+        ],
+        "output": "+62 (647) 787-775"
+      },
+      {
+        "inputs": [
+          "+172 027-507-632"
+        ],
+        "output": "+172 (027) 507-632"
+      },
+      {
+        "inputs": [
+          "+72 001-050-856"
+        ],
+        "output": "+72 (001) 050-856"
+      },
+      {
+        "inputs": [
+          "+95 310-537-401"
+        ],
+        "output": "+95 (310) 537-401"
+      },
+      {
+        "inputs": [
+          "+6 775-969-238"
+        ],
+        "output": "+6 (775) 969-238"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "+106 769-858-438"
+        ],
+        "output": "+106 (769) 858-438"
+      },
+      {
+        "inputs": [
+          "+83 973-757-831"
+        ],
+        "output": "+83 (973) 757-831"
+      },
+      {
+        "inputs": [
+          "+62 647-787-775"
+        ],
+        "output": "+62 (647) 787-775"
+      },
+      {
+        "inputs": [
+          "+172 027-507-632"
+        ],
+        "output": "+172 (027) 507-632"
+      },
+      {
+        "inputs": [
+          "+72 001-050-856"
+        ],
+        "output": "+72 (001) 050-856"
+      },
+      {
+        "inputs": [
+          "+95 310-537-401"
+        ],
+        "output": "+95 (310) 537-401"
+      },
+      {
+        "inputs": [
+          "+6 775-969-238"
+        ],
+        "output": "+6 (775) 969-238"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "phone-2.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-2.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "938-242-504"
+        ],
+        "output": "504"
+      },
+      {
+        "inputs": [
+          "308-916-545"
+        ],
+        "output": "545"
+      },
+      {
+        "inputs": [
+          "623-599-749"
+        ],
+        "output": "749"
+      },
+      {
+        "inputs": [
+          "981-424-843"
+        ],
+        "output": "843"
+      },
+      {
+        "inputs": [
+          "118-980-214"
+        ],
+        "output": "214"
+      },
+      {
+        "inputs": [
+          "244-655-094"
+        ],
+        "output": "094"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "938-242-504"
+        ],
+        "output": "504"
+      },
+      {
+        "inputs": [
+          "308-916-545"
+        ],
+        "output": "545"
+      },
+      {
+        "inputs": [
+          "623-599-749"
+        ],
+        "output": "749"
+      },
+      {
+        "inputs": [
+          "981-424-843"
+        ],
+        "output": "843"
+      },
+      {
+        "inputs": [
+          "118-980-214"
+        ],
+        "output": "214"
+      },
+      {
+        "inputs": [
+          "244-655-094"
+        ],
+        "output": "094"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "phone-3.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-3.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "938-242-504"
+        ],
+        "output": "(938) 242-504"
+      },
+      {
+        "inputs": [
+          "308-916-545"
+        ],
+        "output": "(308) 916-545"
+      },
+      {
+        "inputs": [
+          "623-599-749"
+        ],
+        "output": "(623) 599-749"
+      },
+      {
+        "inputs": [
+          "981-424-843"
+        ],
+        "output": "(981) 424-843"
+      },
+      {
+        "inputs": [
+          "118-980-214"
+        ],
+        "output": "(118) 980-214"
+      },
+      {
+        "inputs": [
+          "244-655-094"
+        ],
+        "output": "(244) 655-094"
+      },
+      {
+        "inputs": [
+          "830-941-991"
+        ],
+        "output": "(830) 941-991"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "938-242-504"
+        ],
+        "output": "(938) 242-504"
+      },
+      {
+        "inputs": [
+          "308-916-545"
+        ],
+        "output": "(308) 916-545"
+      },
+      {
+        "inputs": [
+          "623-599-749"
+        ],
+        "output": "(623) 599-749"
+      },
+      {
+        "inputs": [
+          "981-424-843"
+        ],
+        "output": "(981) 424-843"
+      },
+      {
+        "inputs": [
+          "118-980-214"
+        ],
+        "output": "(118) 980-214"
+      },
+      {
+        "inputs": [
+          "244-655-094"
+        ],
+        "output": "(244) 655-094"
+      },
+      {
+        "inputs": [
+          "830-941-991"
+        ],
+        "output": "(830) 941-991"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "phone-4.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-4.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "938-242-504"
+        ],
+        "output": "938.242.504"
+      },
+      {
+        "inputs": [
+          "308-916-545"
+        ],
+        "output": "308.916.545"
+      },
+      {
+        "inputs": [
+          "623-599-749"
+        ],
+        "output": "623.599.749"
+      },
+      {
+        "inputs": [
+          "981-424-843"
+        ],
+        "output": "981.424.843"
+      },
+      {
+        "inputs": [
+          "118-980-214"
+        ],
+        "output": "118.980.214"
+      },
+      {
+        "inputs": [
+          "244-655-094"
+        ],
+        "output": "244.655.094"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "938-242-504"
+        ],
+        "output": "938.242.504"
+      },
+      {
+        "inputs": [
+          "308-916-545"
+        ],
+        "output": "308.916.545"
+      },
+      {
+        "inputs": [
+          "623-599-749"
+        ],
+        "output": "623.599.749"
+      },
+      {
+        "inputs": [
+          "981-424-843"
+        ],
+        "output": "981.424.843"
+      },
+      {
+        "inputs": [
+          "118-980-214"
+        ],
+        "output": "118.980.214"
+      },
+      {
+        "inputs": [
+          "244-655-094"
+        ],
+        "output": "244.655.094"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "phone-5.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-5.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "+106 769-858-438"
+        ],
+        "output": "106"
+      },
+      {
+        "inputs": [
+          "+83 973-757-831"
+        ],
+        "output": "83"
+      },
+      {
+        "inputs": [
+          "+62 647-787-775"
+        ],
+        "output": "62"
+      },
+      {
+        "inputs": [
+          "+172 027-507-632"
+        ],
+        "output": "172"
+      },
+      {
+        "inputs": [
+          "+72 001-050-856"
+        ],
+        "output": "72"
+      },
+      {
+        "inputs": [
+          "+95 310-537-401"
+        ],
+        "output": "95"
+      },
+      {
+        "inputs": [
+          "+6 775-969-238"
+        ],
+        "output": "6"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "+106 769-858-438"
+        ],
+        "output": "106"
+      },
+      {
+        "inputs": [
+          "+83 973-757-831"
+        ],
+        "output": "83"
+      },
+      {
+        "inputs": [
+          "+62 647-787-775"
+        ],
+        "output": "62"
+      },
+      {
+        "inputs": [
+          "+172 027-507-632"
+        ],
+        "output": "172"
+      },
+      {
+        "inputs": [
+          "+72 001-050-856"
+        ],
+        "output": "72"
+      },
+      {
+        "inputs": [
+          "+95 310-537-401"
+        ],
+        "output": "95"
+      },
+      {
+        "inputs": [
+          "+6 775-969-238"
+        ],
+        "output": "6"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "phone-6.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-6.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "+106 769-858-438"
+        ],
+        "output": "769"
+      },
+      {
+        "inputs": [
+          "+83 973-757-831"
+        ],
+        "output": "973"
+      },
+      {
+        "inputs": [
+          "+62 647-787-775"
+        ],
+        "output": "647"
+      },
+      {
+        "inputs": [
+          "+172 027-507-632"
+        ],
+        "output": "027"
+      },
+      {
+        "inputs": [
+          "+72 001-050-856"
+        ],
+        "output": "001"
+      },
+      {
+        "inputs": [
+          "+95 310-537-401"
+        ],
+        "output": "310"
+      },
+      {
+        "inputs": [
+          "+6 775-969-238"
+        ],
+        "output": "775"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "+106 769-858-438"
+        ],
+        "output": "769"
+      },
+      {
+        "inputs": [
+          "+83 973-757-831"
+        ],
+        "output": "973"
+      },
+      {
+        "inputs": [
+          "+62 647-787-775"
+        ],
+        "output": "647"
+      },
+      {
+        "inputs": [
+          "+172 027-507-632"
+        ],
+        "output": "027"
+      },
+      {
+        "inputs": [
+          "+72 001-050-856"
+        ],
+        "output": "001"
+      },
+      {
+        "inputs": [
+          "+95 310-537-401"
+        ],
+        "output": "310"
+      },
+      {
+        "inputs": [
+          "+6 775-969-238"
+        ],
+        "output": "775"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "phone-7.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-7.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "+106 769-858-438"
+        ],
+        "output": "858"
+      },
+      {
+        "inputs": [
+          "+83 973-757-831"
+        ],
+        "output": "757"
+      },
+      {
+        "inputs": [
+          "+62 647-787-775"
+        ],
+        "output": "787"
+      },
+      {
+        "inputs": [
+          "+172 027-507-632"
+        ],
+        "output": "507"
+      },
+      {
+        "inputs": [
+          "+72 001-050-856"
+        ],
+        "output": "050"
+      },
+      {
+        "inputs": [
+          "+95 310-537-401"
+        ],
+        "output": "537"
+      },
+      {
+        "inputs": [
+          "+6 775-969-238"
+        ],
+        "output": "969"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "+106 769-858-438"
+        ],
+        "output": "858"
+      },
+      {
+        "inputs": [
+          "+83 973-757-831"
+        ],
+        "output": "757"
+      },
+      {
+        "inputs": [
+          "+62 647-787-775"
+        ],
+        "output": "787"
+      },
+      {
+        "inputs": [
+          "+172 027-507-632"
+        ],
+        "output": "507"
+      },
+      {
+        "inputs": [
+          "+72 001-050-856"
+        ],
+        "output": "050"
+      },
+      {
+        "inputs": [
+          "+95 310-537-401"
+        ],
+        "output": "537"
+      },
+      {
+        "inputs": [
+          "+6 775-969-238"
+        ],
+        "output": "969"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "phone-8.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-8.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "+106 769-858-438"
+        ],
+        "output": "438"
+      },
+      {
+        "inputs": [
+          "+83 973-757-831"
+        ],
+        "output": "831"
+      },
+      {
+        "inputs": [
+          "+62 647-787-775"
+        ],
+        "output": "775"
+      },
+      {
+        "inputs": [
+          "+172 027-507-632"
+        ],
+        "output": "632"
+      },
+      {
+        "inputs": [
+          "+72 001-050-856"
+        ],
+        "output": "856"
+      },
+      {
+        "inputs": [
+          "+95 310-537-401"
+        ],
+        "output": "401"
+      },
+      {
+        "inputs": [
+          "+6 775-969-238"
+        ],
+        "output": "238"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "+106 769-858-438"
+        ],
+        "output": "438"
+      },
+      {
+        "inputs": [
+          "+83 973-757-831"
+        ],
+        "output": "831"
+      },
+      {
+        "inputs": [
+          "+62 647-787-775"
+        ],
+        "output": "775"
+      },
+      {
+        "inputs": [
+          "+172 027-507-632"
+        ],
+        "output": "632"
+      },
+      {
+        "inputs": [
+          "+72 001-050-856"
+        ],
+        "output": "856"
+      },
+      {
+        "inputs": [
+          "+95 310-537-401"
+        ],
+        "output": "401"
+      },
+      {
+        "inputs": [
+          "+6 775-969-238"
+        ],
+        "output": "238"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "phone-9.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-9.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "+106 769-858-438"
+        ],
+        "output": "106.769.858.438"
+      },
+      {
+        "inputs": [
+          "+83 973-757-831"
+        ],
+        "output": "83.973.757.831"
+      },
+      {
+        "inputs": [
+          "+62 647-787-775"
+        ],
+        "output": "62.647.787.775"
+      },
+      {
+        "inputs": [
+          "+172 027-507-632"
+        ],
+        "output": "172.027.507.632"
+      },
+      {
+        "inputs": [
+          "+72 001-050-856"
+        ],
+        "output": "72.001.050.856"
+      },
+      {
+        "inputs": [
+          "+95 310-537-401"
+        ],
+        "output": "95.310.537.401"
+      },
+      {
+        "inputs": [
+          "+6 775-969-238"
+        ],
+        "output": "6.775.969.238"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "+106 769-858-438"
+        ],
+        "output": "106.769.858.438"
+      },
+      {
+        "inputs": [
+          "+83 973-757-831"
+        ],
+        "output": "83.973.757.831"
+      },
+      {
+        "inputs": [
+          "+62 647-787-775"
+        ],
+        "output": "62.647.787.775"
+      },
+      {
+        "inputs": [
+          "+172 027-507-632"
+        ],
+        "output": "172.027.507.632"
+      },
+      {
+        "inputs": [
+          "+72 001-050-856"
+        ],
+        "output": "72.001.050.856"
+      },
+      {
+        "inputs": [
+          "+95 310-537-401"
+        ],
+        "output": "95.310.537.401"
+      },
+      {
+        "inputs": [
+          "+6 775-969-238"
+        ],
+        "output": "6.775.969.238"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "phone.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "938-242-504"
+        ],
+        "output": "938"
+      },
+      {
+        "inputs": [
+          "308-916-545"
+        ],
+        "output": "308"
+      },
+      {
+        "inputs": [
+          "623-599-749"
+        ],
+        "output": "623"
+      },
+      {
+        "inputs": [
+          "981-424-843"
+        ],
+        "output": "981"
+      },
+      {
+        "inputs": [
+          "118-980-214"
+        ],
+        "output": "118"
+      },
+      {
+        "inputs": [
+          "244-655-094"
+        ],
+        "output": "244"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "938-242-504"
+        ],
+        "output": "938"
+      },
+      {
+        "inputs": [
+          "308-916-545"
+        ],
+        "output": "308"
+      },
+      {
+        "inputs": [
+          "623-599-749"
+        ],
+        "output": "623"
+      },
+      {
+        "inputs": [
+          "981-424-843"
+        ],
+        "output": "981"
+      },
+      {
+        "inputs": [
+          "118-980-214"
+        ],
+        "output": "118"
+      },
+      {
+        "inputs": [
+          "244-655-094"
+        ],
+        "output": "244"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "reverse-name.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/reverse-name.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Launa",
+          "Withers"
+        ],
+        "output": "Withers Launa"
+      },
+      {
+        "inputs": [
+          "Lakenya",
+          "Edison"
+        ],
+        "output": "Edison Lakenya"
+      },
+      {
+        "inputs": [
+          "Brendan",
+          "Hage"
+        ],
+        "output": "Hage Brendan"
+      },
+      {
+        "inputs": [
+          "Bradford",
+          "Lango"
+        ],
+        "output": "Lango Bradford"
+      },
+      {
+        "inputs": [
+          "Rudolf",
+          "Akiyama"
+        ],
+        "output": "Akiyama Rudolf"
+      },
+      {
+        "inputs": [
+          "Lara",
+          "Constable"
+        ],
+        "output": "Constable Lara"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Launa",
+          "Withers"
+        ],
+        "output": "Withers Launa"
+      },
+      {
+        "inputs": [
+          "Lakenya",
+          "Edison"
+        ],
+        "output": "Edison Lakenya"
+      },
+      {
+        "inputs": [
+          "Brendan",
+          "Hage"
+        ],
+        "output": "Hage Brendan"
+      },
+      {
+        "inputs": [
+          "Bradford",
+          "Lango"
+        ],
+        "output": "Lango Bradford"
+      },
+      {
+        "inputs": [
+          "Rudolf",
+          "Akiyama"
+        ],
+        "output": "Akiyama Rudolf"
+      },
+      {
+        "inputs": [
+          "Lara",
+          "Constable"
+        ],
+        "output": "Constable Lara"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "univ_1.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/univ_1.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "University of Pennsylvania",
+          "Phialdelphia, PA, USA"
+        ],
+        "output": "University of Pennsylvania, Phialdelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "Cornell University",
+          "Ithaca, New York, USA"
+        ],
+        "output": "Cornell University, Ithaca, New York, USA"
+      },
+      {
+        "inputs": [
+          "University of Maryland College Park",
+          "College Park, MD"
+        ],
+        "output": "University of Maryland College Park, College Park, MD"
+      },
+      {
+        "inputs": [
+          "University of Michigan",
+          "Ann Arbor, MI, USA"
+        ],
+        "output": "University of Michigan, Ann Arbor, MI, USA"
+      },
+      {
+        "inputs": [
+          "Yale University",
+          "New Haven, CT, USA"
+        ],
+        "output": "Yale University, New Haven, CT, USA"
+      },
+      {
+        "inputs": [
+          "Columbia University",
+          "New York, NY, USA"
+        ],
+        "output": "Columbia University, New York, NY, USA"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "University of Pennsylvania",
+          "Phialdelphia, PA, USA"
+        ],
+        "output": "University of Pennsylvania, Phialdelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "Cornell University",
+          "Ithaca, New York, USA"
+        ],
+        "output": "Cornell University, Ithaca, New York, USA"
+      },
+      {
+        "inputs": [
+          "University of Maryland College Park",
+          "College Park, MD"
+        ],
+        "output": "University of Maryland College Park, College Park, MD"
+      },
+      {
+        "inputs": [
+          "University of Michigan",
+          "Ann Arbor, MI, USA"
+        ],
+        "output": "University of Michigan, Ann Arbor, MI, USA"
+      },
+      {
+        "inputs": [
+          "Yale University",
+          "New Haven, CT, USA"
+        ],
+        "output": "Yale University, New Haven, CT, USA"
+      },
+      {
+        "inputs": [
+          "Columbia University",
+          "New York, NY, USA"
+        ],
+        "output": "Columbia University, New York, NY, USA"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "univ_2.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/univ_2.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "University of Pennsylvania",
+          "Phialdelphia, PA, USA"
+        ],
+        "output": "University of Pennsylvania, Phialdelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "UCLA",
+          "Los Angeles, CA"
+        ],
+        "output": "UCLA, Los Angeles, CA, USA"
+      },
+      {
+        "inputs": [
+          "Cornell University",
+          "Ithaca, New York, USA"
+        ],
+        "output": "Cornell University, Ithaca, New York, USA"
+      },
+      {
+        "inputs": [
+          "Penn",
+          "Philadelphia, PA, USA"
+        ],
+        "output": "Penn, Philadelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "University of Maryland College Park",
+          "College Park, MD"
+        ],
+        "output": "University of Maryland College Park, College Park, MD, USA"
+      },
+      {
+        "inputs": [
+          "University of Michigan",
+          "Ann Arbor, MI, USA"
+        ],
+        "output": "University of Michigan, Ann Arbor, MI, USA"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "University of Pennsylvania",
+          "Phialdelphia, PA, USA"
+        ],
+        "output": "University of Pennsylvania, Phialdelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "UCLA",
+          "Los Angeles, CA"
+        ],
+        "output": "UCLA, Los Angeles, CA, USA"
+      },
+      {
+        "inputs": [
+          "Cornell University",
+          "Ithaca, New York, USA"
+        ],
+        "output": "Cornell University, Ithaca, New York, USA"
+      },
+      {
+        "inputs": [
+          "Penn",
+          "Philadelphia, PA, USA"
+        ],
+        "output": "Penn, Philadelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "University of Maryland College Park",
+          "College Park, MD"
+        ],
+        "output": "University of Maryland College Park, College Park, MD, USA"
+      },
+      {
+        "inputs": [
+          "University of Michigan",
+          "Ann Arbor, MI, USA"
+        ],
+        "output": "University of Michigan, Ann Arbor, MI, USA"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "univ_3.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/univ_3.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "University of Pennsylvania",
+          "Phialdelphia, PA, USA"
+        ],
+        "output": "Phialdelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "UCLA",
+          "Los Angeles, CA"
+        ],
+        "output": "Los Angeles, CA, USA"
+      },
+      {
+        "inputs": [
+          "Cornell University",
+          "Ithaca, New York, USA"
+        ],
+        "output": "Ithaca, New York, USA"
+      },
+      {
+        "inputs": [
+          "Penn",
+          "Philadelphia, PA, USA"
+        ],
+        "output": "Philadelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "University of Maryland College Park",
+          "College Park, MD"
+        ],
+        "output": "College Park, MD, USA"
+      },
+      {
+        "inputs": [
+          "University of Michigan",
+          "Ann Arbor, MI, USA"
+        ],
+        "output": "Ann Arbor, MI, USA"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "University of Pennsylvania",
+          "Phialdelphia, PA, USA"
+        ],
+        "output": "Phialdelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "UCLA",
+          "Los Angeles, CA"
+        ],
+        "output": "Los Angeles, CA, USA"
+      },
+      {
+        "inputs": [
+          "Cornell University",
+          "Ithaca, New York, USA"
+        ],
+        "output": "Ithaca, New York, USA"
+      },
+      {
+        "inputs": [
+          "Penn",
+          "Philadelphia, PA, USA"
+        ],
+        "output": "Philadelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "University of Maryland College Park",
+          "College Park, MD"
+        ],
+        "output": "College Park, MD, USA"
+      },
+      {
+        "inputs": [
+          "University of Michigan",
+          "Ann Arbor, MI, USA"
+        ],
+        "output": "Ann Arbor, MI, USA"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "univ_4.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/univ_4.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "University of Pennsylvania",
+          "Phialdelphia, PA, USA"
+        ],
+        "output": "Phialdelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "UCLA",
+          "Los Angeles, CA"
+        ],
+        "output": "Los Angeles, CA, USA"
+      },
+      {
+        "inputs": [
+          "Cornell University",
+          "Ithaca, New York, USA"
+        ],
+        "output": "Ithaca, NY, USA"
+      },
+      {
+        "inputs": [
+          "Penn",
+          "Philadelphia, PA, USA"
+        ],
+        "output": "Philadelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "University of Maryland College Park",
+          "College Park, MD"
+        ],
+        "output": "College Park, MD, USA"
+      },
+      {
+        "inputs": [
+          "University of Michigan",
+          "Ann Arbor, MI, USA"
+        ],
+        "output": "Ann Arbor, MI, USA"
+      },
+      {
+        "inputs": [
+          "Columbia University",
+          "New York, NY, USA"
+        ],
+        "output": "New York, NY, USA"
+      },
+      {
+        "inputs": [
+          "NYU",
+          "New York, New York, USA"
+        ],
+        "output": "New York, NY, USA"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "University of Pennsylvania",
+          "Phialdelphia, PA, USA"
+        ],
+        "output": "Phialdelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "UCLA",
+          "Los Angeles, CA"
+        ],
+        "output": "Los Angeles, CA, USA"
+      },
+      {
+        "inputs": [
+          "Cornell University",
+          "Ithaca, New York, USA"
+        ],
+        "output": "Ithaca, NY, USA"
+      },
+      {
+        "inputs": [
+          "Penn",
+          "Philadelphia, PA, USA"
+        ],
+        "output": "Philadelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "University of Maryland College Park",
+          "College Park, MD"
+        ],
+        "output": "College Park, MD, USA"
+      },
+      {
+        "inputs": [
+          "University of Michigan",
+          "Ann Arbor, MI, USA"
+        ],
+        "output": "Ann Arbor, MI, USA"
+      },
+      {
+        "inputs": [
+          "Columbia University",
+          "New York, NY, USA"
+        ],
+        "output": "New York, NY, USA"
+      },
+      {
+        "inputs": [
+          "NYU",
+          "New York, New York, USA"
+        ],
+        "output": "New York, NY, USA"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "univ_5.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/univ_5.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "University of Pennsylvania",
+          "Phialdelphia, PA, USA"
+        ],
+        "output": "Phialdelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "UCLA",
+          "Los Angeles, CA"
+        ],
+        "output": "Los Angeles, CA, USA"
+      },
+      {
+        "inputs": [
+          "Cornell University",
+          "Ithaca, New York, USA"
+        ],
+        "output": "Ithaca, NY, USA"
+      },
+      {
+        "inputs": [
+          "Penn",
+          "Philadelphia, PA, USA"
+        ],
+        "output": "Philadelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "University of Maryland College Park",
+          "College Park, MD"
+        ],
+        "output": "College Park, MD, USA"
+      },
+      {
+        "inputs": [
+          "University of Michigan",
+          "Ann Arbor, MI, USA"
+        ],
+        "output": "Ann Arbor, MI, USA"
+      },
+      {
+        "inputs": [
+          "Columbia University",
+          "New York, NY, USA"
+        ],
+        "output": "New York, NY, USA"
+      },
+      {
+        "inputs": [
+          "NYU",
+          "New York, New York, USA"
+        ],
+        "output": "New York, NY, USA"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "University of Pennsylvania",
+          "Phialdelphia, PA, USA"
+        ],
+        "output": "Phialdelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "UCLA",
+          "Los Angeles, CA"
+        ],
+        "output": "Los Angeles, CA, USA"
+      },
+      {
+        "inputs": [
+          "Cornell University",
+          "Ithaca, New York, USA"
+        ],
+        "output": "Ithaca, NY, USA"
+      },
+      {
+        "inputs": [
+          "Penn",
+          "Philadelphia, PA, USA"
+        ],
+        "output": "Philadelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "University of Maryland College Park",
+          "College Park, MD"
+        ],
+        "output": "College Park, MD, USA"
+      },
+      {
+        "inputs": [
+          "University of Michigan",
+          "Ann Arbor, MI, USA"
+        ],
+        "output": "Ann Arbor, MI, USA"
+      },
+      {
+        "inputs": [
+          "Columbia University",
+          "New York, NY, USA"
+        ],
+        "output": "New York, NY, USA"
+      },
+      {
+        "inputs": [
+          "NYU",
+          "New York, New York, USA"
+        ],
+        "output": "New York, NY, USA"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "univ_6.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/univ_6.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "University of Pennsylvania",
+          "Phialdelphia, PA, USA"
+        ],
+        "output": "Phialdelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "UCLA",
+          "Los Angeles, CA"
+        ],
+        "output": "Los Angeles, CA, USA"
+      },
+      {
+        "inputs": [
+          "Cornell University",
+          "Ithaca, New York, USA"
+        ],
+        "output": "Ithaca, NY, USA"
+      },
+      {
+        "inputs": [
+          "Penn",
+          "Philadelphia, PA, USA"
+        ],
+        "output": "Philadelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "University of Maryland College Park",
+          "College Park, MD"
+        ],
+        "output": "College Park, MD, USA"
+      },
+      {
+        "inputs": [
+          "University of Michigan",
+          "Ann Arbor, MI, USA"
+        ],
+        "output": "Ann Arbor, MI, USA"
+      },
+      {
+        "inputs": [
+          "Columbia University",
+          "New York, NY, USA"
+        ],
+        "output": "New York, NY, USA"
+      },
+      {
+        "inputs": [
+          "NYU",
+          "New York, New York, USA"
+        ],
+        "output": "New York, NY, USA"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "University of Pennsylvania",
+          "Phialdelphia, PA, USA"
+        ],
+        "output": "Phialdelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "UCLA",
+          "Los Angeles, CA"
+        ],
+        "output": "Los Angeles, CA, USA"
+      },
+      {
+        "inputs": [
+          "Cornell University",
+          "Ithaca, New York, USA"
+        ],
+        "output": "Ithaca, NY, USA"
+      },
+      {
+        "inputs": [
+          "Penn",
+          "Philadelphia, PA, USA"
+        ],
+        "output": "Philadelphia, PA, USA"
+      },
+      {
+        "inputs": [
+          "University of Maryland College Park",
+          "College Park, MD"
+        ],
+        "output": "College Park, MD, USA"
+      },
+      {
+        "inputs": [
+          "University of Michigan",
+          "Ann Arbor, MI, USA"
+        ],
+        "output": "Ann Arbor, MI, USA"
+      },
+      {
+        "inputs": [
+          "Columbia University",
+          "New York, NY, USA"
+        ],
+        "output": "New York, NY, USA"
+      },
+      {
+        "inputs": [
+          "NYU",
+          "New York, New York, USA"
+        ],
+        "output": "New York, NY, USA"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "11604909.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/11604909.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "AIX 5.1"
+        ],
+        "output": "5.1"
+      },
+      {
+        "inputs": [
+          "VMware ESX Server 3.5.0 build-110268"
+        ],
+        "output": "3.5"
+      },
+      {
+        "inputs": [
+          "Linux Linux 2.6 Linux"
+        ],
+        "output": "2.6"
+      },
+      {
+        "inputs": [
+          "Red Hat Enterprise AS 4 <2.6-78.0.13.ELlargesmp>"
+        ],
+        "output": "2.6"
+      },
+      {
+        "inputs": [
+          "Microsoft <R> Windows <R> 2000 Advanced Server 1.0"
+        ],
+        "output": "1.0"
+      },
+      {
+        "inputs": [
+          "Microsoft Windows XP Win2008R2 6.1.7601"
+        ],
+        "output": "6.1"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "AIX 5.1"
+        ],
+        "output": "5.1"
+      },
+      {
+        "inputs": [
+          "VMware ESX Server 3.5.0 build-110268"
+        ],
+        "output": "3.5"
+      },
+      {
+        "inputs": [
+          "Linux Linux 2.6 Linux"
+        ],
+        "output": "2.6"
+      },
+      {
+        "inputs": [
+          "Red Hat Enterprise AS 4 <2.6-78.0.13.ELlargesmp>"
+        ],
+        "output": "2.6"
+      },
+      {
+        "inputs": [
+          "Microsoft <R> Windows <R> 2000 Advanced Server 1.0"
+        ],
+        "output": "1.0"
+      },
+      {
+        "inputs": [
+          "Microsoft Windows XP Win2008R2 6.1.7601"
+        ],
+        "output": "6.1"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "17212077.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/17212077.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "01/15/2013"
+        ],
+        "output": "01/2013"
+      },
+      {
+        "inputs": [
+          "03/07/2011"
+        ],
+        "output": "03/2011"
+      },
+      {
+        "inputs": [
+          "05/09/2009"
+        ],
+        "output": "05/2009"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "01/15/2013"
+        ],
+        "output": "01/2013"
+      },
+      {
+        "inputs": [
+          "03/07/2011"
+        ],
+        "output": "03/2011"
+      },
+      {
+        "inputs": [
+          "05/09/2009"
+        ],
+        "output": "05/2009"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "2171308.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/2171308.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "John Doe"
+        ],
+        "output": "J Doe"
+      },
+      {
+        "inputs": [
+          "Mayur Naik"
+        ],
+        "output": "M Naik"
+      },
+      {
+        "inputs": [
+          "Nimit Singh"
+        ],
+        "output": "N Singh"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "John Doe"
+        ],
+        "output": "J Doe"
+      },
+      {
+        "inputs": [
+          "Mayur Naik"
+        ],
+        "output": "M Naik"
+      },
+      {
+        "inputs": [
+          "Nimit Singh"
+        ],
+        "output": "N Singh"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "25239569.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/25239569.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Adf_ROCLeader_BAN_728x90_CPM_STD _BRD _NRT_DCK"
+        ],
+        "output": "Adf_ROCLeader_BAN_728x90_CPM_STD _Branding _NRT_DCK"
+      },
+      {
+        "inputs": [
+          "MMC_ContextualLarRec_BAN_336x280_CPM_STD _LDS _RTG_DCK"
+        ],
+        "output": "MMC_ContextualLarRec_BAN_336x280_CPM_STD _Leads _RTG_DCK"
+      },
+      {
+        "inputs": [
+          "Adf_ROC_DLBD_728x90_CPM_STD_DRS_NRT_NOR_DCK"
+        ],
+        "output": "Adf_ROC_DLBD_728x90_CPM_STD_Direct Response_NRT_NOR_DCK"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Adf_ROCLeader_BAN_728x90_CPM_STD _BRD _NRT_DCK"
+        ],
+        "output": "Adf_ROCLeader_BAN_728x90_CPM_STD _Branding _NRT_DCK"
+      },
+      {
+        "inputs": [
+          "MMC_ContextualLarRec_BAN_336x280_CPM_STD _LDS _RTG_DCK"
+        ],
+        "output": "MMC_ContextualLarRec_BAN_336x280_CPM_STD _Leads _RTG_DCK"
+      },
+      {
+        "inputs": [
+          "Adf_ROC_DLBD_728x90_CPM_STD_DRS_NRT_NOR_DCK"
+        ],
+        "output": "Adf_ROC_DLBD_728x90_CPM_STD_Direct Response_NRT_NOR_DCK"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "28627624_1.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/28627624_1.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Dec 2, 2014, 11=23 PM - +91 90000 80000= loren ipsum"
+        ],
+        "output": "Dec 2, 2014, 11=23 PM"
+      },
+      {
+        "inputs": [
+          "Dec 2, 2014, 11=24 PM - +91 90000 80000= loren"
+        ],
+        "output": "Dec 2, 2014, 11=24 PM"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Dec 2, 2014, 11=23 PM - +91 90000 80000= loren ipsum"
+        ],
+        "output": "Dec 2, 2014, 11=23 PM"
+      },
+      {
+        "inputs": [
+          "Dec 2, 2014, 11=24 PM - +91 90000 80000= loren"
+        ],
+        "output": "Dec 2, 2014, 11=24 PM"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "30732554.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/30732554.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "TL-18273982| 10MM"
+        ],
+        "output": "TL-18273982"
+      },
+      {
+        "inputs": [
+          "TL-288762| 76DK"
+        ],
+        "output": "TL-288762"
+      },
+      {
+        "inputs": [
+          "CT-576"
+        ],
+        "output": "CT-576"
+      },
+      {
+        "inputs": [
+          "N/A"
+        ],
+        "output": "N/A"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "TL-18273982| 10MM"
+        ],
+        "output": "TL-18273982"
+      },
+      {
+        "inputs": [
+          "TL-288762| 76DK"
+        ],
+        "output": "TL-288762"
+      },
+      {
+        "inputs": [
+          "CT-576"
+        ],
+        "output": "CT-576"
+      },
+      {
+        "inputs": [
+          "N/A"
+        ],
+        "output": "N/A"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "31753108.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/31753108.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Tire Pressure ABC123873 Monitor"
+        ],
+        "output": "ABC123873"
+      },
+      {
+        "inputs": [
+          "Oil Life ABC849999999021 gauge"
+        ],
+        "output": "ABC849999999021"
+      },
+      {
+        "inputs": [
+          "Air conditioner GHF211 maintenance"
+        ],
+        "output": "GHF211"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Tire Pressure ABC123873 Monitor"
+        ],
+        "output": "ABC123873"
+      },
+      {
+        "inputs": [
+          "Oil Life ABC849999999021 gauge"
+        ],
+        "output": "ABC849999999021"
+      },
+      {
+        "inputs": [
+          "Air conditioner GHF211 maintenance"
+        ],
+        "output": "GHF211"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "33619752.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/33619752.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "General Electric"
+        ],
+        "output": "General Electric"
+      },
+      {
+        "inputs": [
+          "General Electric Inc"
+        ],
+        "output": "General Electric"
+      },
+      {
+        "inputs": [
+          "General Electric Company"
+        ],
+        "output": "General Electric"
+      },
+      {
+        "inputs": [
+          "Microsoft"
+        ],
+        "output": "Microsoft"
+      },
+      {
+        "inputs": [
+          "Microsoft Corporation"
+        ],
+        "output": "Microsoft"
+      },
+      {
+        "inputs": [
+          "Nintendo"
+        ],
+        "output": "Nintendo"
+      },
+      {
+        "inputs": [
+          "Nintendo Enterprises"
+        ],
+        "output": "Nintendo"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "General Electric"
+        ],
+        "output": "General Electric"
+      },
+      {
+        "inputs": [
+          "General Electric Inc"
+        ],
+        "output": "General Electric"
+      },
+      {
+        "inputs": [
+          "General Electric Company"
+        ],
+        "output": "General Electric"
+      },
+      {
+        "inputs": [
+          "Microsoft"
+        ],
+        "output": "Microsoft"
+      },
+      {
+        "inputs": [
+          "Microsoft Corporation"
+        ],
+        "output": "Microsoft"
+      },
+      {
+        "inputs": [
+          "Nintendo"
+        ],
+        "output": "Nintendo"
+      },
+      {
+        "inputs": [
+          "Nintendo Enterprises"
+        ],
+        "output": "Nintendo"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "34801680.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/34801680.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Name= ABC Retailers"
+        ],
+        "output": "ABC Retailers"
+      },
+      {
+        "inputs": [
+          "ame= XYZ Suppliers"
+        ],
+        "output": "XYZ Suppliers"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Name= ABC Retailers"
+        ],
+        "output": "ABC Retailers"
+      },
+      {
+        "inputs": [
+          "ame= XYZ Suppliers"
+        ],
+        "output": "XYZ Suppliers"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "35016216.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/35016216.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "C0abc",
+          "def"
+        ],
+        "output": "C0abc"
+      },
+      {
+        "inputs": [
+          "aabc",
+          "def"
+        ],
+        "output": "def"
+      },
+      {
+        "inputs": [
+          "C0dd",
+          "qwe"
+        ],
+        "output": "C0dd"
+      },
+      {
+        "inputs": [
+          "dd",
+          "qwe"
+        ],
+        "output": "qwe"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "C0abc",
+          "def"
+        ],
+        "output": "C0abc"
+      },
+      {
+        "inputs": [
+          "aabc",
+          "def"
+        ],
+        "output": "def"
+      },
+      {
+        "inputs": [
+          "C0dd",
+          "qwe"
+        ],
+        "output": "C0dd"
+      },
+      {
+        "inputs": [
+          "dd",
+          "qwe"
+        ],
+        "output": "qwe"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "35744094.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/35744094.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "http=//www.apple.com/uk/mac"
+        ],
+        "output": "mac"
+      },
+      {
+        "inputs": [
+          "https=//www.microsoft.com/en-gb/windows"
+        ],
+        "output": "windows"
+      },
+      {
+        "inputs": [
+          "https=//www.microsoft.com/"
+        ],
+        "output": "microsoft"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "http=//www.apple.com/uk/mac"
+        ],
+        "output": "mac"
+      },
+      {
+        "inputs": [
+          "https=//www.microsoft.com/en-gb/windows"
+        ],
+        "output": "windows"
+      },
+      {
+        "inputs": [
+          "https=//www.microsoft.com/"
+        ],
+        "output": "microsoft"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "36462127.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/36462127.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "ABCDE/FGHI/JKL/MNOPQR"
+        ],
+        "output": "MNOPQR"
+      },
+      {
+        "inputs": [
+          "A/ABCDE/FGHI/JKL"
+        ],
+        "output": "JKL"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "ABCDE/FGHI/JKL/MNOPQR"
+        ],
+        "output": "MNOPQR"
+      },
+      {
+        "inputs": [
+          "A/ABCDE/FGHI/JKL"
+        ],
+        "output": "JKL"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "37534494.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/37534494.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "I love apples",
+          "I hate bananas",
+          "banana"
+        ],
+        "output": "I hate bananas"
+      },
+      {
+        "inputs": [
+          "I love apples",
+          "I hate bananas",
+          "apple"
+        ],
+        "output": "I love apples"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "I love apples",
+          "I hate bananas",
+          "banana"
+        ],
+        "output": "I hate bananas"
+      },
+      {
+        "inputs": [
+          "I love apples",
+          "I hate bananas",
+          "apple"
+        ],
+        "output": "I love apples"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "38664547.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/38664547.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "thatensures"
+        ],
+        "output": "ensures"
+      },
+      {
+        "inputs": [
+          "thatwill"
+        ],
+        "output": "will"
+      },
+      {
+        "inputs": [
+          "thathave"
+        ],
+        "output": "have"
+      },
+      {
+        "inputs": [
+          "knowthat"
+        ],
+        "output": "know"
+      },
+      {
+        "inputs": [
+          "that"
+        ],
+        "output": "that"
+      },
+      {
+        "inputs": [
+          "mouse"
+        ],
+        "output": "mouse"
+      },
+      {
+        "inputs": [
+          "knowthat"
+        ],
+        "output": "know"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "thatensures"
+        ],
+        "output": "ensures"
+      },
+      {
+        "inputs": [
+          "thatwill"
+        ],
+        "output": "will"
+      },
+      {
+        "inputs": [
+          "thathave"
+        ],
+        "output": "have"
+      },
+      {
+        "inputs": [
+          "knowthat"
+        ],
+        "output": "know"
+      },
+      {
+        "inputs": [
+          "that"
+        ],
+        "output": "that"
+      },
+      {
+        "inputs": [
+          "mouse"
+        ],
+        "output": "mouse"
+      },
+      {
+        "inputs": [
+          "knowthat"
+        ],
+        "output": "know"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "38871714.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/38871714.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "This is a <string>, It should be <changed> to <a> number."
+        ],
+        "output": "This is a string, It should be changed to a number."
+      },
+      {
+        "inputs": [
+          "a < 4 and a > 0"
+        ],
+        "output": "a 4 and a 0"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "This is a <string>, It should be <changed> to <a> number."
+        ],
+        "output": "This is a string, It should be changed to a number."
+      },
+      {
+        "inputs": [
+          "a < 4 and a > 0"
+        ],
+        "output": "a 4 and a 0"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "39060015.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/39060015.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "This is a line. /delete words in the area /keep this part"
+        ],
+        "output": "This is a line. keep this part"
+      },
+      {
+        "inputs": [
+          "/delete words in the area /"
+        ],
+        "output": ""
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "This is a line. /delete words in the area /keep this part"
+        ],
+        "output": "This is a line. keep this part"
+      },
+      {
+        "inputs": [
+          "/delete words in the area /"
+        ],
+        "output": ""
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "41503046.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/41503046.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Polygonum amphibium"
+        ],
+        "output": "Polygonum"
+      },
+      {
+        "inputs": [
+          "Hippuris vulgaris"
+        ],
+        "output": "Hippuris"
+      },
+      {
+        "inputs": [
+          "Lysimachia vulgaris"
+        ],
+        "output": "Lysimachia"
+      },
+      {
+        "inputs": [
+          "Juncus bulbosus ssp. bulbosus"
+        ],
+        "output": "Juncus bulbosus"
+      },
+      {
+        "inputs": [
+          "Lycopus europaeus ssp. europaeus"
+        ],
+        "output": "Lycopus europaeus"
+      },
+      {
+        "inputs": [
+          "Nymphaea alba"
+        ],
+        "output": "Nymphaea"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Polygonum amphibium"
+        ],
+        "output": "Polygonum"
+      },
+      {
+        "inputs": [
+          "Hippuris vulgaris"
+        ],
+        "output": "Hippuris"
+      },
+      {
+        "inputs": [
+          "Lysimachia vulgaris"
+        ],
+        "output": "Lysimachia"
+      },
+      {
+        "inputs": [
+          "Juncus bulbosus ssp. bulbosus"
+        ],
+        "output": "Juncus bulbosus"
+      },
+      {
+        "inputs": [
+          "Lycopus europaeus ssp. europaeus"
+        ],
+        "output": "Lycopus europaeus"
+      },
+      {
+        "inputs": [
+          "Nymphaea alba"
+        ],
+        "output": "Nymphaea"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "43120683.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/43120683.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "one, 1"
+        ],
+        "output": "one apple"
+      },
+      {
+        "inputs": [
+          "two, 2"
+        ],
+        "output": "two bananas"
+      },
+      {
+        "inputs": [
+          "three, 3"
+        ],
+        "output": "three strawberries"
+      },
+      {
+        "inputs": [
+          "four, 4"
+        ],
+        "output": "four oranges"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "one, 1"
+        ],
+        "output": "one apple"
+      },
+      {
+        "inputs": [
+          "two, 2"
+        ],
+        "output": "two bananas"
+      },
+      {
+        "inputs": [
+          "three, 3"
+        ],
+        "output": "three strawberries"
+      },
+      {
+        "inputs": [
+          "four, 4"
+        ],
+        "output": "four oranges"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "43606446.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/43606446.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "USD.EUR<IDEALPRO,CASH,EUR>"
+        ],
+        "output": "EUR"
+      },
+      {
+        "inputs": [
+          "USD.EUR<IDEALPRO,CASH,USD>"
+        ],
+        "output": "USD"
+      },
+      {
+        "inputs": [
+          "KOR.JPN<IDEALPRO,CASH,WON>"
+        ],
+        "output": "WON"
+      },
+      {
+        "inputs": [
+          "KOR.JPN<IDEALPRO,CASH,YEN>"
+        ],
+        "output": "YEN"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "USD.EUR<IDEALPRO,CASH,EUR>"
+        ],
+        "output": "EUR"
+      },
+      {
+        "inputs": [
+          "USD.EUR<IDEALPRO,CASH,USD>"
+        ],
+        "output": "USD"
+      },
+      {
+        "inputs": [
+          "KOR.JPN<IDEALPRO,CASH,WON>"
+        ],
+        "output": "WON"
+      },
+      {
+        "inputs": [
+          "KOR.JPN<IDEALPRO,CASH,YEN>"
+        ],
+        "output": "YEN"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "add-a-line-break-with-a-formula.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/add-a-line-break-with-a-formula.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Traci Brown",
+          "1301 Robinson Court",
+          "Saginaw, MI 48607"
+        ],
+        "output": "Traci Brown/n1301 Robinson Court/nSaginaw, MI 48607"
+      },
+      {
+        "inputs": [
+          "Mary Hannan",
+          "1195 Amethyst Drive",
+          "Lansing, MI 48933"
+        ],
+        "output": "Mary Hannan/n1195 Amethyst Drive/nLansing, MI 48933"
+      },
+      {
+        "inputs": [
+          "Linda Thomas",
+          "2479 North Bend Road",
+          "Allen, KY 41601"
+        ],
+        "output": "Linda Thomas/n2479 North Bend Road/nAllen, KY 41601"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Traci Brown",
+          "1301 Robinson Court",
+          "Saginaw, MI 48607"
+        ],
+        "output": "Traci Brown/n1301 Robinson Court/nSaginaw, MI 48607"
+      },
+      {
+        "inputs": [
+          "Mary Hannan",
+          "1195 Amethyst Drive",
+          "Lansing, MI 48933"
+        ],
+        "output": "Mary Hannan/n1195 Amethyst Drive/nLansing, MI 48933"
+      },
+      {
+        "inputs": [
+          "Linda Thomas",
+          "2479 North Bend Road",
+          "Allen, KY 41601"
+        ],
+        "output": "Linda Thomas/n2479 North Bend Road/nAllen, KY 41601"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "change-negative-numbers-to-positive.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/change-negative-numbers-to-positive.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "-%134"
+        ],
+        "output": "%134"
+      },
+      {
+        "inputs": [
+          "500"
+        ],
+        "output": "500"
+      },
+      {
+        "inputs": [
+          "5.125"
+        ],
+        "output": "5.125"
+      },
+      {
+        "inputs": [
+          "-%43.00"
+        ],
+        "output": "%43.00"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "-%134"
+        ],
+        "output": "%134"
+      },
+      {
+        "inputs": [
+          "500"
+        ],
+        "output": "500"
+      },
+      {
+        "inputs": [
+          "5.125"
+        ],
+        "output": "5.125"
+      },
+      {
+        "inputs": [
+          "-%43.00"
+        ],
+        "output": "%43.00"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "clean-and-reformat-telephone-numbers.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/clean-and-reformat-telephone-numbers.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "801-456-8765"
+        ],
+        "output": "8014568765"
+      },
+      {
+        "inputs": [
+          "<978> 654-0299"
+        ],
+        "output": "9786540299"
+      },
+      {
+        "inputs": [
+          "978.654.0299"
+        ],
+        "output": "9786540299"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "801-456-8765"
+        ],
+        "output": "8014568765"
+      },
+      {
+        "inputs": [
+          "<978> 654-0299"
+        ],
+        "output": "9786540299"
+      },
+      {
+        "inputs": [
+          "978.654.0299"
+        ],
+        "output": "9786540299"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "create-email-address-from-name.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/create-email-address-from-name.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "brown",
+          "traci"
+        ],
+        "output": "tbrown_acme.com"
+      },
+      {
+        "inputs": [
+          "thomas",
+          "linda"
+        ],
+        "output": "lthomas_acme.com"
+      },
+      {
+        "inputs": [
+          "ward",
+          "jack"
+        ],
+        "output": "jward_acme.com"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "brown",
+          "traci"
+        ],
+        "output": "tbrown_acme.com"
+      },
+      {
+        "inputs": [
+          "thomas",
+          "linda"
+        ],
+        "output": "lthomas_acme.com"
+      },
+      {
+        "inputs": [
+          "ward",
+          "jack"
+        ],
+        "output": "jward_acme.com"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "create-email-address-with-name-and-domain.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/create-email-address-with-name-and-domain.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "ayako",
+          "ogawa",
+          "acme.com"
+        ],
+        "output": "aogawa_acme.com"
+      },
+      {
+        "inputs": [
+          "amy",
+          "johnson",
+          "google.com"
+        ],
+        "output": "ajohnson_google.com"
+      },
+      {
+        "inputs": [
+          "tom",
+          "chang",
+          "upenn.edu"
+        ],
+        "output": "tchang_upenn.edu"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "ayako",
+          "ogawa",
+          "acme.com"
+        ],
+        "output": "aogawa_acme.com"
+      },
+      {
+        "inputs": [
+          "amy",
+          "johnson",
+          "google.com"
+        ],
+        "output": "ajohnson_google.com"
+      },
+      {
+        "inputs": [
+          "tom",
+          "chang",
+          "upenn.edu"
+        ],
+        "output": "tchang_upenn.edu"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "exceljet1.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/exceljet1.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "ann chang",
+          "achang_maaker.com"
+        ],
+        "output": "maaker.com"
+      },
+      {
+        "inputs": [
+          "bobby smith",
+          "bobt_sphynx.uk.co"
+        ],
+        "output": "sphynx.uk.co"
+      },
+      {
+        "inputs": [
+          "art lennox",
+          "art.lennox_svxn.com"
+        ],
+        "output": "svxn.com"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "ann chang",
+          "achang_maaker.com"
+        ],
+        "output": "maaker.com"
+      },
+      {
+        "inputs": [
+          "bobby smith",
+          "bobt_sphynx.uk.co"
+        ],
+        "output": "sphynx.uk.co"
+      },
+      {
+        "inputs": [
+          "art lennox",
+          "art.lennox_svxn.com"
+        ],
+        "output": "svxn.com"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "exceljet2.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/exceljet2.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "www.domain.com"
+        ],
+        "output": "com"
+      },
+      {
+        "inputs": [
+          "mail.net"
+        ],
+        "output": "net"
+      },
+      {
+        "inputs": [
+          "www.amaon.co.uk"
+        ],
+        "output": "uk"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "www.domain.com"
+        ],
+        "output": "com"
+      },
+      {
+        "inputs": [
+          "mail.net"
+        ],
+        "output": "net"
+      },
+      {
+        "inputs": [
+          "www.amaon.co.uk"
+        ],
+        "output": "uk"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "exceljet3.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/exceljet3.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "year= 2016"
+        ],
+        "output": "2016"
+      },
+      {
+        "inputs": [
+          "make= subaru"
+        ],
+        "output": "subaru"
+      },
+      {
+        "inputs": [
+          "model= outback wagon"
+        ],
+        "output": "outback wagon"
+      },
+      {
+        "inputs": [
+          "fuel economy= 25/33"
+        ],
+        "output": "25/33"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "year= 2016"
+        ],
+        "output": "2016"
+      },
+      {
+        "inputs": [
+          "make= subaru"
+        ],
+        "output": "subaru"
+      },
+      {
+        "inputs": [
+          "model= outback wagon"
+        ],
+        "output": "outback wagon"
+      },
+      {
+        "inputs": [
+          "fuel economy= 25/33"
+        ],
+        "output": "25/33"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "exceljet4.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/exceljet4.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "https=//exceljet.net/catalog"
+        ],
+        "output": "exceljet.net/catalog"
+      },
+      {
+        "inputs": [
+          "https=//microsoft.com"
+        ],
+        "output": "microsoft.com"
+      },
+      {
+        "inputs": [
+          "ftp=//someserver.com"
+        ],
+        "output": "someserver.com"
+      },
+      {
+        "inputs": [
+          "sftp=//127.0.0.1"
+        ],
+        "output": "127.0.0.1"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "https=//exceljet.net/catalog"
+        ],
+        "output": "exceljet.net/catalog"
+      },
+      {
+        "inputs": [
+          "https=//microsoft.com"
+        ],
+        "output": "microsoft.com"
+      },
+      {
+        "inputs": [
+          "ftp=//someserver.com"
+        ],
+        "output": "someserver.com"
+      },
+      {
+        "inputs": [
+          "sftp=//127.0.0.1"
+        ],
+        "output": "127.0.0.1"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "extract-word-containing-specific-text.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/extract-word-containing-specific-text.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "send email to json_acme.com"
+        ],
+        "output": "json_acme.com"
+      },
+      {
+        "inputs": [
+          "contact help_robot.com for all support requests"
+        ],
+        "output": "help_robot.com"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "send email to json_acme.com"
+        ],
+        "output": "json_acme.com"
+      },
+      {
+        "inputs": [
+          "contact help_robot.com for all support requests"
+        ],
+        "output": "help_robot.com"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "extract-word-that-begins-with-specific-character.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/extract-word-that-begins-with-specific-character.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "this is a _username in the middle"
+        ],
+        "output": "_username"
+      },
+      {
+        "inputs": [
+          "twitter names look like= _name"
+        ],
+        "output": "_name"
+      },
+      {
+        "inputs": [
+          "with two _name1 and _name2"
+        ],
+        "output": "_name1"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "this is a _username in the middle"
+        ],
+        "output": "_username"
+      },
+      {
+        "inputs": [
+          "twitter names look like= _name"
+        ],
+        "output": "_name"
+      },
+      {
+        "inputs": [
+          "with two _name1 and _name2"
+        ],
+        "output": "_name1"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "get-domain-from-email-address_2.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-domain-from-email-address_2.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "ann chang",
+          "achang_maaker.com"
+        ],
+        "output": "achang"
+      },
+      {
+        "inputs": [
+          "bobby smith",
+          "bobt_sphynx.uk.co"
+        ],
+        "output": "bobt"
+      },
+      {
+        "inputs": [
+          "art lennox",
+          "art.lennox_svxn.com"
+        ],
+        "output": "art.lennox"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "ann chang",
+          "achang_maaker.com"
+        ],
+        "output": "achang"
+      },
+      {
+        "inputs": [
+          "bobby smith",
+          "bobt_sphynx.uk.co"
+        ],
+        "output": "bobt"
+      },
+      {
+        "inputs": [
+          "art lennox",
+          "art.lennox_svxn.com"
+        ],
+        "output": "art.lennox"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "get-domain-name-from-url.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-domain-name-from-url.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "https=//abc.com/def"
+        ],
+        "output": "https=//abc.com/"
+      },
+      {
+        "inputs": [
+          "http=//www.abc.com/def/cef"
+        ],
+        "output": "http=//www.abc.com"
+      },
+      {
+        "inputs": [
+          "http=//chandoo.org/wp/def-def"
+        ],
+        "output": "http=//chandoo.org/"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "https=//abc.com/def"
+        ],
+        "output": "https=//abc.com/"
+      },
+      {
+        "inputs": [
+          "http=//www.abc.com/def/cef"
+        ],
+        "output": "http=//www.abc.com"
+      },
+      {
+        "inputs": [
+          "http=//chandoo.org/wp/def-def"
+        ],
+        "output": "http=//chandoo.org/"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "get-first-name-from-name.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-first-name-from-name.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Susan Ann Chang"
+        ],
+        "output": "Susan"
+      },
+      {
+        "inputs": [
+          "Ayako Tanaka"
+        ],
+        "output": "Ayako"
+      },
+      {
+        "inputs": [
+          "Bobby T. smth"
+        ],
+        "output": "Bobby"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Susan Ann Chang"
+        ],
+        "output": "Susan"
+      },
+      {
+        "inputs": [
+          "Ayako Tanaka"
+        ],
+        "output": "Ayako"
+      },
+      {
+        "inputs": [
+          "Bobby T. smth"
+        ],
+        "output": "Bobby"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "get-first-word.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-first-word.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "The quick brown fox."
+        ],
+        "output": "The"
+      },
+      {
+        "inputs": [
+          "quick brown fox."
+        ],
+        "output": "quick"
+      },
+      {
+        "inputs": [
+          "fox"
+        ],
+        "output": ""
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "The quick brown fox."
+        ],
+        "output": "The"
+      },
+      {
+        "inputs": [
+          "quick brown fox."
+        ],
+        "output": "quick"
+      },
+      {
+        "inputs": [
+          "fox"
+        ],
+        "output": ""
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "get-last-line-in-cell.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-last-line-in-cell.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "11/1/2015 - First call/n12/3/2015-order placed/n11/15/2015-follow-up,interested"
+        ],
+        "output": "11/15/2015-follow-up,interested"
+      },
+      {
+        "inputs": [
+          "11/1/2015 - First call/n12/3/2015-order placed"
+        ],
+        "output": "12/3/2015-order placed"
+      },
+      {
+        "inputs": [
+          "11/1/2015 - First call"
+        ],
+        "output": "11/1/2015 - First call"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "11/1/2015 - First call/n12/3/2015-order placed/n11/15/2015-follow-up,interested"
+        ],
+        "output": "11/15/2015-follow-up,interested"
+      },
+      {
+        "inputs": [
+          "11/1/2015 - First call/n12/3/2015-order placed"
+        ],
+        "output": "12/3/2015-order placed"
+      },
+      {
+        "inputs": [
+          "11/1/2015 - First call"
+        ],
+        "output": "11/1/2015 - First call"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "get-last-name-from-name-with-comma.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-last-name-from-name-with-comma.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "chang,amy"
+        ],
+        "output": "amy,chang"
+      },
+      {
+        "inputs": [
+          "smith,bobby"
+        ],
+        "output": "bobby,smith"
+      },
+      {
+        "inputs": [
+          "lennox,aaron"
+        ],
+        "output": "aaron,lennox"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "chang,amy"
+        ],
+        "output": "amy,chang"
+      },
+      {
+        "inputs": [
+          "smith,bobby"
+        ],
+        "output": "bobby,smith"
+      },
+      {
+        "inputs": [
+          "lennox,aaron"
+        ],
+        "output": "aaron,lennox"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "get-last-name-from-name.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-last-name-from-name.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Park Kim"
+        ],
+        "output": "Kim"
+      },
+      {
+        "inputs": [
+          "Lee Kim"
+        ],
+        "output": "Kim"
+      },
+      {
+        "inputs": [
+          "Kim Lee"
+        ],
+        "output": "Lee"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Park Kim"
+        ],
+        "output": "Kim"
+      },
+      {
+        "inputs": [
+          "Lee Kim"
+        ],
+        "output": "Kim"
+      },
+      {
+        "inputs": [
+          "Kim Lee"
+        ],
+        "output": "Lee"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "get-last-word.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-last-word.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "focus on one thing at a time"
+        ],
+        "output": "time"
+      },
+      {
+        "inputs": [
+          "premature opt is the root of all evil"
+        ],
+        "output": "evil"
+      },
+      {
+        "inputs": [
+          "where is life"
+        ],
+        "output": "life"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "focus on one thing at a time"
+        ],
+        "output": "time"
+      },
+      {
+        "inputs": [
+          "premature opt is the root of all evil"
+        ],
+        "output": "evil"
+      },
+      {
+        "inputs": [
+          "where is life"
+        ],
+        "output": "life"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "get-middle-name-from-full-name.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-middle-name-from-full-name.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "susan ann chang"
+        ],
+        "output": "ann"
+      },
+      {
+        "inputs": [
+          "ayako tanaka"
+        ],
+        "output": ""
+      },
+      {
+        "inputs": [
+          "bobby t. smith"
+        ],
+        "output": "t."
+      },
+      {
+        "inputs": [
+          "anthory r. tom brown"
+        ],
+        "output": "r. tom"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "susan ann chang"
+        ],
+        "output": "ann"
+      },
+      {
+        "inputs": [
+          "ayako tanaka"
+        ],
+        "output": ""
+      },
+      {
+        "inputs": [
+          "bobby t. smith"
+        ],
+        "output": "t."
+      },
+      {
+        "inputs": [
+          "anthory r. tom brown"
+        ],
+        "output": "r. tom"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "join-cells-with-comma.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/join-cells-with-comma.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "figs",
+          "",
+          "apples"
+        ],
+        "output": "figs, apples"
+      },
+      {
+        "inputs": [
+          "mangos",
+          "kiwis",
+          "grapes"
+        ],
+        "output": "mangos, kiwis, grapes"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "figs",
+          "",
+          "apples"
+        ],
+        "output": "figs, apples"
+      },
+      {
+        "inputs": [
+          "mangos",
+          "kiwis",
+          "grapes"
+        ],
+        "output": "mangos, kiwis, grapes"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "join-first-and-last-name.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/join-first-and-last-name.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "susan",
+          "chang"
+        ],
+        "output": "susan chang"
+      },
+      {
+        "inputs": [
+          "aaron",
+          "kim"
+        ],
+        "output": "aaron kim"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "susan",
+          "chang"
+        ],
+        "output": "susan chang"
+      },
+      {
+        "inputs": [
+          "aaron",
+          "kim"
+        ],
+        "output": "aaron kim"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "most-frequently-occurring-text.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/most-frequently-occurring-text.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "cat",
+          "dog",
+          "cat"
+        ],
+        "output": "cat"
+      },
+      {
+        "inputs": [
+          "blue",
+          "red",
+          "red"
+        ],
+        "output": "red"
+      },
+      {
+        "inputs": [
+          "firm",
+          "firm",
+          "soft"
+        ],
+        "output": "firm"
+      },
+      {
+        "inputs": [
+          "soft",
+          "soft",
+          "soft"
+        ],
+        "output": "soft"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "cat",
+          "dog",
+          "cat"
+        ],
+        "output": "cat"
+      },
+      {
+        "inputs": [
+          "blue",
+          "red",
+          "red"
+        ],
+        "output": "red"
+      },
+      {
+        "inputs": [
+          "firm",
+          "firm",
+          "soft"
+        ],
+        "output": "firm"
+      },
+      {
+        "inputs": [
+          "soft",
+          "soft",
+          "soft"
+        ],
+        "output": "soft"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "remove-file-extension-from-filename.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/remove-file-extension-from-filename.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "happy.jpg"
+        ],
+        "output": "happy"
+      },
+      {
+        "inputs": [
+          "pivot table.xls"
+        ],
+        "output": "pivot table"
+      },
+      {
+        "inputs": [
+          "sales data.csv"
+        ],
+        "output": "sales data"
+      },
+      {
+        "inputs": [
+          "invoice3001.xls.pdf"
+        ],
+        "output": "invoice3001"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "happy.jpg"
+        ],
+        "output": "happy"
+      },
+      {
+        "inputs": [
+          "pivot table.xls"
+        ],
+        "output": "pivot table"
+      },
+      {
+        "inputs": [
+          "sales data.csv"
+        ],
+        "output": "sales data"
+      },
+      {
+        "inputs": [
+          "invoice3001.xls.pdf"
+        ],
+        "output": "invoice3001"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "remove-leading-and-trailing-spaces-from-text.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/remove-leading-and-trailing-spaces-from-text.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "The shawshank"
+        ],
+        "output": "The shawshank"
+      },
+      {
+        "inputs": [
+          "The godfather"
+        ],
+        "output": "The godfather"
+      },
+      {
+        "inputs": [
+          "pulp fiction"
+        ],
+        "output": "pulp fiction"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "The shawshank"
+        ],
+        "output": "The shawshank"
+      },
+      {
+        "inputs": [
+          "The godfather"
+        ],
+        "output": "The godfather"
+      },
+      {
+        "inputs": [
+          "pulp fiction"
+        ],
+        "output": "pulp fiction"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "remove-text-by-matching.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/remove-text-by-matching.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "801-345-1987"
+        ],
+        "output": "8013451987"
+      },
+      {
+        "inputs": [
+          "612-554-2000"
+        ],
+        "output": "6125542000"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "801-345-1987"
+        ],
+        "output": "8013451987"
+      },
+      {
+        "inputs": [
+          "612-554-2000"
+        ],
+        "output": "6125542000"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "remove-text-by-position.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/remove-text-by-position.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "c=/users/dave/shotcut.xls"
+        ],
+        "output": "shotcut.xls"
+      },
+      {
+        "inputs": [
+          "c=/users/dave/formulas.xls"
+        ],
+        "output": "formulas.xls"
+      },
+      {
+        "inputs": [
+          "c=/users/dave/pivot table.xls"
+        ],
+        "output": "pivot table.xls"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "c=/users/dave/shotcut.xls"
+        ],
+        "output": "shotcut.xls"
+      },
+      {
+        "inputs": [
+          "c=/users/dave/formulas.xls"
+        ],
+        "output": "formulas.xls"
+      },
+      {
+        "inputs": [
+          "c=/users/dave/pivot table.xls"
+        ],
+        "output": "pivot table.xls"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "remove-unwanted-characters.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/remove-unwanted-characters.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "zx66448",
+          "z"
+        ],
+        "output": "x66448"
+      },
+      {
+        "inputs": [
+          "zx66448",
+          "x"
+        ],
+        "output": "z66448"
+      },
+      {
+        "inputs": [
+          "zx66448",
+          "6"
+        ],
+        "output": "zx448"
+      },
+      {
+        "inputs": [
+          "zx66448",
+          "4"
+        ],
+        "output": "zx668"
+      },
+      {
+        "inputs": [
+          "zx66448",
+          "8"
+        ],
+        "output": "zx6644"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "zx66448",
+          "z"
+        ],
+        "output": "x66448"
+      },
+      {
+        "inputs": [
+          "zx66448",
+          "x"
+        ],
+        "output": "z66448"
+      },
+      {
+        "inputs": [
+          "zx66448",
+          "6"
+        ],
+        "output": "zx448"
+      },
+      {
+        "inputs": [
+          "zx66448",
+          "4"
+        ],
+        "output": "zx668"
+      },
+      {
+        "inputs": [
+          "zx66448",
+          "8"
+        ],
+        "output": "zx6644"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "replace-one-character-with-another.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/replace-one-character-with-another.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "801 456 8756"
+        ],
+        "output": "801-456-8756"
+      },
+      {
+        "inputs": [
+          "978 456 8756"
+        ],
+        "output": "978-456-8756"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "801 456 8756"
+        ],
+        "output": "801-456-8756"
+      },
+      {
+        "inputs": [
+          "978 456 8756"
+        ],
+        "output": "978-456-8756"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "stackoverflow1.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow1.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Trucking Inc."
+        ],
+        "output": "Trucking"
+      },
+      {
+        "inputs": [
+          "New Truck Inc"
+        ],
+        "output": "New Truck"
+      },
+      {
+        "inputs": [
+          "ABV Trucking Inc, LLC"
+        ],
+        "output": "ABV Trucking"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Trucking Inc."
+        ],
+        "output": "Trucking"
+      },
+      {
+        "inputs": [
+          "New Truck Inc"
+        ],
+        "output": "New Truck"
+      },
+      {
+        "inputs": [
+          "ABV Trucking Inc, LLC"
+        ],
+        "output": "ABV Trucking"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "stackoverflow10.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow10.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "April 1 1799"
+        ],
+        "output": "1799"
+      },
+      {
+        "inputs": [
+          "April 11 1867"
+        ],
+        "output": "1867"
+      },
+      {
+        "inputs": [
+          "February 12 1806"
+        ],
+        "output": "1806"
+      },
+      {
+        "inputs": [
+          "February 21 1798"
+        ],
+        "output": "1798"
+      },
+      {
+        "inputs": [
+          "February 28 1844 as Delaware Township"
+        ],
+        "output": "1844"
+      },
+      {
+        "inputs": [
+          "February 5 1798"
+        ],
+        "output": "1798"
+      },
+      {
+        "inputs": [
+          "February 7 1892 Verona Township"
+        ],
+        "output": "1892"
+      },
+      {
+        "inputs": [
+          "February 9 1797"
+        ],
+        "output": "1797"
+      },
+      {
+        "inputs": [
+          "January 19 1748"
+        ],
+        "output": "1748"
+      },
+      {
+        "inputs": [
+          "July 10 1721 as Upper Penns Neck Township"
+        ],
+        "output": "1721"
+      },
+      {
+        "inputs": [
+          "March 15 1860"
+        ],
+        "output": "1860"
+      },
+      {
+        "inputs": [
+          "March 17 1870 <as Raritan Township>"
+        ],
+        "output": "1870"
+      },
+      {
+        "inputs": [
+          "March 17 1874"
+        ],
+        "output": "1874"
+      },
+      {
+        "inputs": [
+          "March 23 1864"
+        ],
+        "output": "1864"
+      },
+      {
+        "inputs": [
+          "March 5 1867"
+        ],
+        "output": "1867"
+      },
+      {
+        "inputs": [
+          "April 28th 1828"
+        ],
+        "output": "1828"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "April 1 1799"
+        ],
+        "output": "1799"
+      },
+      {
+        "inputs": [
+          "April 11 1867"
+        ],
+        "output": "1867"
+      },
+      {
+        "inputs": [
+          "February 12 1806"
+        ],
+        "output": "1806"
+      },
+      {
+        "inputs": [
+          "February 21 1798"
+        ],
+        "output": "1798"
+      },
+      {
+        "inputs": [
+          "February 28 1844 as Delaware Township"
+        ],
+        "output": "1844"
+      },
+      {
+        "inputs": [
+          "February 5 1798"
+        ],
+        "output": "1798"
+      },
+      {
+        "inputs": [
+          "February 7 1892 Verona Township"
+        ],
+        "output": "1892"
+      },
+      {
+        "inputs": [
+          "February 9 1797"
+        ],
+        "output": "1797"
+      },
+      {
+        "inputs": [
+          "January 19 1748"
+        ],
+        "output": "1748"
+      },
+      {
+        "inputs": [
+          "July 10 1721 as Upper Penns Neck Township"
+        ],
+        "output": "1721"
+      },
+      {
+        "inputs": [
+          "March 15 1860"
+        ],
+        "output": "1860"
+      },
+      {
+        "inputs": [
+          "March 17 1870 <as Raritan Township>"
+        ],
+        "output": "1870"
+      },
+      {
+        "inputs": [
+          "March 17 1874"
+        ],
+        "output": "1874"
+      },
+      {
+        "inputs": [
+          "March 23 1864"
+        ],
+        "output": "1864"
+      },
+      {
+        "inputs": [
+          "March 5 1867"
+        ],
+        "output": "1867"
+      },
+      {
+        "inputs": [
+          "April 28th 1828"
+        ],
+        "output": "1828"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "stackoverflow11.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow11.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "2283-332-44543 CAP DDT PPL445_ HEEN PAX 77820"
+        ],
+        "output": "HEEN PAX 77820"
+      },
+      {
+        "inputs": [
+          "44372-33-3223 TYYTE CAP BOX 1550 244 BOX PPSSA223_ PAX"
+        ],
+        "output": "PAX"
+      },
+      {
+        "inputs": [
+          "PRECISE 77 CLEAR BLUE 99WIE_ BOX 4403 PAX SSKA"
+        ],
+        "output": "BOX 4403 PAX SSKA"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "2283-332-44543 CAP DDT PPL445_ HEEN PAX 77820"
+        ],
+        "output": "HEEN PAX 77820"
+      },
+      {
+        "inputs": [
+          "44372-33-3223 TYYTE CAP BOX 1550 244 BOX PPSSA223_ PAX"
+        ],
+        "output": "PAX"
+      },
+      {
+        "inputs": [
+          "PRECISE 77 CLEAR BLUE 99WIE_ BOX 4403 PAX SSKA"
+        ],
+        "output": "BOX 4403 PAX SSKA"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "stackoverflow2.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow2.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "india china japan"
+        ],
+        "output": "india china"
+      },
+      {
+        "inputs": [
+          "indonesia korea"
+        ],
+        "output": "indonesia"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "india china japan"
+        ],
+        "output": "india china"
+      },
+      {
+        "inputs": [
+          "indonesia korea"
+        ],
+        "output": "indonesia"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "stackoverflow3.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow3.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "geb. 14 oct 1956 Westerkerk HRL"
+        ],
+        "output": "Westerkerk HRL"
+      },
+      {
+        "inputs": [
+          "geb. 14 oct 1956"
+        ],
+        "output": ""
+      },
+      {
+        "inputs": [
+          "geb. 15 feb 1987 Westerkerk HRL"
+        ],
+        "output": "Westerkerk HRL"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "geb. 14 oct 1956 Westerkerk HRL"
+        ],
+        "output": "Westerkerk HRL"
+      },
+      {
+        "inputs": [
+          "geb. 14 oct 1956"
+        ],
+        "output": ""
+      },
+      {
+        "inputs": [
+          "geb. 15 feb 1987 Westerkerk HRL"
+        ],
+        "output": "Westerkerk HRL"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "stackoverflow4.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow4.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "R/V<208,0,32>"
+        ],
+        "output": "R/V 208 0 32"
+      },
+      {
+        "inputs": [
+          "R/S<184,28,16>"
+        ],
+        "output": "R/S 184 28 16"
+      },
+      {
+        "inputs": [
+          "R/B<255,88,80>"
+        ],
+        "output": "R/B 255 88 80"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "R/V<208,0,32>"
+        ],
+        "output": "R/V 208 0 32"
+      },
+      {
+        "inputs": [
+          "R/S<184,28,16>"
+        ],
+        "output": "R/S 184 28 16"
+      },
+      {
+        "inputs": [
+          "R/B<255,88,80>"
+        ],
+        "output": "R/B 255 88 80"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "stackoverflow5.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow5.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "valentine day=1915=50==7.1=45"
+        ],
+        "output": "valentine day"
+      },
+      {
+        "inputs": [
+          "movie blah=2blahblah, The=1914=54==7.9=17"
+        ],
+        "output": "movie blah=2blahblah, The"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "valentine day=1915=50==7.1=45"
+        ],
+        "output": "valentine day"
+      },
+      {
+        "inputs": [
+          "movie blah=2blahblah, The=1914=54==7.9=17"
+        ],
+        "output": "movie blah=2blahblah, The"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "stackoverflow6.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow6.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Dec 2, 2014, 11=23 PM - +91 90000 80000= loren ipsum"
+        ],
+        "output": "loren ipsum"
+      },
+      {
+        "inputs": [
+          "Dec 2, 2014, 11=24 PM - +91 90000 80000= loren"
+        ],
+        "output": "loren"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Dec 2, 2014, 11=23 PM - +91 90000 80000= loren ipsum"
+        ],
+        "output": "loren ipsum"
+      },
+      {
+        "inputs": [
+          "Dec 2, 2014, 11=24 PM - +91 90000 80000= loren"
+        ],
+        "output": "loren"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "stackoverflow7.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow7.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Item 1 AQ-S810W-2AVDF",
+          "AQ-S810W-2AVDF"
+        ],
+        "output": "Item 1"
+      },
+      {
+        "inputs": [
+          "Item 2 AQ-230A-1DUQ",
+          "AQ-230A"
+        ],
+        "output": "Item 2 -1DUQ"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Item 1 AQ-S810W-2AVDF",
+          "AQ-S810W-2AVDF"
+        ],
+        "output": "Item 1"
+      },
+      {
+        "inputs": [
+          "Item 2 AQ-230A-1DUQ",
+          "AQ-230A"
+        ],
+        "output": "Item 2 -1DUQ"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "stackoverflow8.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow8.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "home/Excel/Sheet1.xls"
+        ],
+        "output": "Sheet1.xls"
+      },
+      {
+        "inputs": [
+          "home/user/Sheet1.xls"
+        ],
+        "output": "Sheet1.xls"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "home/Excel/Sheet1.xls"
+        ],
+        "output": "Sheet1.xls"
+      },
+      {
+        "inputs": [
+          "home/user/Sheet1.xls"
+        ],
+        "output": "Sheet1.xls"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "stackoverflow9.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow9.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "Sarah Jane Jones"
+        ],
+        "output": "Jones"
+      },
+      {
+        "inputs": [
+          "Bob Jane Smithfield"
+        ],
+        "output": "Smithfield"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "Sarah Jane Jones"
+        ],
+        "output": "Jones"
+      },
+      {
+        "inputs": [
+          "Bob Jane Smithfield"
+        ],
+        "output": "Smithfield"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "strip-html-from-text-or-numbers.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/strip-html-from-text-or-numbers.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "<b>0.66<b>"
+        ],
+        "output": "0.66"
+      },
+      {
+        "inputs": [
+          "<b>0.409<b>"
+        ],
+        "output": "0.409"
+      },
+      {
+        "inputs": [
+          "<b>0.7268<b>"
+        ],
+        "output": "0.7268"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "<b>0.66<b>"
+        ],
+        "output": "0.66"
+      },
+      {
+        "inputs": [
+          "<b>0.409<b>"
+        ],
+        "output": "0.409"
+      },
+      {
+        "inputs": [
+          "<b>0.7268<b>"
+        ],
+        "output": "0.7268"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "strip-non-numeric-characters.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/strip-non-numeric-characters.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "100 apples"
+        ],
+        "output": "100"
+      },
+      {
+        "inputs": [
+          "the price is %500 dollars"
+        ],
+        "output": "500"
+      },
+      {
+        "inputs": [
+          "serial number %003399"
+        ],
+        "output": "003399"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "100 apples"
+        ],
+        "output": "100"
+      },
+      {
+        "inputs": [
+          "the price is %500 dollars"
+        ],
+        "output": "500"
+      },
+      {
+        "inputs": [
+          "serial number %003399"
+        ],
+        "output": "003399"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  },
+  {
+    "name": "strip-numeric-characters-from-cell.sl",
+    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/strip-numeric-characters-from-cell.sl",
+    "trainExamples": [
+      {
+        "inputs": [
+          "34653 jim mcdonald"
+        ],
+        "output": " jim mcdonald"
+      },
+      {
+        "inputs": [
+          "price is 500"
+        ],
+        "output": " price is"
+      },
+      {
+        "inputs": [
+          "100 apples"
+        ],
+        "output": " apples"
+      }
+    ],
+    "testExamples": [
+      {
+        "inputs": [
+          "34653 jim mcdonald"
+        ],
+        "output": " jim mcdonald"
+      },
+      {
+        "inputs": [
+          "price is 500"
+        ],
+        "output": " price is"
+      },
+      {
+        "inputs": [
+          "100 apples"
+        ],
+        "output": " apples"
+      }
+    ],
+    "tables": [],
+    "expectedProgram": "",
+    "tags": []
+  }
+]
