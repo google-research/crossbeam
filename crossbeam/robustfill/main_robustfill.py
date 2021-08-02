@@ -129,7 +129,8 @@ def main(argv):
   else:
     device = 'cpu'    
   if FLAGS.do_test:
-    test_dataset = RawOfflineDataset(glob.glob(os.path.join(FLAGS.data_folder, 'test-tasks*'))[0], prog_tokenizer=fn_tokenizer)
+    glob_pattern = os.path.join(FLAGS.data_folder, 'valid-tasks*') if FLAGS.test_data_glob is None else FLAGS.test_data_glob
+    test_dataset = RawOfflineDataset(glob.glob(glob_pattern)[0], prog_tokenizer=fn_tokenizer)
     hit_at_1, total_hit = eval_dataset(domain, model, test_dataset, device, fn_unparse)
     print('test hit@1: %.2f, hit@%d: %.2f' % (hit_at_1, FLAGS.beam_size, total_hit))
     sys.exit()
