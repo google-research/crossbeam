@@ -1,3 +1,5 @@
+from random import sample
+from crossbeam.dsl.value import Value
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -34,17 +36,20 @@ class PoolingState(nn.Module):
     self.pool_method = pool_method
     self.proj = nn.Linear(state_dim * 3, state_dim)
 
-  def forward(self, io_embed, value_embed, dummy_op=None, value_mask=None):
+  @property
+  def fn_pool(self):
     torch_pool = getattr(torch, self.pool_method, None)
     if self.pool_method == 'max' or self.pool_method == 'min':
       pool_method = lambda x: torch_pool(x, dim=0, keepdims=True)[0]
     else:
       pool_method = lambda x: torch_pool(x, dim=0, keepdims=True)
-  
-    io_state = pool_method(io_embed)
+    return pool_method
+
+  def forward(self, io_embed, value_embed, dummy_op=None, value_mask=None):
+    io_state = self.fn_pool(io_embed)
 
     if value_mask is None:
-      value_state = pool_method(value_embed)
+      value_state = self.fn_pool(value_embed)
     else:
       value_mask = torch.unsqueeze(value_mask, dim=1)
       if self.pool_method == 'mean':
@@ -55,6 +60,27 @@ class PoolingState(nn.Module):
         value_state, _ = torch.max(value_state, dim=0, keepdims=True)
       else:
         raise NotImplementedError
+    joint_state = torch.cat((io_state, value_state), dim=1)
+    return self.proj(joint_state)
+
+  def batch_forward(self, io_embed, io_scatter, value_embed, value_indices, sample_indices=None):
+    if self.pool_method == 'max':
+      agg_func = lambda x, idx: scatter_max(x, idx, dim=0)[0]
+    elif self.pool_method == 'mean':
+      agg_func = lambda x, idx: scatter_mean(x, idx, dim=0)
+    else:
+      raise ValueError('unknown pooling %s' % self.pool_method)
+    io_state = agg_func(io_embed, io_scatter)
+    if sample_indices is not None:
+      io_state = io_state[sample_indices]
+      value_indices = [value_indices[v] for v in sample_indices]
+
+    joint_val_embed = value_embed[torch.cat(value_indices, dim=0)]
+    val_scatter = []
+    for i, v in enumerate(value_indices):
+      val_scatter += [i] * v.shape[0]
+    val_scatter = torch.LongTensor(val_scatter).to(io_state.device)
+    value_state = agg_func(joint_val_embed, val_scatter)
     joint_state = torch.cat((io_state, value_state), dim=1)
     return self.proj(joint_state)
 
@@ -70,6 +96,10 @@ class OpPoolingState(nn.Module):
   def forward(self, io_embed, value_embed, op, value_mask=None):
     mod = self.op_specific_mod[self.op_idx_map[repr(op)]]
     return mod(io_embed, value_embed, value_mask)
+
+  def batch_forward(self, io_embed, io_scatter, value_embed, value_indices, op, sample_indices=None):
+    mod = self.op_specific_mod[self.op_idx_map[repr(op)]]
+    return mod.batch_forward(io_embed, io_scatter, value_embed, value_indices, sample_indices)
 
 
 class OpExplicitPooling(OpPoolingState):

@@ -7,7 +7,7 @@ import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from crossbeam.algorithm.synthesis import synthesize
+from crossbeam.algorithm.synthesis import synthesize, batch_synthesize
 from tqdm import tqdm
 import math
 import functools
@@ -131,11 +131,12 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
           with open(fname, 'rb') as f:
             list_tasks = cp.load(f)
           random.shuffle(list_tasks)
-          for t in list_tasks:
-            yield t
+          for i in range(0, len(list_tasks), args.grad_accumulate):
+            yield list_tasks[i : i + args.grad_accumulate]
     else:
       while True:
-        yield task_gen(domain)
+        cur_tasks = [task_gen(domain) for _ in range(args.grad_accumulate)]
+        yield cur_tasks
   domain = domains.get_domain(args.domain)
   train_gen = local_task_gen(domain)
   is_distributed = args.num_proc > 1
@@ -175,28 +176,37 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
     # Training
     pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)
     for _ in pbar:
-      loss_acc = []
       optimizer.zero_grad()
-      for _ in range(args.grad_accumulate):
-        t = next(train_gen)
-        trace = list(trace_gen(t.solution))
-        with torch.no_grad():
-          training_samples, all_values = synthesize(
-              t, domain, model, device=device,
-              trace=trace,
-              max_weight=args.max_search_weight,
-              k=args.beam_size,
-              is_training=True,
-              random_beam=args.random_beam)
-        
-        if isinstance(training_samples, list):
-          loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
-          loss = loss / args.grad_accumulate
-          loss.backward()
-          loss_acc.append(loss.item())
-        else:
-          loss = 0.0
-      loss = np.sum(loss_acc)
+      batch_tasks = next(train_gen)
+      batch_traces = [list(trace_gen(t.solution)) for t in batch_tasks]
+      if args.batch_training:
+        training_samples, all_values = batch_synthesize(
+          batch_tasks, domain, model, device,
+          traces=batch_traces,
+          max_weight=args.max_search_weight,
+          k=args.beam_size,
+          is_training=True)
+        loss = 0.0
+      else:
+        loss_acc = []
+        for t, trace in zip(batch_tasks, batch_traces):
+          with torch.no_grad():
+            training_samples, all_values = synthesize(
+                t, domain, model, device=device,
+                trace=trace,
+                max_weight=args.max_search_weight,
+                k=args.beam_size,
+                is_training=True,
+                random_beam=args.random_beam)
+
+          if isinstance(training_samples, list):
+            loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
+            loss = loss / args.grad_accumulate
+            loss.backward()
+            loss_acc.append(loss.item())
+          else:
+            loss = 0.0
+        loss = np.sum(loss_acc)
       if is_distributed:
         for param in model.parameters():
           if param.grad is None:

@@ -63,6 +63,10 @@ class LSTMArgSelector(nn.Module):
     assert axis == 1
     return (state[0][:, indices, :], state[1][:, indices, :])
 
+  def get_batch_init_state(self, init_state):
+    h0 = init_state.unsqueeze(0).repeat(self.n_lstm_layers, 1, 1)
+    return (h0, h0)
+
   def get_init_state(self, init_state, batch_size):
     init_state = init_state.view(1, 1, self.hidden_size)
     h0 = init_state.repeat([self.n_lstm_layers, batch_size, 1])

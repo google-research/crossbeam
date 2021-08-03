@@ -16,9 +16,19 @@ import numpy as np
 import random
 import timeit
 import torch
+import sys
 from copy import deepcopy
-from crossbeam.algorithm.beam_search import beam_search
+from crossbeam.algorithm.beam_search import beam_search, batch_beam_search
 from crossbeam.dsl import value as value_module
+
+
+def get_or_add_value(val, all_values, all_value_dict):
+  if val in all_value_dict:
+    return all_value_dict[val]
+  idx = len(all_values)
+  all_value_dict[val] = idx
+  all_values.append(val)
+  return idx
 
 
 def synthesize(task, domain, model, device,
@@ -32,9 +42,12 @@ def synthesize(task, domain, model, device,
     include_as_train = lambda trace_in_beam: True
   num_examples = task.num_examples
 
-  all_values = deepcopy(domain.operations) if model.op_in_beam else []
+  all_values = []
+  all_value_dict = {}
   max_beam_steps = max([op.arity for op in domain.operations]) + 1
-
+  if model.op_in_beam:
+    for op in domain.operations:
+      get_or_add_value(deepcopy(op), all_values, all_value_dict)
   constants = domain.constants
   constants_extractor = domain.constants_extractor
   assert (constants is None) != (constants_extractor is None), (
@@ -42,10 +55,12 @@ def synthesize(task, domain, model, device,
   if constants_extractor is None:
     constants_extractor = lambda unused_inputs_dict: constants
   for constant in constants_extractor(task):
-    all_values.append(value_module.ConstantValue(constant,
-                                                 num_examples=num_examples))
+    get_or_add_value(value_module.ConstantValue(constant,
+                                                num_examples=num_examples),
+                     all_values, all_value_dict)
   for input_name, input_value in task.inputs_dict.items():
-    all_values.append(value_module.InputValue(input_value, name=input_name))
+    get_or_add_value(value_module.InputValue(input_value, name=input_name),
+                     all_values, all_value_dict)
   output_value = value_module.OutputValue(task.outputs)
   all_value_dict = {v: i for i, v in enumerate(all_values)}
 
@@ -74,7 +89,7 @@ def synthesize(task, domain, model, device,
         if len(all_values) > val_embed.shape[0]:
           more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device)
           val_embed = torch.cat((val_embed, more_val_embed), dim=0)
-        op_state = model.init(io_embed, val_embed, operation)        
+        op_state = model.init(io_embed, val_embed, operation)
         args, _ = beam_search(beam_steps, k,
                               val_embed,
                               op_state,
@@ -119,9 +134,7 @@ def synthesize(task, domain, model, device,
               operation = trace[0].operation
               true_args.append(all_value_dict[operation])              
             true_val = trace[0]
-            if not true_val in all_value_dict:
-              all_value_dict[true_val] = len(all_values)
-              all_values.append(true_val)
+            get_or_add_value(true_val, all_values, all_value_dict)
             true_arg_vals = true_val.arg_values
             for i in range(operation.arity):
               assert true_arg_vals[i] in all_value_dict
@@ -138,3 +151,115 @@ def synthesize(task, domain, model, device,
     if len(all_values) == cur_num_values:  # no improvement
       break
   return None, None
+
+
+def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k=2, is_training=False,
+                     include_as_train=None, timeout=None, is_stochastic=False):
+  end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
+  if traces is None:
+    trace = [[] for _ in range(len(tasks))]
+  if include_as_train is None:
+    include_as_train = lambda trace_in_beam: True
+  all_values = []
+  constants = domain.constants
+  constants_extractor = domain.constants_extractor
+  assert (constants is None) != (constants_extractor is None), (
+      'expected exactly one of constants or constants_extractor')
+  if constants_extractor is None:
+    constants_extractor = lambda unused_inputs_dict: constants
+  all_values = []
+  all_value_dict = {}
+
+  output_values = []
+  value_indices = []
+  task_done = [False] * len(tasks)
+  for task in tasks:
+    num_examples = task.num_examples
+    indices = []
+    for constant in constants_extractor(task):
+      idx = get_or_add_value(value_module.ConstantValue(constant,
+                                                        num_examples=num_examples),
+                             all_values, all_value_dict)
+      indices.append(idx)
+    for input_name, input_value in task.inputs_dict.items():
+      idx = get_or_add_value(value_module.InputValue(input_value, name=input_name),
+                             all_values, all_value_dict)
+      indices.append(idx)
+    value_indices.append(indices)
+    output_values.append(value_module.OutputValue(task.outputs))
+
+  io_embed, io_scatter = model.io([task.inputs_dict for task in tasks],
+                                  [task.outputs for task in tasks],
+                                  device=device,
+                                  needs_scatter_idx=True)
+
+  val_embed = model.val(all_values, device=device)
+  max_beam_steps = max([operation.arity for operation in domain.operations])
+  training_samples = []
+  while not all(task_done):
+    for operation in domain.operations:
+      if all(task_done):
+        break
+      if len(all_values) > val_embed.shape[0]:
+        more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device)
+        val_embed = torch.cat((val_embed, more_val_embed), dim=0)
+      active_tasks = []
+      cur_val_indices = [torch.LongTensor(vid).to(device) for vid in value_indices]
+      for t_idx, task in enumerate(tasks):
+        if task_done[t_idx]:
+          continue
+        active_tasks.append(t_idx)
+
+      op_states = model.batch_init(io_embed, io_scatter, val_embed, cur_val_indices, operation,
+                                   sample_indices=active_tasks)
+      batch_beam, _ = batch_beam_search(operation.arity, k,
+                                        val_embed,
+                                        [cur_val_indices[v] for v in active_tasks],
+                                        op_states,
+                                        model.arg,
+                                        device=device,
+                                        is_stochastic=is_stochastic)
+      for local_tid, t_idx in enumerate(active_tasks):
+        trace = traces[t_idx]
+        output_value = output_values[t_idx]
+        args = batch_beam[local_tid]
+        beam = [[all_values[i] for i in arg_list] for arg_list in args]
+        trace_in_beam = -1
+        for bid, arg_list in enumerate(beam):
+          result_value = operation.apply(arg_list)
+          if result_value is None or result_value.weight > max_weight:
+            continue
+          if (domain.small_value_filter and
+              not all(domain.small_value_filter(v) for v in result_value.values)):
+            continue
+          if result_value in all_value_dict:
+            continue
+          vid = get_or_add_value(result_value, all_values, all_value_dict)
+          value_indices[t_idx].append(vid)
+          if result_value == output_value and not is_training:
+            task_done[t_idx] = True
+          else:
+            if len(trace) and result_value == trace[0] and trace_in_beam < 0:
+              trace_in_beam = bid
+        if end_time is not None and timeit.default_timer() > end_time:
+          return None, None
+        if is_training and len(trace) and trace[0].operation == operation:
+          if include_as_train(trace_in_beam):
+            if trace_in_beam < 0:  # true arg not found
+              true_args = []
+              true_val = trace[0]
+              vid = get_or_add_value(true_val, all_values, all_value_dict)
+              value_indices[t_idx].append(vid)
+              true_arg_vals = true_val.arg_values
+              for i in range(operation.arity):
+                assert true_arg_vals[i] in all_value_dict
+                true_args.append(all_value_dict[true_arg_vals[i]])
+              true_args = np.array(true_args, dtype=np.int32)
+              args = np.concatenate((args, np.expand_dims(true_args, 0)), axis=0)
+              trace_in_beam = args.shape[0] - 1
+            args = np.pad(args, [(0, 0), (0, max_beam_steps - operation.arity)])
+            training_samples.append((args, trace_in_beam, value_indices[t_idx][:], operation))
+          trace.pop(0)
+          if len(trace) == 0:
+            task_done[t_idx] = True
+  return training_samples, all_values
