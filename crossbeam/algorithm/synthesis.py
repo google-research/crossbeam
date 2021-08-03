@@ -264,7 +264,7 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
               args = np.concatenate((args, np.expand_dims(true_args, 0)), axis=0)
               trace_in_beam = args.shape[0] - 1
             args = np.pad(args, [(0, 0), (0, max_beam_steps - operation.arity)])
-            training_samples.append((args, trace_in_beam, value_indices[t_idx][:], operation))
+            training_samples.append((t_idx, args, trace_in_beam, value_indices[t_idx][:], operation))
           trace.pop(0)
           if len(trace) == 0:
             task_done[t_idx] = True

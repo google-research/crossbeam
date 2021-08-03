@@ -1,3 +1,4 @@
+from random import sample
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -14,7 +15,7 @@ class MLPStepScore(nn.Module):
     self.mlp = MLP(sizes[0], sizes[1:])
     self.step_score_normalize = step_score_normalize
 
-  def forward(self, state, x, is_outer):
+  def forward(self, state, x, is_outer, masks=None):
     h = state
     if is_outer:
       num_states = h.shape[0]
@@ -27,6 +28,8 @@ class MLPStepScore(nn.Module):
     score = self.mlp(x)
     if is_outer:
       score = score.view(num_states, num_x)
+      if masks is not None:
+        score = score * masks + (1 - masks) * -1e10
       if self.step_score_normalize:
         score = F.log_softmax(score, dim=-1)
     return score
@@ -81,19 +84,29 @@ class LSTMArgSelector(nn.Module):
     x = x.unsqueeze(1)
     return self.lstm(x, state)[1]
 
-  def forward(self, init_state, choice_embed, arg_seq):
-    h0, c0 = self.get_init_state(init_state, batch_size=arg_seq.shape[0])
+  def get_step_scores(self, h0, c0, choice_embed, arg_seq, masks=None):
     arg_seq_embed = choice_embed[arg_seq]
     output, _ = self.lstm(arg_seq_embed, (h0, c0))
     state = torch.cat((h0[-1].unsqueeze(1), output[:, :-1, :]), dim=1)
+    if masks is not None:
+      masks = masks.unsqueeze(1).repeat(1, state.shape[1], 1).view(-1, masks.shape[-1])
     state = state.view(-1, state.shape[-1])
 
     if self.step_score_normalize:
-      step_logits = self.step_func_mod(state, choice_embed, is_outer=True)
+      step_logits = self.step_func_mod(state, choice_embed, is_outer=True, masks=masks)
       step_scores = step_logits[torch.arange(state.shape[0]), arg_seq.view(-1)]
     else:
       step_scores = self.step_func_mod(state, arg_seq_embed.view(state.shape), is_outer=False)
     step_scores = step_scores.view(-1, arg_seq.shape[1])
+    return step_scores
+
+  def forward(self, init_state, choice_embed, arg_seq, masks=None):
+    h0, c0 = self.get_init_state(init_state, batch_size=arg_seq.shape[0])
+    return self.get_step_scores(h0, c0, choice_embed, arg_seq)
+
+  def batch_forward(self, init_state, choice_embed, arg_seq, masks=None):
+    h0, c0 = self.get_batch_init_state(init_state)
+    step_scores = self.get_step_scores(h0, c0, choice_embed, arg_seq, masks)
     return step_scores
 
 

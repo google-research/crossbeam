@@ -31,8 +31,8 @@ class JointModel(nn.Module):
                        step_score_func=args.step_score_func,
                        step_score_normalize=args.score_normed)
 
-  def batch_init(self, io_embed, io_scatter, val_embed, value_indices, operation, sample_indices=None):
-    return self.init.batch_forward(io_embed, io_scatter, val_embed, value_indices, operation, sample_indices)
+  def batch_init(self, io_embed, io_scatter, val_embed, value_indices, operation, sample_indices=None, io_gather=None):
+    return self.init.batch_forward(io_embed, io_scatter, val_embed, value_indices, operation, sample_indices, io_gather)
 
 
 class IntJointModel(nn.Module):

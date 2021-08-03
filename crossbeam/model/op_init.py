@@ -1,4 +1,5 @@
 from random import sample
+from crossbeam.dsl import value
 from crossbeam.dsl.value import Value
 import torch
 import torch.nn as nn
@@ -27,6 +28,30 @@ class IOPoolProjSummary(nn.Module):
     else:
       pooled_io = io_concat_embed
     return self.embed_merge(pooled_io)
+
+
+def batch_pooling(pool_method, io_embed, io_scatter, value_embed, value_indices, sample_indices=None, io_gather=None):
+  if pool_method == 'max':
+    agg_func = lambda x, idx: scatter_max(x, idx, dim=0)[0]
+  elif pool_method == 'mean':
+    agg_func = lambda x, idx: scatter_mean(x, idx, dim=0)
+  else:
+    raise ValueError('unknown pooling %s' % pool_method)
+  io_state = agg_func(io_embed, io_scatter)
+  if sample_indices is not None:
+    io_state = io_state[sample_indices]
+    value_indices = [value_indices[v] for v in sample_indices]
+
+  joint_val_embed = value_embed[torch.cat(value_indices, dim=0)]
+  val_scatter = []
+  for i, v in enumerate(value_indices):
+    val_scatter += [i] * v.shape[0]
+  val_scatter = torch.LongTensor(val_scatter).to(io_state.device)
+  value_state = agg_func(joint_val_embed, val_scatter)
+  if io_gather is not None:
+    io_state = io_state[io_gather]
+  joint_state = torch.cat((io_state, value_state), dim=1)
+  return joint_state
 
 
 class PoolingState(nn.Module):
@@ -63,25 +88,8 @@ class PoolingState(nn.Module):
     joint_state = torch.cat((io_state, value_state), dim=1)
     return self.proj(joint_state)
 
-  def batch_forward(self, io_embed, io_scatter, value_embed, value_indices, sample_indices=None):
-    if self.pool_method == 'max':
-      agg_func = lambda x, idx: scatter_max(x, idx, dim=0)[0]
-    elif self.pool_method == 'mean':
-      agg_func = lambda x, idx: scatter_mean(x, idx, dim=0)
-    else:
-      raise ValueError('unknown pooling %s' % self.pool_method)
-    io_state = agg_func(io_embed, io_scatter)
-    if sample_indices is not None:
-      io_state = io_state[sample_indices]
-      value_indices = [value_indices[v] for v in sample_indices]
-
-    joint_val_embed = value_embed[torch.cat(value_indices, dim=0)]
-    val_scatter = []
-    for i, v in enumerate(value_indices):
-      val_scatter += [i] * v.shape[0]
-    val_scatter = torch.LongTensor(val_scatter).to(io_state.device)
-    value_state = agg_func(joint_val_embed, val_scatter)
-    joint_state = torch.cat((io_state, value_state), dim=1)
+  def batch_forward(self, io_embed, io_scatter, value_embed, value_indices, sample_indices=None, io_gather=None):
+    joint_state = batch_pooling(self.pool_method, io_embed, io_scatter, value_embed, value_indices, sample_indices, io_gather)
     return self.proj(joint_state)
 
 
@@ -90,6 +98,7 @@ class OpPoolingState(nn.Module):
     super(OpPoolingState, self).__init__()
     self.ops = ops
     self.state_dim = state_dim
+    self.pool_method = pool_method
     self.op_specific_mod = nn.ModuleList([PoolingState(self.state_dim, pool_method) for _ in range(len(self.ops))])
     self.op_idx_map = {repr(op): i for i, op in enumerate(self.ops)}
 
@@ -97,9 +106,19 @@ class OpPoolingState(nn.Module):
     mod = self.op_specific_mod[self.op_idx_map[repr(op)]]
     return mod(io_embed, value_embed, value_mask)
 
-  def batch_forward(self, io_embed, io_scatter, value_embed, value_indices, op, sample_indices=None):
+  def batch_forward(self, io_embed, io_scatter, value_embed, value_indices, op, sample_indices=None, io_gather=None):
+    if isinstance(op, list):
+      joint_state = batch_pooling(self.pool_method, io_embed, io_scatter, value_embed, value_indices, sample_indices, io_gather)
+      assert len(op) == joint_state.shape[0]
+      weights = [self.op_specific_mod[self.op_idx_map[repr(o)]].proj.weight for o in op]
+      bias = [self.op_specific_mod[self.op_idx_map[repr(o)]].proj.bias for o in op]
+      joint_state = joint_state.unsqueeze(-1)
+      weights = torch.stack(weights, dim=0)
+      bias = torch.stack(bias, dim=0)
+      h = torch.bmm(weights, joint_state).squeeze(-1)
+      return h + bias
     mod = self.op_specific_mod[self.op_idx_map[repr(op)]]
-    return mod.batch_forward(io_embed, io_scatter, value_embed, value_indices, sample_indices)
+    return mod.batch_forward(io_embed, io_scatter, value_embed, value_indices, sample_indices, io_gather)
 
 
 class OpExplicitPooling(OpPoolingState):
