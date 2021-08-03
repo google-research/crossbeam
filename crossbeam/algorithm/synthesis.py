@@ -154,7 +154,7 @@ def synthesize(task, domain, model, device,
 
 
 def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k=2, is_training=False,
-                     include_as_train=None, timeout=None, is_stochastic=False):
+                     include_as_train=None, timeout=None, is_stochastic=False, random_beam=False):
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
   if traces is None:
     trace = [[] for _ in range(len(tasks))]
@@ -187,42 +187,48 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
       indices.append(idx)
     value_indices.append(indices)
     output_values.append(value_module.OutputValue(task.outputs))
+  if not random_beam:
+    io_embed, io_scatter = model.io([task.inputs_dict for task in tasks],
+                                    [task.outputs for task in tasks],
+                                    device=device,
+                                    needs_scatter_idx=True)
 
-  io_embed, io_scatter = model.io([task.inputs_dict for task in tasks],
-                                  [task.outputs for task in tasks],
-                                  device=device,
-                                  needs_scatter_idx=True)
-
-  val_embed = model.val(all_values, device=device)
+    val_embed = model.val(all_values, device=device)
   max_beam_steps = max([operation.arity for operation in domain.operations])
   training_samples = []
   while not all(task_done):
     for operation in domain.operations:
       if all(task_done):
         break
-      if len(all_values) > val_embed.shape[0]:
-        more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device)
-        val_embed = torch.cat((val_embed, more_val_embed), dim=0)
       active_tasks = []
-      cur_val_indices = [torch.LongTensor(vid).to(device) for vid in value_indices]
       for t_idx, task in enumerate(tasks):
         if task_done[t_idx]:
           continue
         active_tasks.append(t_idx)
-
-      op_states = model.batch_init(io_embed, io_scatter, val_embed, cur_val_indices, operation,
-                                   sample_indices=active_tasks)
-      batch_beam, _ = batch_beam_search(operation.arity, k,
-                                        val_embed,
-                                        [cur_val_indices[v] for v in active_tasks],
-                                        op_states,
-                                        model.arg,
-                                        device=device,
-                                        is_stochastic=is_stochastic)
+      if not random_beam:
+        if len(all_values) > val_embed.shape[0]:
+          more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device)
+          val_embed = torch.cat((val_embed, more_val_embed), dim=0)
+        cur_val_indices = [torch.LongTensor(vid).to(device) for vid in value_indices]
+        op_states = model.batch_init(io_embed, io_scatter, val_embed, cur_val_indices, operation,
+                                    sample_indices=active_tasks)
+        batch_beam, _ = batch_beam_search(operation.arity, k,
+                                          val_embed,
+                                          [cur_val_indices[v] for v in active_tasks],
+                                          op_states,
+                                          model.arg,
+                                          device=device,
+                                          is_stochastic=is_stochastic)
       for local_tid, t_idx in enumerate(active_tasks):
         trace = traces[t_idx]
         output_value = output_values[t_idx]
-        args = batch_beam[local_tid]
+        if random_beam:
+          args = [[] for _ in range(k)]
+          for b in range(k):
+            args[b] += [np.random.choice(value_indices[t_idx]) for _ in range(operation.arity)]
+          args = np.array(args, dtype=np.int32)
+        else:
+          args = batch_beam[local_tid]
         beam = [[all_values[i] for i in arg_list] for arg_list in args]
         trace_in_beam = -1
         for bid, arg_list in enumerate(beam):

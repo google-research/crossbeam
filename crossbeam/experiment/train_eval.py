@@ -185,7 +185,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
           traces=batch_traces,
           max_weight=args.max_search_weight,
           k=args.beam_size,
-          is_training=True)
+          is_training=True,
+          random_beam=args.random_beam)
         loss = 0.0
       else:
         loss_acc = []
