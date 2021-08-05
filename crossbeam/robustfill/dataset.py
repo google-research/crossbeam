@@ -1,7 +1,7 @@
 import torch
 import random
 import os
-import pickle as cp
+import pickle5 as cp
 import glob
 from torch.utils.data import DataLoader, Dataset, IterableDataset
 from functools import partial
