@@ -4,10 +4,10 @@ import math
 from crossbeam.model.util import ceil_power_of_2
 
 
-def beam_search(arity, k, choice_embed, init_embed, score_model, device, choice_mask=None, is_stochastic=False):
+def beam_search(beam_steps, k, choice_embed, init_embed, score_model, device, num_op_candidates=0, choice_mask=None, is_stochastic=False):
   """
   Args:
-    arity: int, arity of current op;
+    beam_steps: int, beam_steps to perform;
     k: beam_size;
     choice_embed: array of size [N, embed_dim], embedding of N choices;    
     init_embed: embedding of initial state    
@@ -18,6 +18,7 @@ def beam_search(arity, k, choice_embed, init_embed, score_model, device, choice_
         so fn_step_state only takes care of single state update
       fn_step_score: a function takes (N-state, M-choices) and return a score matrix of N x M
     device: device to run beam search
+    num_op_candidates: number of op candidates to select, 0 if not needed in beam search
     choice_mask: vector of size N, mark valid (1) or invalid choice(0)
     is_stochastic: whether use stochastic (multinomial) instead of top-k
   Returns:
@@ -28,13 +29,19 @@ def beam_search(arity, k, choice_embed, init_embed, score_model, device, choice_
   num_choices = choice_embed.shape[0]
   prefix_scores = torch.zeros(1).to(device)
   arg_choices = torch.LongTensor([[]]).to(device)
+
+  if choice_mask is None and num_op_candidates:
+    choice_mask = torch.zeros(num_choices).to(device)
+    choice_mask[:num_op_candidates] = 1.0  
   if choice_mask is not None:
     choice_mask = choice_mask.unsqueeze(0)
-  for _ in range(arity):
+  for step in range(beam_steps):
     scores = score_model.step_score(cur_state, choice_embed)  # result in a score matrix of size (N-state, N-choice)
-    joint_scores = prefix_scores.unsqueeze(1) + scores # broadcast over columns
+    joint_scores = prefix_scores.unsqueeze(1) + scores # broadcast over columns    
     if choice_mask is not None:
       joint_scores = joint_scores * choice_mask + (1 - choice_mask) * -1e10
+    if step == 0 and num_op_candidates:
+      choice_mask = 1.0 - choice_mask    
     joint_scores = joint_scores.view(-1)
     cur_k = joint_scores.shape[0] if k > joint_scores.shape[0] else k
     if is_stochastic:
