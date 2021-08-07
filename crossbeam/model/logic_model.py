@@ -12,7 +12,6 @@ class LogicModel(nn.Module):
     super(LogicModel, self).__init__()
 
     self.max_entities = max_entities
-    
 
     self.arg = LSTMArgSelector(hidden_size=args.embed_dim,
                                mlp_sizes=[256, 1],
@@ -20,29 +19,30 @@ class LogicModel(nn.Module):
                                step_score_normalize=args.score_normed)
     self.init = OpPoolingState(ops=tuple(operations), state_dim=args.embed_dim, pool_method='mean')
 
-    self.entity_project = nn.Embedding(max_entities, args.embed_dim)
-    
-    # relations:
-    # unary both no
-    # unary first yes
-    # unary second yes    
-    # unary both yes    
-    # binary no
-    # binary ->
-    # binary <-
-    # binary <->
-    # also applies for spec (2x)
-    self.relation_project = nn.Embedding(8+8, args.embed_dim)
+    if args.great_transformer:
+      self.entity_project = nn.Embedding(max_entities, args.embed_dim)
 
-    self.great = Great(d_model=args.embed_dim,
-                       dim_feedforward=args.embed_dim*4,
-                       layers=4,
-                       batch_first=True)
+      # relations:
+      # unary both no
+      # unary first yes
+      # unary second yes    
+      # unary both yes    
+      # binary no
+      # binary ->
+      # binary <-
+      # binary <->
+      # also applies for spec (2x)
+      self.relation_project = nn.Embedding(8+8, args.embed_dim)
 
-    self.final_projection = nn.Linear(max_entities*args.embed_dim,args.embed_dim)
+      self.great = Great(d_model=args.embed_dim,
+                         dim_feedforward=args.embed_dim*4,
+                         layers=4,
+                         batch_first=True)
 
-    # deprecated
-    self.embed_spec,self.embed_value,self.embed_input = \
+      self.final_projection = nn.Linear(max_entities*args.embed_dim,args.embed_dim)
+    else:
+      self.great = None
+      self.embed_spec,self.embed_value,self.embed_input = \
                       [ nn.Sequential(nn.Linear(max_entities*max_entities + 1, hidden),
                                      nn.ReLU(),
                                      nn.Linear(hidden, hidden),
@@ -59,8 +59,17 @@ class LogicModel(nn.Module):
     else:
       assert False, "only handle relations with 1/2 indices"
 
-  def features_of_relation(self, relations, is_specification):
-    x = self.entity_project(torch.arange(self.max_entities).long())
+  def features_of_relation(self, relations, is_specification, device=None):
+    if self.great is None:
+      x = torch.tensor([LogicModel.serialize_relation(v) for v in relations]).float()
+      if device: x = x.to(device)
+      if is_specification:
+        return self.embed_spec(x)
+      else:
+        return self.embed_input(x)
+
+    
+    x = self.entity_project(torch.arange(self.max_entities,device=device).long())
     x = x.unsqueeze(0).repeat(len(relations),1,1)
 
     d = {(False,False): 0,
@@ -105,28 +114,20 @@ class LogicModel(nn.Module):
 
     input_dictionary = input_dictionary[0]
     outputs = outputs[0][0]
-    specification = self.features_of_relation([outputs], True)
 
+    specification = self.features_of_relation([outputs], True, device)
     
     values = self.val(list(input_dictionary.values()),
-                      specification.device)
-    
+                        device)
+
     values = values.max(0).values.unsqueeze(0)
 
     return torch.cat((specification,values),-1)
-    # deprecated
-    output_embedding = self.embed_spec(torch.tensor(LogicModel.serialize_relation(outputs)).float().to(device))
-    
-    
-    input_embedding = self.embed_input(torch.tensor([LogicModel.serialize_relation(v[0]) for v in input_dictionary.values()]).float().to(device)).max(-2).values
-
-    return torch.cat((output_embedding,input_embedding),-1).unsqueeze(0)
     
   def val(self, all_values, device):
     """all_values: list of values. each value is represented by its instantiation on each I/O example
     so if you have three I/O examples and ten values then you will have 10x3 matrix as input
     returns as output [number_of_values,embedding_size]"""
-    
+
     all_values = [v[0] for v in all_values]
-    return self.features_of_relation(all_values, False).to(device)
-    
+    return self.features_of_relation(all_values, False, device)

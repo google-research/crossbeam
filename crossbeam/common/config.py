@@ -23,6 +23,7 @@ flags.DEFINE_integer('train_steps', 10000, 'number of training steps')
 flags.DEFINE_integer('eval_every', 1000, 'number of steps between evals')
 flags.DEFINE_float('lr', 0.0001, 'learning rate')
 flags.DEFINE_integer('beam_size', 4, '')
+flags.DEFINE_bool('great_transformer', False, 'use great transformer for logic programming?')
 
 
 flags.DEFINE_integer('gpu', -1, '')

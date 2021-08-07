@@ -27,5 +27,6 @@ python run_crossbeam.py \
     --train_data_glob $HOME/data/crossbeam/logic_synthesis/train*.pkl \
     --max_num_examples=1 --min_num_examples=1 \
     --max_num_inputs=4 --min_num_inputs=4 \
+    --great_transformer 1\
     $@
 
