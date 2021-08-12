@@ -65,11 +65,14 @@ class _TrieNode(object):
     Returns:
       A tuple of the child _TrieNode and the child's index.
     """
-    if isinstance(unnorm_probs, torch.Tensor):
-      unnorm_probs = unnorm_probs.detach().numpy()
+    if unnorm_probs is None:
+      num_elements = len(self.children)
     else:
-      unnorm_probs = np.array(unnorm_probs)
-    num_elements = len(unnorm_probs)
+      if isinstance(unnorm_probs, torch.Tensor):
+        unnorm_probs = unnorm_probs.detach().numpy()
+      else:
+        unnorm_probs = np.array(unnorm_probs)
+      num_elements = len(unnorm_probs)
     if not self.children:
       # This is the first sample. Set up children.
       self.unnorm_probs = unnorm_probs

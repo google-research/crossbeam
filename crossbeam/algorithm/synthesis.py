@@ -22,11 +22,15 @@ from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
 from crossbeam.unique_randomizer import unique_randomizer as ur
 
+NUM_VALUES_EXPLORED = 0
 
 def synthesize(task, domain, model, device,
                trace=None, max_weight=15, k=2, is_training=False,
                include_as_train=None, timeout=None, is_stochastic=False,
                random_beam=False, use_ur=False):
+  global NUM_VALUES_EXPLORED
+  NUM_VALUES_EXPLORED = 0
+
   verbose = False
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
   if trace is None:
@@ -60,13 +64,25 @@ def synthesize(task, domain, model, device,
 
     for operation in domain.operations:
       if end_time is not None and timeit.default_timer() > end_time:
-        return None, None
+        return None, all_values
       if verbose:
         print('Operation: {}'.format(operation))
       num_values_before_op = len(all_values)
 
+      if operation.arg_types() is not None:
+        type_masks = []
+        for arg_index in range(operation.arity):
+          arg_type = operation.arg_types()[arg_index]
+          type_mask = torch.BoolTensor([v.type == arg_type for v in all_values])
+          type_masks.append(type_mask)
+        if any(not any(type_mask) for type_mask in type_masks):
+          continue  # No options for some argument!
+      else:
+        type_masks = None
+
       if use_ur:
-        randomizer = ur.UniqueRandomizer() if use_ur else None
+        assert not is_training
+        randomizer = ur.UniqueRandomizer()
         val_embed = model.val(all_values, device=device)
         init_embed = model.init(io_embed, val_embed, operation)
 
@@ -75,28 +91,43 @@ def synthesize(task, domain, model, device,
         num_tries = 0
         init_state = score_model.get_init_state(init_embed, batch_size=1)
         randomizer.current_node.cache['state'] = init_state
-        while len(new_values) < k and num_tries < 5*k and not randomizer.exhausted():
+        while len(new_values) < k and num_tries < 10*k and not randomizer.exhausted():
           num_tries += 1
-          cur_state = init_state
           arg_list = []
-          for _ in range(operation.arity):
-            scores = score_model.step_score(cur_state, val_embed)
-            prob = torch.softmax(scores, dim=1).squeeze(0)
+          for arg_index in range(operation.arity):
+            cur_state = randomizer.current_node.cache['state']
+            if randomizer.needs_probabilities():
+              scores = score_model.step_score(cur_state, val_embed)
+              scores = scores.view(-1)
+              if type_masks is not None:
+                scores = torch.where(type_masks[arg_index], scores,
+                                     torch.FloatTensor([-1e10]))
+              prob = torch.softmax(scores, dim=0)
+            else:
+              prob = None
             choice_index = randomizer.sample_distribution(prob)
             arg_list.append(all_values[choice_index])
-            choice_embed = val_embed[[choice_index]]
-            cur_state = score_model.step_state(cur_state, choice_embed)
-            randomizer.current_node.cache['state'] = cur_state
+            if 'state' not in randomizer.current_node.cache:
+              choice_embed = val_embed[[choice_index]]
+              if cur_state is None:
+                raise ValueError('cur_state is None!!')
+              cur_state = score_model.step_state(cur_state, choice_embed)
+              randomizer.current_node.cache['state'] = cur_state
           randomizer.mark_sequence_complete()
 
           result_value = operation.apply(arg_list)
+          NUM_VALUES_EXPLORED += 1
+          if verbose and result_value is None:
+            print('Cannot apply {} to {}'.format(operation, arg_list))
           if result_value is None or result_value.weight > max_weight:
             continue
           if (domain.small_value_filter and
               not all(domain.small_value_filter(v) for v in result_value.values)):
             continue
           if result_value in all_value_dict:
-            # TODO: replace existing one if this way is simpler (less weight)
+            # TODO: replace existing one if this way is simpler (less weight).
+            # This also means using the simplest forms when recursively
+            # reconstructing expressions
             if verbose:
               print('duplicate value: {}, {}'.format(result_value, result_value.expression()))
             continue
@@ -169,4 +200,4 @@ def synthesize(task, domain, model, device,
           return training_samples, all_values
     if len(all_values) == cur_num_values:  # no improvement
       break
-  return None, None
+  return None, all_values

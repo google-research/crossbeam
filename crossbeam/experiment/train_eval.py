@@ -7,7 +7,7 @@ import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from crossbeam.algorithm.synthesis import synthesize
+from crossbeam.algorithm import synthesis
 from tqdm import tqdm
 import math
 import functools
@@ -86,19 +86,23 @@ def do_eval(eval_tasks, domain, model,
   succ = 0.0
   for i,t in enumerate(eval_tasks):
     start_time = timeit.default_timer()
-    print('\nTask: ', t)
-    out, _ = synthesize(t, domain, model,
-                        device=device,
-                        max_weight=max_search_weight,
-                        k=beam_size,
-                        is_training=False,
-                        timeout=timeout,
-                        is_stochastic=is_stochastic,
-                        random_beam=False,
-                        use_ur=True)
+    if verbose:
+      print('\nTask: ', t)
+    out, all_values = synthesis.synthesize(t, domain, model,
+                                           device=device,
+                                           max_weight=max_search_weight,
+                                           k=beam_size,
+                                           is_training=False,
+                                           timeout=timeout,
+                                           is_stochastic=is_stochastic,
+                                           random_beam=False,
+                                           use_ur=True)
     elapsed_time = timeit.default_timer() - start_time
-    print('Elapsed time: {:.2f}'.format(elapsed_time))
-    print('out: {} {}'.format(out, out.expression()) if out else None)
+    if verbose:
+      print('Elapsed time: {:.2f}'.format(elapsed_time))
+      print('Num values explored: {}'.format(synthesis.NUM_VALUES_EXPLORED))
+      print('Num unique values: {}'.format(len(all_values)))
+      print('out: {} {}'.format(out, out.expression()) if out else None)
     if out is not None:
       if verbose and i in should_show:
         print("successfully synthesized a solution to",t)
