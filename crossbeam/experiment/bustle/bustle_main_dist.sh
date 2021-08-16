@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tout=120
+tout=10
 maxw=10
 maxne=4
 maxni=3
@@ -9,7 +9,7 @@ maxsw=12
 data_folder=$HOME/data/crossbeam/bustle/t-${tout}-maxw-${maxw}-maxne-${maxne}-maxni-${maxni}
 
 beam_size=4
-grad_acc=1
+grad_acc=8
 save_dir=$HOME/results/crossbeam/bustle/b-${beam_size}-g-${grad_acc}
 
 if [ ! -e $save_dir ];
@@ -18,7 +18,6 @@ then
 fi
 
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
-
 
 python3 -m crossbeam.experiment.run_crossbeam \
     --domain=bustle \
@@ -36,6 +35,7 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --beam_size $beam_size \
     --gpu_list=0,1,2,3,4,5,6,7 \
     --num_proc=8 \
+    --embed_dim=512 \
     --eval_every 10000 \
     --train_steps 1000000 \
     --train_data_glob train-tasks*.pkl \

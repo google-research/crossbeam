@@ -128,5 +128,6 @@ class CharSeqEncoder(nn.Module):
     tok_embed = self.tok_embed(packed_seq.data)
     packed_input = PackedSequence(data=tok_embed, batch_sizes=packed_seq.batch_sizes,
                     sorted_indices=packed_seq.sorted_indices, unsorted_indices=packed_seq.unsorted_indices)
-    _, (h, _) = self.lstm(packed_input)
+    with torch.cuda.device(tok_embed.device):
+      _, (h, _) = self.lstm(packed_input)
     return h[-1]

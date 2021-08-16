@@ -82,11 +82,14 @@ class LSTMArgSelector(nn.Module):
   def step_state(self, state, x):
     assert len(x.shape) == 2
     x = x.unsqueeze(1)
-    return self.lstm(x, state)[1]
+    with torch.cuda.device(x.device):
+        new_state = self.lstm(x, state)[1]
+    return new_state
 
   def get_step_scores(self, h0, c0, choice_embed, arg_seq, masks=None):
     arg_seq_embed = choice_embed[arg_seq]
-    output, _ = self.lstm(arg_seq_embed, (h0, c0))
+    with torch.cuda.device(h0.device):
+        output, _ = self.lstm(arg_seq_embed, (h0, c0))
     state = torch.cat((h0[-1].unsqueeze(1), output[:, :-1, :]), dim=1)
     if masks is not None:
       masks = masks.unsqueeze(1).repeat(1, state.shape[1], 1).view(-1, masks.shape[-1])

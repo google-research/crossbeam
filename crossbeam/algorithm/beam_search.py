@@ -57,7 +57,7 @@ def beam_search(beam_steps, k, choice_embed, init_embed, score_model, device, nu
       arg_selected = arg_selected[idx_sorted]
     else:
       prefix_scores, arg_selected = torch.topk(joint_scores, cur_k)
-    prev_index = arg_selected // num_choices
+    prev_index = torch.div(arg_selected, num_choices, rounding_mode='floor')
     op_choice = arg_selected % num_choices
 
     prev_state = score_model.state_select(cur_state, prev_index)
