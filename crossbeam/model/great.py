@@ -82,7 +82,7 @@ class MultiheadAttentionRelation(nn.Module):
 
         self.add_zero_attn = add_zero_attn
 
-        self.relation_project = nn.Linear(embed_dim, num_heads)#, **factory_kwargs)
+        self.relation_project = nn.Linear(embed_dim, embed_dim)
 
         self._reset_parameters()
 
@@ -134,6 +134,7 @@ class MultiheadAttentionRelation(nn.Module):
           value of ``True`` will be ignored while the position with the value of ``False`` will be unchanged.
         - attn_mask: if a 2D mask: :math:`(L, S)` where L is the target sequence length, S is the
           source sequence length.
+        - relation: (N, L, L, E) for each batch element, for each pair of objects, what is the embedding of their relation
 
           If a 3D mask: :math:`(N\cdot\text{num\_heads}, L, S)` where N is the batch size, L is the target sequence
           length, S is the source sequence length. ``attn_mask`` ensure that position i is allowed to   attend
@@ -166,7 +167,7 @@ class MultiheadAttentionRelation(nn.Module):
 
         # incorporate relation
         # masking does not matter because we will handle it later
-        q = q.unsqueeze(2) + r.unsqueeze(-1)
+        q = q.unsqueeze(2) + r.view(B, L, L, self.num_heads, -1)
         
         a = torch.einsum('bqkhe,bkhe->bqkh', q, k)
         a = a / ((self.embed_dim//self.num_heads)**0.5)
