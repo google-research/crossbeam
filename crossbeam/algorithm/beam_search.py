@@ -88,7 +88,7 @@ def beam_step(raw_scores, cur_sizes, beam_size):
     pos_index.append(i * pad_size - gap)
     gap += pad_size - s
   pos_index = torch.LongTensor(pos_index).to(padded_scores.device).view(-1, 1)
-  predecessors = candidates // n_choices + pos_index.expand_as(candidates)
+  predecessors = torch.div(candidates, n_choices, rounding_mode='floor') + pos_index.expand_as(candidates)
 
   valid = topk_scores > EPS + N_INF
   n_valid = valid.sum(dim=-1)
