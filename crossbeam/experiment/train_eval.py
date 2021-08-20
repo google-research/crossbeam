@@ -194,14 +194,14 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
         t = next(train_gen)
         trace = list(trace_gen(t.solution))
         with torch.no_grad():
-          training_samples, all_values = synthesize(
+          training_samples, all_values, stats = synthesis.synthesize(
               t, domain, model, device=device,
               trace=trace,
               max_weight=args.max_search_weight,
               k=args.beam_size,
               is_training=True,
               random_beam=args.random_beam)
-        
+
         if isinstance(training_samples, list):
           loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
           loss = loss / args.grad_accumulate
