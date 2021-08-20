@@ -22,6 +22,7 @@ This differs from standard UniqueRandomizer in two ways:
 """
 
 import numpy as np
+import torch
 
 EXPLORATION_FACTOR = 0.5
 
@@ -49,6 +50,7 @@ class _TrieNode(object):
     self.parent = parent
     self.index_in_parent = index_in_parent
     self.children = None
+    self.cache = {}
     self._sum_unnorm_unsampled_mass = None  # Will compute later.
 
   def sample_child(self, unnorm_probs):
@@ -63,10 +65,17 @@ class _TrieNode(object):
     Returns:
       A tuple of the child _TrieNode and the child's index.
     """
-    num_elements = len(unnorm_probs)
+    if unnorm_probs is None:
+      num_elements = len(self.children)
+    else:
+      if isinstance(unnorm_probs, torch.Tensor):
+        unnorm_probs = unnorm_probs.detach().numpy()
+      else:
+        unnorm_probs = np.array(unnorm_probs)
+      num_elements = len(unnorm_probs)
     if not self.children:
       # This is the first sample. Set up children.
-      self.unnorm_probs = np.array(unnorm_probs)
+      self.unnorm_probs = unnorm_probs
       self._sum_unnorm_probs = np.sum(self.unnorm_probs)
       self.unnorm_unsampled_mass = np.copy(self.unnorm_probs)
       # _sum_unnorm_unsampled_mass is not needed now, compute later in the
@@ -74,7 +83,7 @@ class _TrieNode(object):
       self.children = [None] * num_elements
       # Faster to choose from unnorm_probs when it's still accurate (i.e., on
       # the first sample).
-      distribution = unnorm_probs / self._sum_unnorm_probs
+      distribution = self.unnorm_probs / self._sum_unnorm_probs
     elif num_elements > len(self.children):
       # Adding more children.
       old_num_elements = len(self.children)

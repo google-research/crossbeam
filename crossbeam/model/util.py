@@ -35,7 +35,7 @@ class CharacterTable(object):
   def encode(self, inputs):
     """Encode from string to list of integers."""
     return np.array(
-        [self._char_indices[char] for char in inputs] + [self.eos_id])
+        [self._char_indices.get(char, self._char_indices['_']) for char in inputs] + [self.eos_id])
 
   def decode(self, inputs):
     """Decode from list of integers to string."""
