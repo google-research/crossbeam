@@ -28,6 +28,7 @@ class MainTupleTest(parameterized.TestCase):
 
     max_search_weight = max_weight + 1
     FLAGS([''])  # Parse flags
+    FLAGS.domain = domain_str
     FLAGS.train_steps = 100
     FLAGS.eval_every = 50
     FLAGS.num_proc = 1
@@ -37,9 +38,10 @@ class MainTupleTest(parameterized.TestCase):
     FLAGS.max_search_weight = max_search_weight
     FLAGS.beam_size = 4
     FLAGS.grad_accumulate = 3
+    FLAGS.op_in_beam = False
 
     domain = domains.get_domain(domain_str)
-    model = run_crossbeam.init_model(domain, model_type)
+    model = run_crossbeam.init_model(FLAGS, domain, model_type)
 
     proc_args = argparse.Namespace(**FLAGS.flag_values_dict())
     eval_tasks = data_gen.gen_random_tasks(
@@ -47,7 +49,7 @@ class MainTupleTest(parameterized.TestCase):
         min_num_examples=2, max_num_examples=3,
         min_num_inputs=1, max_num_inputs=2)
     task_gen_func = lambda _: random.choice(eval_tasks)
-    train_eval.main_train_eval(proc_args, model, eval_tasks, domain,
+    train_eval.main_train_eval(proc_args, model, eval_tasks,
                                task_gen=task_gen_func,
                                trace_gen=data_gen.trace_gen)
 

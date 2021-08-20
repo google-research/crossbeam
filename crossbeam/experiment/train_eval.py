@@ -17,6 +17,7 @@ from torch.multiprocessing import Queue
 from _thread import start_new_thread
 import torch.distributed as dist
 import traceback
+from crossbeam.dsl import domains
 from crossbeam.common.config import get_torch_device
 from absl import logging
 import timeit
@@ -56,15 +57,21 @@ def task_loss(task, device, training_samples, all_values, model, score_normed=Tr
   val_embed = model.val(all_values, device=device)
   loss = 0.0
   for sample in training_samples:
-    arg_options, true_arg_pos, num_vals, op = sample
+    arg_options, decision_lens, true_arg_pos, num_vals, op = sample
     arg_options = torch.LongTensor(arg_options).to(device)
     cur_vals = val_embed[:num_vals]
     op_state = model.init(io_embed, cur_vals, op)
     scores = model.arg(op_state, cur_vals, arg_options)
-    scores = torch.sum(scores, dim=-1)
-    if score_normed:
-        nll = -scores[true_arg_pos]
+    if model.op_in_beam:
+      prefix_scores = torch.cumsum(scores, dim=-1)
+      assert score_normed
+      true_steps = decision_lens[true_arg_pos]
+      nll = -prefix_scores[true_arg_pos][true_steps - 1]
     else:
+      scores = torch.sum(scores, dim=-1)
+      if score_normed:
+        nll = -scores[true_arg_pos]
+      else:
         nll = -F.log_softmax(scores, dim=0)[true_arg_pos]
     loss = loss + nll
   loss = loss / len(training_samples)
@@ -126,7 +133,7 @@ def _gather_eval_info(rank, device, local_acc, local_num):
   return succ
 
 
-def train_eval_loop(args, device, model, train_files, eval_tasks, domain,
+def train_eval_loop(args, device, model, train_files, eval_tasks,
                     task_gen, trace_gen):
   def local_task_gen(domain):
     if len(train_files) or task_gen is None:
@@ -140,6 +147,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks, domain,
     else:
       while True:
         yield task_gen(domain)
+  domain = domains.get_domain(args.domain)
   train_gen = local_task_gen(domain)
   is_distributed = args.num_proc > 1
   if is_distributed:
@@ -221,7 +229,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks, domain,
 
 
 @thread_wrapped_func
-def train_mp(args, rank, device, model, train_files, eval_tasks, domain, task_gen, trace_gen):
+def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace_gen):
   if args.num_proc > 1:
     torch.set_num_threads(1)
   os.environ['MASTER_ADDR'] = '127.0.0.1'
@@ -231,10 +239,10 @@ def train_mp(args, rank, device, model, train_files, eval_tasks, domain, task_ge
   else:
     backend = 'nccl'
   dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
-  train_eval_loop(args, device, model, train_files, eval_tasks, domain, task_gen, trace_gen)
+  train_eval_loop(args, device, model, train_files, eval_tasks, task_gen, trace_gen)
 
 
-def main_train_eval(args, model, eval_tasks, domain, task_gen, trace_gen):
+def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
   if args.train_data_glob is not None:
     train_files = sorted(glob.glob(os.path.join(args.data_folder, args.train_data_glob)))
   else:
@@ -253,12 +261,12 @@ def main_train_eval(args, model, eval_tasks, domain, task_gen, trace_gen):
       local_train_files = train_files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
       proc = mp.Process(target=train_mp,
                         args=(args, rank, device, model, local_train_files, local_eval_tasks,
-                              domain, task_gen, trace_gen))
+                              task_gen, trace_gen))
       procs.append(proc)
       proc.start()
     for proc in procs:
       proc.join()
   else:
     train_eval_loop(args, get_torch_device(args.gpu), model, train_files, eval_tasks,
-                    domain, task_gen, trace_gen)
+                    task_gen, trace_gen)
   logging.info("Training finished!!")

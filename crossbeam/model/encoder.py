@@ -8,8 +8,8 @@ from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 import functools
 from torch.nn.utils.rnn import pack_sequence, PackedSequence, pad_packed_sequence, pack_padded_sequence
-
-from crossbeam.model.base import CharSeqEncoder, pad_sequence
+from crossbeam.dsl.operation_base import OperationBase
+from crossbeam.model.base import CharSeqEncoder, pad_sequence, _param_init
 from crossbeam.model.util import CharacterTable
 
 
@@ -163,4 +163,22 @@ class CharValueLSTMEncoder(nn.Module):
     list_int_vals = [self.val_char_table.encode(x) for x in list_values]
     padded_i, len_i = pad_int_seq(list_int_vals, device)
     val_embed = self.val_encoder(padded_i, len_i)
+    return val_embed
+
+
+class ValueAndOpEncoder(nn.Module):
+  def __init__(self, ops, val_encoder):
+    super(ValueAndOpEncoder, self).__init__()
+    self.val_encoder = val_encoder
+    self.num_ops = len(ops)
+    self.op_embedding = nn.Parameter(torch.zeros(self.num_ops, val_encoder.hidden_size))
+    _param_init(self.op_embedding)    
+
+  def forward(self, all_values, device):
+    if isinstance(all_values[0], OperationBase):
+      assert all([isinstance(x, OperationBase) for x in all_values[:self.num_ops]])
+      val_embed = self.val_encoder(all_values[self.num_ops:], device)
+      val_embed = torch.cat((self.op_embedding, val_embed), dim=0)
+    else:
+      val_embed = self.val_encoder(all_values, device)    
     return val_embed

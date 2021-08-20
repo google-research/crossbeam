@@ -34,7 +34,7 @@ class PoolingState(nn.Module):
     self.pool_method = pool_method
     self.proj = nn.Linear(state_dim * 3, state_dim)
 
-  def forward(self, io_embed, value_embed, value_mask=None):
+  def forward(self, io_embed, value_embed, dummy_op=None, value_mask=None):
     torch_pool = getattr(torch, self.pool_method, None)
     if self.pool_method == 'max' or self.pool_method == 'min':
       pool_method = lambda x: torch_pool(x, dim=0, keepdims=True)[0]
