@@ -22,14 +22,12 @@ from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
 from crossbeam.unique_randomizer import unique_randomizer as ur
 
-NUM_VALUES_EXPLORED = 0
 
 def synthesize(task, domain, model, device,
                trace=None, max_weight=15, k=2, is_training=False,
                include_as_train=None, timeout=None, is_stochastic=False,
                random_beam=False, use_ur=False):
-  global NUM_VALUES_EXPLORED
-  NUM_VALUES_EXPLORED = 0
+  stats = {'num_values_explored': 0}
 
   verbose = False
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
@@ -64,7 +62,7 @@ def synthesize(task, domain, model, device,
 
     for operation in domain.operations:
       if end_time is not None and timeit.default_timer() > end_time:
-        return None, all_values
+        return None, all_values, stats
       if verbose:
         print('Operation: {}'.format(operation))
       num_values_before_op = len(all_values)
@@ -116,7 +114,7 @@ def synthesize(task, domain, model, device,
           randomizer.mark_sequence_complete()
 
           result_value = operation.apply(arg_list)
-          NUM_VALUES_EXPLORED += 1
+          stats['num_values_explored'] += 1
           if verbose and result_value is None:
             print('Cannot apply {} to {}'.format(operation, arg_list))
           if result_value is None or result_value.weight > max_weight:
@@ -139,7 +137,7 @@ def synthesize(task, domain, model, device,
           all_value_dict[new_value] = len(all_values)
           all_values.append(new_value)
           if new_value == output_value:
-            return new_value, all_values
+            return new_value, all_values, stats
 
         continue
 
@@ -174,7 +172,7 @@ def synthesize(task, domain, model, device,
         all_value_dict[result_value] = len(all_values)
         all_values.append(result_value)
         if result_value == output_value and not is_training:
-          return result_value, all_values
+          return result_value, all_values, stats
         # TODO: allow multi-choice when options in trace have the same priority
         # one easy fix would to include this into trace_generation stage (add stochasticity)
         if len(trace) and result_value == trace[0] and trace_in_beam < 0:
@@ -197,7 +195,7 @@ def synthesize(task, domain, model, device,
           training_samples.append((args, trace_in_beam, num_values_before_op, operation))
         trace.pop(0)
         if len(trace) == 0:
-          return training_samples, all_values
+          return training_samples, all_values, stats
     if len(all_values) == cur_num_values:  # no improvement
       break
-  return None, all_values
+  return None, all_values, stats

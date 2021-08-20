@@ -88,19 +88,20 @@ def do_eval(eval_tasks, domain, model,
     start_time = timeit.default_timer()
     if verbose:
       print('\nTask: ', t)
-    out, all_values = synthesis.synthesize(t, domain, model,
-                                           device=device,
-                                           max_weight=max_search_weight,
-                                           k=beam_size,
-                                           is_training=False,
-                                           timeout=timeout,
-                                           is_stochastic=is_stochastic,
-                                           random_beam=False,
-                                           use_ur=True)
+    out, all_values, stats = synthesis.synthesize(
+        t, domain, model,
+        device=device,
+        max_weight=max_search_weight,
+        k=beam_size,
+        is_training=False,
+        timeout=timeout,
+        is_stochastic=is_stochastic,
+        random_beam=False,
+        use_ur=True)
     elapsed_time = timeit.default_timer() - start_time
     if verbose:
       print('Elapsed time: {:.2f}'.format(elapsed_time))
-      print('Num values explored: {}'.format(synthesis.NUM_VALUES_EXPLORED))
+      print('Num values explored: {}'.format(stats['num_values_explored']))
       print('Num unique values: {}'.format(len(all_values)))
       print('out: {} {}'.format(out, out.expression()) if out else None)
     if out is not None:
