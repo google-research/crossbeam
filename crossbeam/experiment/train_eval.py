@@ -7,7 +7,7 @@ import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from crossbeam.algorithm.synthesis import synthesize, batch_synthesize
+from crossbeam.algorithm import synthesis
 from tqdm import tqdm
 import math
 import functools
@@ -20,7 +20,7 @@ import traceback
 from crossbeam.dsl import domains
 from crossbeam.common.config import get_torch_device
 from absl import logging
-
+import timeit
 
 def thread_wrapped_func(func):
     """Wrapped func for torch.multiprocessing.Process.
@@ -137,18 +137,29 @@ def do_eval(eval_tasks, domain, model,
       should_show = range(len(eval_tasks))
   succ = 0.0
   for i,t in enumerate(eval_tasks):
-    out, _ = synthesize(t, domain, model,
-                        device=device,
-                        max_weight=max_search_weight,
-                        k=beam_size,
-                        is_training=False,
-                        timeout=timeout,
-                        is_stochastic=is_stochastic,
-                        random_beam=False)
+    start_time = timeit.default_timer()
+    if verbose:
+      print('\nTask: ', t)
+    out, all_values, stats = synthesis.synthesize(
+        t, domain, model,
+        device=device,
+        max_weight=max_search_weight,
+        k=beam_size,
+        is_training=False,
+        timeout=timeout,
+        is_stochastic=is_stochastic,
+        random_beam=False,
+        use_ur=True)
+    elapsed_time = timeit.default_timer() - start_time
+    if verbose:
+      print('Elapsed time: {:.2f}'.format(elapsed_time))
+      print('Num values explored: {}'.format(stats['num_values_explored']))
+      print('Num unique values: {}'.format(len(all_values)))
+      print('out: {} {}'.format(out, out.expression()) if out else None)
     if out is not None:
       if verbose and i in should_show:
         print("successfully synthesized a solution to",t)
-        print(out)
+        print(out, out.expression())
       succ += 1.0
     elif verbose and i in should_show:
       print("could not successfully solve",t)
@@ -197,9 +208,11 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
                                 timeout=args.timeout,
                                 is_stochastic=args.stochastic_beam)
   if args.do_test: # test only
+    print('Doing test only!')
     succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
     if args.num_proc > 1:
       succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
+    print('Done testing! Exiting.')
     sys.exit()
   optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
   best_succ = -1
@@ -225,7 +238,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
       batch_tasks = next(train_gen)
       batch_traces = [list(trace_gen(t.solution)) for t in batch_tasks]
       if args.batch_training:
-        training_samples, all_values = batch_synthesize(
+        training_samples, all_values = synthesis.batch_synthesize(
           batch_tasks, domain, model, device,
           traces=batch_traces,
           max_weight=args.max_search_weight,
@@ -238,7 +251,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
         loss_acc = []
         for t, trace in zip(batch_tasks, batch_traces):
           with torch.no_grad():
-            training_samples, all_values = synthesize(
+            training_samples, all_values, _ = synthesis.synthesize(
                 t, domain, model, device=device,
                 trace=trace,
                 max_weight=args.max_search_weight,

@@ -127,7 +127,10 @@ class CharSeqEncoder(nn.Module):
     packed_seq = pack_padded_sequence(padded_seq, len_seq, enforce_sorted=False)
     tok_embed = self.tok_embed(packed_seq.data)
     packed_input = PackedSequence(data=tok_embed, batch_sizes=packed_seq.batch_sizes,
-                    sorted_indices=packed_seq.sorted_indices, unsorted_indices=packed_seq.unsorted_indices)
-    with torch.cuda.device(tok_embed.device):
+                    sorted_indices=packed_seq.sorted_indices, unsorted_indices=packed_seq.unsorted_indices)    
+    if tok_embed.device == torch.device('cpu'):
       _, (h, _) = self.lstm(packed_input)
+    else:
+      with torch.cuda.device(tok_embed.device):
+        _, (h, _) = self.lstm(packed_input)
     return h[-1]

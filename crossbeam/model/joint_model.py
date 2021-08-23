@@ -45,3 +45,4 @@ class IntJointModel(nn.Module):
                                step_score_func=args.step_score_func,
                                step_score_normalize=args.score_normed)
     self.init = OpPoolingState(ops=tuple(operations), state_dim=args.embed_dim, pool_method='mean')
+    self.op_in_beam = args.op_in_beam
