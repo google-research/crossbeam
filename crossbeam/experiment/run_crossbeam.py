@@ -36,7 +36,7 @@ flags.DEFINE_bool('stochastic_beam', False, 'do stochastic beam search during te
 flags.DEFINE_bool('random_beam', False, 'replace beam search with random choices?')
 
 
-def init_model(domain, model_type):
+def init_model(args, domain, model_type):
   """Initializes the model."""
   if model_type.startswith('char'):
     input_table = CharacterTable(domain.input_charset,
@@ -45,16 +45,16 @@ def init_model(domain, model_type):
                                   max_len=domain.output_max_len)
     value_table = CharacterTable(domain.value_charset,
                                  max_len=domain.value_max_len)
-    return JointModel(FLAGS, input_table, output_table, value_table,
+    return JointModel(args, input_table, output_table, value_table,
                       domain.operations)
   elif model_type.startswith('int'):
-    return IntJointModel(FLAGS,
+    return IntJointModel(args,
                          input_range=(0, 10),
                          output_range=(-800, 800),
                          value_range=(-800, 800),
                          operations=domain.operations)
   elif model_type.startswith('logic'):
-    return LogicModel(FLAGS, operations=domain.operations)
+    return LogicModel(args, operations=domain.operations)
   else:
     raise ValueError('unknown model type %s' % model_type)
 
@@ -64,11 +64,12 @@ def main(argv):
   set_global_seed(FLAGS.seed)
 
   domain = domains.get_domain(FLAGS.domain)
-  model = init_model(domain, FLAGS.model_type)
+  model = init_model(FLAGS, domain, FLAGS.model_type)
   if FLAGS.load_model is not None:
     model_dump = os.path.join(FLAGS.save_dir, FLAGS.load_model)
     print('loading model from', model_dump)
     model.load_state_dict(torch.load(model_dump))
+    print('model loaded.')
   if FLAGS.do_test:
     eval_prefix = 'test-tasks'
   else:
@@ -94,7 +95,7 @@ def main(argv):
         max_num_inputs=FLAGS.max_num_inputs,
         verbose=FLAGS.verbose)
   
-  main_train_eval(proc_args, model, eval_tasks, domain,
+  main_train_eval(proc_args, model, eval_tasks,
                   task_gen=task_gen_func,
                   trace_gen=data_gen.trace_gen)
 

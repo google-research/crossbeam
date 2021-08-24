@@ -7,7 +7,7 @@ import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from crossbeam.algorithm.synthesis import synthesize
+from crossbeam.algorithm import synthesis
 from tqdm import tqdm
 import math
 import functools
@@ -17,9 +17,10 @@ from torch.multiprocessing import Queue
 from _thread import start_new_thread
 import torch.distributed as dist
 import traceback
+from crossbeam.dsl import domains
 from crossbeam.common.config import get_torch_device
 from absl import logging
-
+import timeit
 
 def thread_wrapped_func(func):
     """Wrapped func for torch.multiprocessing.Process.
@@ -56,24 +57,75 @@ def task_loss(task, device, training_samples, all_values, model, score_normed=Tr
   val_embed = model.val(all_values, device=device)
   loss = 0.0
   for sample in training_samples:
-    arg_options, true_arg_pos, num_vals, op = sample
+    arg_options, decision_lens, true_arg_pos, num_vals, op = sample
     arg_options = torch.LongTensor(arg_options).to(device)
     cur_vals = val_embed[:num_vals]
     op_state = model.init(io_embed, cur_vals, op)
     scores = model.arg(op_state, cur_vals, arg_options)
-    scores = torch.sum(scores, dim=-1)
-    if score_normed:
-        nll = -scores[true_arg_pos]
+    if model.op_in_beam:
+      prefix_scores = torch.cumsum(scores, dim=-1)
+      assert score_normed
+      true_steps = decision_lens[true_arg_pos]
+      nll = -prefix_scores[true_arg_pos][true_steps - 1]
     else:
+      scores = torch.sum(scores, dim=-1)
+      if score_normed:
+        nll = -scores[true_arg_pos]
+      else:
         nll = -F.log_softmax(scores, dim=0)[true_arg_pos]
     loss = loss + nll
   loss = loss / len(training_samples)
   return loss
 
 
+def batch_forward(tasks, device, training_samples, all_values, model, score_normed=True):
+  assert score_normed
+  io_embed, io_scatter = model.io([task.inputs_dict for task in tasks],
+                                  [task.outputs for task in tasks],
+                                  device=device,
+                                  needs_scatter_idx=True)
+  val_embed = model.val(all_values, device=device)
+  masks = []
+  sample_repeats = []
+  offset = 0
+  target_arg_pos = []
+  list_vid = []
+  list_operations = []
+  io_gather = []
+  arg_options = []
+  for t_idx, args, trace_in_beam, vid, op in training_samples:
+    io_gather.append(t_idx)
+    num_cands = args.shape[0]
+    arg_options.append(torch.LongTensor(args))
+    target_arg_pos.append(trace_in_beam + offset)
+    vid = torch.LongTensor(vid).to(device)
+    list_vid.append(vid)
+    list_operations.append(op)
+
+    mask = torch.zeros(1, len(all_values)).to(device)
+    mask[0, vid] = 1.0
+    masks.append(mask)
+    sample_repeats.append(num_cands)
+    offset += num_cands
+  sample_repeats = torch.LongTensor(sample_repeats).to(device)
+  arg_options = torch.cat(arg_options, axis=0).to(device)
+  op_arity_mask = np.ones((len(training_samples), arg_options.shape[1]), dtype=np.float32)
+  for idx, (_, _, _, _, op) in enumerate(training_samples):
+    op_arity_mask[idx, op.arity:] = 0.0
+  op_arity_mask = torch.repeat_interleave(torch.Tensor(op_arity_mask).to(device), sample_repeats, dim=0)
+  masks = torch.cat(masks, dim=0)
+  masks = torch.repeat_interleave(masks, sample_repeats, dim=0)
+  op_states = model.batch_init(io_embed, io_scatter, val_embed, list_vid, list_operations, io_gather=io_gather)
+  op_states = torch.repeat_interleave(op_states, sample_repeats, dim=0)
+  scores = model.arg.batch_forward(op_states, val_embed, arg_options, masks)
+  scores = torch.sum(scores * op_arity_mask, dim=-1)
+  nll = -scores[target_arg_pos]
+  return torch.mean(nll)
+
+
 def do_eval(eval_tasks, domain, model,
             max_search_weight, beam_size, device, verbose=True, 
-            timeout=None, is_stochastic=False):
+            timeout=None, is_stochastic=False, use_ur=True):
   if verbose:
     print('doing eval...')
 
@@ -85,18 +137,29 @@ def do_eval(eval_tasks, domain, model,
       should_show = range(len(eval_tasks))
   succ = 0.0
   for i,t in enumerate(eval_tasks):
-    out, _ = synthesize(t, domain, model,
-                        device=device,
-                        max_weight=max_search_weight,
-                        k=beam_size,
-                        is_training=False,
-                        timeout=timeout,
-                        is_stochastic=is_stochastic,
-                        random_beam=False)
+    start_time = timeit.default_timer()
+    if verbose:
+      print('\nTask: ', t)
+    out, all_values, stats = synthesis.synthesize(
+        t, domain, model,
+        device=device,
+        max_weight=max_search_weight,
+        k=beam_size,
+        is_training=False,
+        timeout=timeout,
+        is_stochastic=is_stochastic,
+        random_beam=False,
+        use_ur=use_ur)
+    elapsed_time = timeit.default_timer() - start_time
+    if verbose:
+      print('Elapsed time: {:.2f}'.format(elapsed_time))
+      print('Num values explored: {}'.format(stats['num_values_explored']))
+      print('Num unique values: {}'.format(len(all_values)))
+      print('out: {} {}'.format(out, out.expression()) if out else None)
     if out is not None:
       if verbose and i in should_show:
         print("successfully synthesized a solution to",t)
-        print(out)
+        print(out, out.expression())
       succ += 1.0
     elif verbose and i in should_show:
       print("could not successfully solve",t)
@@ -115,7 +178,7 @@ def _gather_eval_info(rank, device, local_acc, local_num):
   return succ
 
 
-def train_eval_loop(args, device, model, train_files, eval_tasks, domain,
+def train_eval_loop(args, device, model, train_files, eval_tasks,
                     task_gen, trace_gen):
   def local_task_gen(domain):
     if len(train_files) or task_gen is None:
@@ -124,11 +187,13 @@ def train_eval_loop(args, device, model, train_files, eval_tasks, domain,
           with open(fname, 'rb') as f:
             list_tasks = cp.load(f)
           random.shuffle(list_tasks)
-          for t in list_tasks:
-            yield t
+          for i in range(0, len(list_tasks), args.grad_accumulate):
+            yield list_tasks[i : i + args.grad_accumulate]
     else:
       while True:
-        yield task_gen(domain)
+        cur_tasks = [task_gen(domain) for _ in range(args.grad_accumulate)]
+        yield cur_tasks
+  domain = domains.get_domain(args.domain)
   train_gen = local_task_gen(domain)
   is_distributed = args.num_proc > 1
   if is_distributed:
@@ -141,11 +206,14 @@ def train_eval_loop(args, device, model, train_files, eval_tasks, domain,
                                 beam_size=args.beam_size,
                                 device=device,
                                 timeout=args.timeout,
-                                is_stochastic=args.stochastic_beam)
+                                is_stochastic=args.stochastic_beam,
+                                use_ur=args.use_ur)
   if args.do_test: # test only
+    print('Doing test only!')
     succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
     if args.num_proc > 1:
       succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
+    print('Done testing! Exiting.')
     sys.exit()
   optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
   best_succ = -1
@@ -167,28 +235,37 @@ def train_eval_loop(args, device, model, train_files, eval_tasks, domain,
     # Training
     pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)
     for _ in pbar:
-      loss_acc = []
       optimizer.zero_grad()
-      for _ in range(args.grad_accumulate):
-        t = next(train_gen)
-        trace = list(trace_gen(t.solution))
-        with torch.no_grad():
-          training_samples, all_values = synthesize(
-              t, domain, model, device=device,
-              trace=trace,
-              max_weight=args.max_search_weight,
-              k=args.beam_size,
-              is_training=True,
-              random_beam=args.random_beam)
-        
-        if isinstance(training_samples, list):
-          loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
-          loss = loss / args.grad_accumulate
-          loss.backward()
-          loss_acc.append(loss.item())
-        else:
-          loss = 0.0
-      loss = np.sum(loss_acc)
+      batch_tasks = next(train_gen)
+      batch_traces = [list(trace_gen(t.solution)) for t in batch_tasks]
+      if args.batch_training:
+        training_samples, all_values = synthesis.batch_synthesize(
+          batch_tasks, domain, model, device,
+          traces=batch_traces,
+          max_weight=args.max_search_weight,
+          k=args.beam_size,
+          is_training=True,
+          random_beam=args.random_beam)
+        loss = batch_forward(batch_tasks, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
+        loss.backward()
+      else:
+        loss_acc = []
+        for t, trace in zip(batch_tasks, batch_traces):
+          with torch.no_grad():
+            training_samples, all_values, _ = synthesis.synthesize(
+                t, domain, model, device=device,
+                trace=trace,
+                max_weight=args.max_search_weight,
+                k=args.beam_size,
+                is_training=True,
+                random_beam=args.random_beam)
+
+          if isinstance(training_samples, list):
+            loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
+            loss = loss / args.grad_accumulate
+            loss.backward()
+            loss_acc.append(loss.item())
+        loss = np.sum(loss_acc)
       if is_distributed:
         for param in model.parameters():
           if param.grad is None:
@@ -208,7 +285,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks, domain,
 
 
 @thread_wrapped_func
-def train_mp(args, rank, device, model, train_files, eval_tasks, domain, task_gen, trace_gen):
+def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace_gen):
   if args.num_proc > 1:
     torch.set_num_threads(1)
   os.environ['MASTER_ADDR'] = '127.0.0.1'
@@ -218,10 +295,10 @@ def train_mp(args, rank, device, model, train_files, eval_tasks, domain, task_ge
   else:
     backend = 'nccl'
   dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
-  train_eval_loop(args, device, model, train_files, eval_tasks, domain, task_gen, trace_gen)
+  train_eval_loop(args, device, model, train_files, eval_tasks, task_gen, trace_gen)
 
 
-def main_train_eval(args, model, eval_tasks, domain, task_gen, trace_gen):
+def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
   if args.train_data_glob is not None:
     train_files = sorted(glob.glob(os.path.join(args.data_folder, args.train_data_glob)))
   else:
@@ -240,12 +317,12 @@ def main_train_eval(args, model, eval_tasks, domain, task_gen, trace_gen):
       local_train_files = train_files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
       proc = mp.Process(target=train_mp,
                         args=(args, rank, device, model, local_train_files, local_eval_tasks,
-                              domain, task_gen, trace_gen))
+                              task_gen, trace_gen))
       procs.append(proc)
       proc.start()
     for proc in procs:
       proc.join()
   else:
     train_eval_loop(args, get_torch_device(args.gpu), model, train_files, eval_tasks,
-                    domain, task_gen, trace_gen)
+                    task_gen, trace_gen)
   logging.info("Training finished!!")
