@@ -77,7 +77,6 @@ def op_in_beam_synthesize(task, domain, model, device,
                             op_state,
                             model.arg,
                             device=device,
-                            num_op_candidates=len(domain.operations),
                             is_stochastic=is_stochastic)
       args = args.data.cpu().numpy().astype(np.int32)
     if k > (len(all_values) ** max_beam_steps):
@@ -133,10 +132,25 @@ def op_in_beam_synthesize(task, domain, model, device,
   return None, None
 
 
+def update_masks(type_masks, operation, all_values, device, vidx_start=0):
+  feasible = True
+  for arg_index in range(operation.arity):
+    arg_type = operation.arg_types()[arg_index]
+    bool_mask = [all_values[v].type == arg_type for v in range(vidx_start, len(all_values))]
+    if not any(bool_mask):
+      feasible = False
+    step_type_mask = torch.FloatTensor(bool_mask).to(device)
+    if len(type_masks) <= arg_index:
+      type_masks.append(step_type_mask)
+    else:
+      type_masks[arg_index] = torch.cat([type_masks[arg_index], step_type_mask])
+  return feasible
+
+
 def synthesize(task, domain, model, device,
                trace=None, max_weight=15, k=2, is_training=False,
                include_as_train=None, timeout=None, is_stochastic=False,
-               random_beam=False, use_ur=False):
+               random_beam=False, use_ur=False, masking=True):
   stats = {'num_values_explored': 0}
 
   verbose = False
@@ -145,12 +159,9 @@ def synthesize(task, domain, model, device,
     trace = []
   if include_as_train is None:
     include_as_train = lambda trace_in_beam: True
-  num_examples = task.num_examples
 
   all_values = []
-  max_beam_steps = max([op.arity for op in domain.operations]) + 1
   output_value = init_values(task, domain, all_values)
-
   all_value_dict = {v: i for i, v in enumerate(all_values)}
 
   if not random_beam:
@@ -158,6 +169,13 @@ def synthesize(task, domain, model, device,
   training_samples = []
 
   val_embed = model.val(all_values, device=device)
+  mask_dict = {}
+  for operation in domain.operations:
+    type_masks = []
+    if operation.arg_types() is not None and masking:
+      update_masks(type_masks, operation, all_values, device)
+    mask_dict[operation] = type_masks
+
   while True:
     cur_num_values = len(all_values)
     for operation in domain.operations:
@@ -166,17 +184,13 @@ def synthesize(task, domain, model, device,
       if verbose:
         print('Operation: {}'.format(operation))
       num_values_before_op = len(all_values)
+      type_masks = mask_dict[operation]
 
-      if operation.arg_types() is not None:
-        type_masks = []
-        for arg_index in range(operation.arity):
-          arg_type = operation.arg_types()[arg_index]
-          type_mask = torch.BoolTensor([v.type == arg_type for v in all_values]).to(device)
-          type_masks.append(type_mask)
-        if any(not any(type_mask) for type_mask in type_masks):
-          continue  # No options for some argument!
-      else:
-        type_masks = None
+      if operation.arg_types() is not None and len(type_masks):
+        if len(all_values) > type_masks[0].shape[0]:
+          feasible = update_masks(type_masks, operation, all_values, device, vidx_start=type_masks[0].shape[0])
+          if not feasible:
+            continue
 
       if use_ur:
         assert not is_training
@@ -197,7 +211,7 @@ def synthesize(task, domain, model, device,
             if randomizer.needs_probabilities():
               scores = score_model.step_score(cur_state, val_embed)
               scores = scores.view(-1)
-              if type_masks is not None:
+              if len(type_masks):
                 scores = torch.where(type_mask[arg_index], scores, torch.FloatTensor([-1e10]).to(device))
               prob = torch.softmax(scores, dim=0)
             else:
@@ -255,7 +269,7 @@ def synthesize(task, domain, model, device,
                               op_state,
                               model.arg,
                               device=device,
-                              num_op_candidates=0,
+                              choice_masks=type_masks,
                               is_stochastic=is_stochastic)
         args = args.data.cpu().numpy().astype(np.int32)
       if k > (len(all_values) ** operation.arity):
