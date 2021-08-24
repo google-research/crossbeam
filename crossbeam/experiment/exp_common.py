@@ -12,6 +12,7 @@ flags.DEFINE_boolean('use_ur', True, 'use UR for evaluation?')
 flags.DEFINE_boolean('score_normed', True, 'whether to normalize the score into valid probability')
 flags.DEFINE_integer('grad_accumulate', 1, '# forward / backward steps')
 flags.DEFINE_integer('max_search_weight', 12, '')
+flags.DEFINE_integer('num_valid', -1, 'num tasks for evaluation per process during training')
 flags.DEFINE_float('timeout', 5, 'time limit in seconds')
 
 

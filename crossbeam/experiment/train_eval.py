@@ -314,6 +314,8 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
     procs = []
     for rank, device in enumerate(devices):
       local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
+      if args.num_valid > 0:
+        local_eval_tasks = local_eval_tasks[:args.num_valid]
       local_train_files = train_files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
       proc = mp.Process(target=train_mp,
                         args=(args, rank, device, model, local_train_files, local_eval_tasks,
