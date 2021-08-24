@@ -78,9 +78,54 @@ def task_loss(task, device, training_samples, all_values, model, score_normed=Tr
   return loss
 
 
+def batch_forward(tasks, device, training_samples, all_values, model, score_normed=True):
+  assert score_normed
+  io_embed, io_scatter = model.io([task.inputs_dict for task in tasks],
+                                  [task.outputs for task in tasks],
+                                  device=device,
+                                  needs_scatter_idx=True)
+  val_embed = model.val(all_values, device=device)
+  masks = []
+  sample_repeats = []
+  offset = 0
+  target_arg_pos = []
+  list_vid = []
+  list_operations = []
+  io_gather = []
+  arg_options = []
+  for t_idx, args, trace_in_beam, vid, op in training_samples:
+    io_gather.append(t_idx)
+    num_cands = args.shape[0]
+    arg_options.append(torch.LongTensor(args))
+    target_arg_pos.append(trace_in_beam + offset)
+    vid = torch.LongTensor(vid).to(device)
+    list_vid.append(vid)
+    list_operations.append(op)
+
+    mask = torch.zeros(1, len(all_values)).to(device)
+    mask[0, vid] = 1.0
+    masks.append(mask)
+    sample_repeats.append(num_cands)
+    offset += num_cands
+  sample_repeats = torch.LongTensor(sample_repeats).to(device)
+  arg_options = torch.cat(arg_options, axis=0).to(device)
+  op_arity_mask = np.ones((len(training_samples), arg_options.shape[1]), dtype=np.float32)
+  for idx, (_, _, _, _, op) in enumerate(training_samples):
+    op_arity_mask[idx, op.arity:] = 0.0
+  op_arity_mask = torch.repeat_interleave(torch.Tensor(op_arity_mask).to(device), sample_repeats, dim=0)
+  masks = torch.cat(masks, dim=0)
+  masks = torch.repeat_interleave(masks, sample_repeats, dim=0)
+  op_states = model.batch_init(io_embed, io_scatter, val_embed, list_vid, list_operations, io_gather=io_gather)
+  op_states = torch.repeat_interleave(op_states, sample_repeats, dim=0)
+  scores = model.arg.batch_forward(op_states, val_embed, arg_options, masks)
+  scores = torch.sum(scores * op_arity_mask, dim=-1)
+  nll = -scores[target_arg_pos]
+  return torch.mean(nll)
+
+
 def do_eval(eval_tasks, domain, model,
             max_search_weight, beam_size, device, verbose=True, 
-            timeout=None, is_stochastic=False):
+            timeout=None, is_stochastic=False, use_ur=True):
   if verbose:
     print('doing eval...')
 
@@ -104,7 +149,7 @@ def do_eval(eval_tasks, domain, model,
         timeout=timeout,
         is_stochastic=is_stochastic,
         random_beam=False,
-        use_ur=True)
+        use_ur=use_ur)
     elapsed_time = timeit.default_timer() - start_time
     if verbose:
       print('Elapsed time: {:.2f}'.format(elapsed_time))
@@ -142,11 +187,12 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
           with open(fname, 'rb') as f:
             list_tasks = cp.load(f)
           random.shuffle(list_tasks)
-          for t in list_tasks:
-            yield t
+          for i in range(0, len(list_tasks), args.grad_accumulate):
+            yield list_tasks[i : i + args.grad_accumulate]
     else:
       while True:
-        yield task_gen(domain)
+        cur_tasks = [task_gen(domain) for _ in range(args.grad_accumulate)]
+        yield cur_tasks
   domain = domains.get_domain(args.domain)
   train_gen = local_task_gen(domain)
   is_distributed = args.num_proc > 1
@@ -160,7 +206,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
                                 beam_size=args.beam_size,
                                 device=device,
                                 timeout=args.timeout,
-                                is_stochastic=args.stochastic_beam)
+                                is_stochastic=args.stochastic_beam,
+                                use_ur=args.use_ur)
   if args.do_test: # test only
     print('Doing test only!')
     succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
@@ -188,28 +235,37 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
     # Training
     pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)
     for _ in pbar:
-      loss_acc = []
       optimizer.zero_grad()
-      for _ in range(args.grad_accumulate):
-        t = next(train_gen)
-        trace = list(trace_gen(t.solution))
-        with torch.no_grad():
-          training_samples, all_values, stats = synthesis.synthesize(
-              t, domain, model, device=device,
-              trace=trace,
-              max_weight=args.max_search_weight,
-              k=args.beam_size,
-              is_training=True,
-              random_beam=args.random_beam)
+      batch_tasks = next(train_gen)
+      batch_traces = [list(trace_gen(t.solution)) for t in batch_tasks]
+      if args.batch_training:
+        training_samples, all_values = synthesis.batch_synthesize(
+          batch_tasks, domain, model, device,
+          traces=batch_traces,
+          max_weight=args.max_search_weight,
+          k=args.beam_size,
+          is_training=True,
+          random_beam=args.random_beam)
+        loss = batch_forward(batch_tasks, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
+        loss.backward()
+      else:
+        loss_acc = []
+        for t, trace in zip(batch_tasks, batch_traces):
+          with torch.no_grad():
+            training_samples, all_values, _ = synthesis.synthesize(
+                t, domain, model, device=device,
+                trace=trace,
+                max_weight=args.max_search_weight,
+                k=args.beam_size,
+                is_training=True,
+                random_beam=args.random_beam)
 
-        if isinstance(training_samples, list):
-          loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
-          loss = loss / args.grad_accumulate
-          loss.backward()
-          loss_acc.append(loss.item())
-        else:
-          loss = 0.0
-      loss = np.sum(loss_acc)
+          if isinstance(training_samples, list):
+            loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
+            loss = loss / args.grad_accumulate
+            loss.backward()
+            loss_acc.append(loss.item())
+        loss = np.sum(loss_acc)
       if is_distributed:
         for param in model.parameters():
           if param.grad is None:
