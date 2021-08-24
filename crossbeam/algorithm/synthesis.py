@@ -186,7 +186,7 @@ def synthesize(task, domain, model, device,
       num_values_before_op = len(all_values)
       type_masks = mask_dict[operation]
 
-      if operation.arg_types() is not None and len(type_masks):
+      if len(type_masks):
         if len(all_values) > type_masks[0].shape[0]:
           feasible = update_masks(type_masks, operation, all_values, device, vidx_start=type_masks[0].shape[0])
           if not feasible:
@@ -329,7 +329,7 @@ def get_or_add_value(val, all_values, all_value_dict):
 
 
 def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k=2, is_training=False,
-                     include_as_train=None, timeout=None, is_stochastic=False, random_beam=False):
+                     include_as_train=None, timeout=None, is_stochastic=False, random_beam=False, masking=True):
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
   if traces is None:
     trace = [[] for _ in range(len(tasks))]
@@ -369,6 +369,13 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
                                     needs_scatter_idx=True)
 
     val_embed = model.val(all_values, device=device)
+  mask_dict = {}
+  for operation in domain.operations:
+    type_masks = []
+    if operation.arg_types() is not None and masking:
+      update_masks(type_masks, operation, all_values, device)
+    mask_dict[operation] = type_masks
+
   max_beam_steps = max([operation.arity for operation in domain.operations])
   training_samples = []
   while not all(task_done):
@@ -380,19 +387,24 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
         if task_done[t_idx]:
           continue
         active_tasks.append(t_idx)
+      type_masks = mask_dict[operation]
+      if len(type_masks) and len(all_values) > type_masks[0].shape[0]:
+          update_masks(type_masks, operation, all_values, device, vidx_start=type_masks[0].shape[0])
+
       if not random_beam:
         if len(all_values) > val_embed.shape[0]:
           more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device)
           val_embed = torch.cat((val_embed, more_val_embed), dim=0)
         cur_val_indices = [torch.LongTensor(vid).to(device) for vid in value_indices]
         op_states = model.batch_init(io_embed, io_scatter, val_embed, cur_val_indices, operation,
-                                    sample_indices=active_tasks)
+                                     sample_indices=active_tasks)
         batch_beam, _ = batch_beam_search(operation.arity, k,
                                           val_embed,
                                           [cur_val_indices[v] for v in active_tasks],
                                           op_states,
                                           model.arg,
                                           device=device,
+                                          choice_masks=type_masks,
                                           is_stochastic=is_stochastic)
       for local_tid, t_idx in enumerate(active_tasks):
         trace = traces[t_idx]
