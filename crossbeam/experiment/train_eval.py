@@ -125,7 +125,7 @@ def batch_forward(tasks, device, training_samples, all_values, model, score_norm
 
 def do_eval(eval_tasks, domain, model,
             max_search_weight, beam_size, device, verbose=True, 
-            timeout=None, is_stochastic=False):
+            timeout=None, is_stochastic=False, use_ur=True):
   if verbose:
     print('doing eval...')
 
@@ -149,7 +149,7 @@ def do_eval(eval_tasks, domain, model,
         timeout=timeout,
         is_stochastic=is_stochastic,
         random_beam=False,
-        use_ur=True)
+        use_ur=use_ur)
     elapsed_time = timeit.default_timer() - start_time
     if verbose:
       print('Elapsed time: {:.2f}'.format(elapsed_time))
@@ -206,7 +206,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
                                 beam_size=args.beam_size,
                                 device=device,
                                 timeout=args.timeout,
-                                is_stochastic=args.stochastic_beam)
+                                is_stochastic=args.stochastic_beam,
+                                use_ur=args.use_ur)
   if args.do_test: # test only
     print('Doing test only!')
     succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)

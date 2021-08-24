@@ -8,6 +8,7 @@ flags.DEFINE_string('step_score_func', 'mlp', 'score func used at each step of a
 flags.DEFINE_string('train_data_glob', None, 'offline data dumps')
 flags.DEFINE_boolean('op_in_beam', False, 'op selection as part of beam search?')
 flags.DEFINE_boolean('batch_training', False, 'do batch training?')
+flags.DEFINE_boolean('use_ur', True, 'use UR for evaluation?')
 flags.DEFINE_boolean('score_normed', True, 'whether to normalize the score into valid probability')
 flags.DEFINE_integer('grad_accumulate', 1, '# forward / backward steps')
 flags.DEFINE_integer('max_search_weight', 12, '')
