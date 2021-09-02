@@ -156,13 +156,16 @@ def do_eval(eval_tasks, domain, model,
       print('Num values explored: {}'.format(stats['num_values_explored']))
       print('Num unique values: {}'.format(len(all_values)))
       print('out: {} {}'.format(out, out.expression()) if out else None)
+      sys.stdout.flush()
     if out is not None:
-      if verbose and i in should_show:
-        print("successfully synthesized a solution to",t)
-        print(out, out.expression())
+      # if verbose and i in should_show:
+      #   print("successfully synthesized a solution to",t)
+      #   print(out, out.expression())
       succ += 1.0
-    elif verbose and i in should_show:
-      print("could not successfully solve",t)
+    # elif verbose and i in should_show:
+    #   print("could not successfully solve",t)
+  if verbose:
+    print('\nSolved {} of {} tasks'.format(succ, len(eval_tasks)))
   succ /= len(eval_tasks)
   if verbose:
     print('eval success rate: {:.1f}%'.format(succ * 100))
