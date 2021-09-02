@@ -171,7 +171,7 @@ def synthesize(task, domain, model, device,
         type_masks = []
         for arg_index in range(operation.arity):
           arg_type = operation.arg_types()[arg_index]
-          type_mask = torch.BoolTensor([v.type == arg_type for v in all_values])
+          type_mask = torch.BoolTensor([v.type == arg_type for v in all_values]).to(device)
           type_masks.append(type_mask)
         if any(not any(type_mask) for type_mask in type_masks):
           continue  # No options for some argument!
@@ -198,7 +198,7 @@ def synthesize(task, domain, model, device,
               scores = score_model.step_score(cur_state, val_embed)
               scores = scores.view(-1)
               if type_masks is not None:
-                scores = torch.where(type_masks[arg_index], scores, torch.FloatTensor([-1e10]))
+                scores = torch.where(type_masks[arg_index], scores, torch.FloatTensor([-1e10]).to(device))
               prob = torch.softmax(scores, dim=0)
             else:
               prob = None
