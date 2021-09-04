@@ -126,7 +126,7 @@ def batch_forward(tasks, device, training_samples, all_values, model, score_norm
 
 def do_eval(eval_tasks, domain, model,
             max_search_weight, beam_size, device, verbose=True, 
-            timeout=None, is_stochastic=False, use_ur=True):
+            timeout=None, is_stochastic=False, use_ur=True, use_type_masking=True):
   if verbose:
     print('doing eval...')
 
@@ -150,7 +150,8 @@ def do_eval(eval_tasks, domain, model,
         timeout=timeout,
         is_stochastic=is_stochastic,
         random_beam=False,
-        use_ur=use_ur)
+        use_ur=use_ur,
+        masking=use_type_masking)
     elapsed_time = timeit.default_timer() - start_time
     if verbose:
       print('Elapsed time: {:.2f}'.format(elapsed_time))
@@ -208,7 +209,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
                                 device=device,
                                 timeout=args.timeout,
                                 is_stochastic=args.stochastic_beam,
-                                use_ur=args.use_ur)
+                                use_ur=args.use_ur,
+                                use_type_masking=args.type_masking)
   if args.do_test: # test only
     print('Doing test only!')
     succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
@@ -246,7 +248,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
           max_weight=args.max_search_weight,
           k=args.beam_size,
           is_training=True,
-          random_beam=args.random_beam)
+          random_beam=args.random_beam,
+          masking=args.type_masking)
         loss = batch_forward(batch_tasks, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
         loss.backward()
       else:
@@ -259,7 +262,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
                 max_weight=args.max_search_weight,
                 k=args.beam_size,
                 is_training=True,
-                random_beam=args.random_beam)
+                random_beam=args.random_beam,
+                masking=args.type_masking)
 
           if isinstance(training_samples, list):
             loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
@@ -315,6 +319,8 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
     procs = []
     for rank, device in enumerate(devices):
       local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
+      if args.num_valid > 0:
+        local_eval_tasks = local_eval_tasks[:args.num_valid]
       local_train_files = train_files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
       proc = mp.Process(target=train_mp,
                         args=(args, rank, device, model, local_train_files, local_eval_tasks,

@@ -9,7 +9,7 @@ N_INF = -1e10
 EPS = 1e-8
 
 
-def beam_search(beam_steps, k, choice_embed, init_embed, score_model, device, num_op_candidates=0, choice_mask=None, is_stochastic=False):
+def beam_search(beam_steps, k, choice_embed, init_embed, score_model, device, choice_masks=None, is_stochastic=False):
   """
   Args:
     beam_steps: int, beam_steps to perform;
@@ -23,8 +23,7 @@ def beam_search(beam_steps, k, choice_embed, init_embed, score_model, device, nu
         so fn_step_state only takes care of single state update
       fn_step_score: a function takes (N-state, M-choices) and return a score matrix of N x M
     device: device to run beam search
-    num_op_candidates: number of op candidates to select, 0 if not needed in beam search
-    choice_mask: vector of size N, mark valid (1) or invalid choice(0)
+    choice_mask: list of vector of size N, mark valid (1) or invalid choice(0)
     is_stochastic: whether use stochastic (multinomial) instead of top-k
   Returns:
     arg_choices: jax int32 array of size k x arity, the indices of selected args
@@ -35,18 +34,12 @@ def beam_search(beam_steps, k, choice_embed, init_embed, score_model, device, nu
   prefix_scores = torch.zeros(1).to(device)
   arg_choices = torch.LongTensor([[]]).to(device)
 
-  if choice_mask is None and num_op_candidates:
-    choice_mask = torch.zeros(num_choices).to(device)
-    choice_mask[:num_op_candidates] = 1.0  
-  if choice_mask is not None:
-    choice_mask = choice_mask.unsqueeze(0)
   for step in range(beam_steps):
     scores = score_model.step_score(cur_state, choice_embed)  # result in a score matrix of size (N-state, N-choice)
     joint_scores = prefix_scores.unsqueeze(1) + scores # broadcast over columns    
-    if choice_mask is not None:
+    if choice_masks is not None and len(choice_masks):
+      choice_mask = choice_masks[step].view(1, -1)
       joint_scores = joint_scores * choice_mask + (1 - choice_mask) * N_INF
-    if step == 0 and num_op_candidates:
-      choice_mask = 1.0 - choice_mask    
     joint_scores = joint_scores.view(-1)
     cur_k = joint_scores.shape[0] if k > joint_scores.shape[0] else k
     if is_stochastic:
@@ -99,7 +92,7 @@ def beam_step(raw_scores, cur_sizes, beam_size):
   return predecessors, pred_opts, scores, cur_sizes
 
 
-def batch_beam_search(beam_steps, k, choice_embed, choice_indices, init_embed, score_model, device, is_stochastic=False):
+def batch_beam_search(beam_steps, k, choice_embed, choice_indices, init_embed, score_model, device, choice_masks=None, is_stochastic=False):
   batch_size = len(choice_indices)
   cur_state = score_model.get_batch_init_state(init_embed)
   arg_choices = torch.LongTensor([[] for _ in range(batch_size)]).to(device)
@@ -110,10 +103,13 @@ def batch_beam_search(beam_steps, k, choice_embed, choice_indices, init_embed, s
   mask = torch.zeros(batch_size, choice_embed.shape[0]).to(device)
   for i, idx in enumerate(choice_indices):
     mask[i, idx] = 1.0
-  for _ in range(beam_steps):
+  for step in range(beam_steps):
     scores = score_model.step_score(cur_state, choice_embed)
     joint_scores = prefix_scores + scores
     joint_scores = joint_scores * mask + (1 - mask) * N_INF
+    if choice_masks is not None and len(choice_masks):
+      choice_mask = choice_masks[step].view(1, -1)
+      joint_scores = joint_scores * choice_mask + (1 - choice_mask) * N_INF
 
     predecessors, op_choice, prefix_scores, cur_sizes = beam_step(joint_scores, cur_sizes, k)
     ancestors = ancestors[predecessors]
