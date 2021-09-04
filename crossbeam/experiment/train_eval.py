@@ -140,7 +140,8 @@ def do_eval(eval_tasks, domain, model,
     start_time = timeit.default_timer()
     if verbose:
       print('\nTask: ', t)
-    out, all_values, stats = synthesis.synthesize(
+    with torch.no_grad():
+      out, all_values, stats = synthesis.synthesize(
         t, domain, model,
         device=device,
         max_weight=max_search_weight,
@@ -326,6 +327,9 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
     for proc in procs:
       proc.join()
   else:
-    train_eval_loop(args, get_torch_device(args.gpu), model, train_files, eval_tasks,
+    device = args.gpu
+    if args.gpu_list is not None:
+      device = int(args.gpu_list.strip())
+    train_eval_loop(args, get_torch_device(device), model, train_files, eval_tasks,
                     task_gen, trace_gen)
   logging.info("Training finished!!")

@@ -69,7 +69,7 @@ class _TrieNode(object):
       num_elements = len(self.children)
     else:
       if isinstance(unnorm_probs, torch.Tensor):
-        unnorm_probs = unnorm_probs.detach().numpy()
+        unnorm_probs = unnorm_probs.cpu().numpy()
       else:
         unnorm_probs = np.array(unnorm_probs)
       num_elements = len(unnorm_probs)

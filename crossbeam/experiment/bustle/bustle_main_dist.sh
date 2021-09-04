@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tout=10
+tout=120
 maxw=10
 maxne=4
 maxni=3
@@ -10,7 +10,7 @@ data_folder=$HOME/data/crossbeam/bustle/t-${tout}-maxw-${maxw}-maxne-${maxne}-ma
 
 beam_size=4
 grad_acc=4
-save_dir=$HOME/results/crossbeam/bustle/b-${beam_size}-g-${grad_acc}
+save_dir=$HOME/results/crossbeam/bustle/tout-${tout}-b-${beam_size}-g-${grad_acc}
 
 if [ ! -e $save_dir ];
 then
