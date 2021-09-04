@@ -4,14 +4,28 @@ import torch.nn.functional as F
 from functools import partial
 from crossbeam.model.op_arg import LSTMArgSelector, OpSpecificLSTMSelector
 from crossbeam.model.op_init import PoolingState, OpPoolingState, OpExplicitPooling
-from crossbeam.model.encoder import CharIOLSTMEncoder, CharValueLSTMEncoder, IntIOEncoder, IntValueEncoder, ValueAndOpEncoder
+from crossbeam.model.encoder import CharIOLSTMEncoder, CharValueLSTMEncoder, PropSigIOEncoder, PropSigValueEncoder, IntIOEncoder, IntValueEncoder, ValueAndOpEncoder
 
 
 class JointModel(nn.Module):
   def __init__(self, args, input_table, output_table, value_table, operations):
     super(JointModel, self).__init__()
-    self.io = CharIOLSTMEncoder(input_table, output_table, hidden_size=args.embed_dim)
-    val = CharValueLSTMEncoder(value_table, hidden_size=args.embed_dim)
+    if args.io_encoder == 'char':
+      self.io = CharIOLSTMEncoder(input_table, output_table, hidden_size=args.embed_dim)
+      print('io encoder: char')
+    elif args.io_encoder == 'signature':
+      self.io = PropSigIOEncoder(args.max_num_inputs, hidden_size=args.embed_dim)
+      print('io encoder: signature')
+    else:
+      raise ValueError('unknown io encoder %s' % args.io_encoder)
+    if args.value_encoder == 'char':
+      val = CharValueLSTMEncoder(value_table, hidden_size=args.embed_dim)
+      print('value encoder: char')
+    elif args.value_encoder == 'signature':
+      val = PropSigValueEncoder(hidden_size=args.embed_dim)
+      print('value encoder: signature')
+    else:
+      raise ValueError('unknown value encoder %s' % args.value_encoder)
     self.op_in_beam = args.op_in_beam
     if args.op_in_beam:
       self.val = ValueAndOpEncoder(operations, val)

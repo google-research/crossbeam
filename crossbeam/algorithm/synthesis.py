@@ -157,7 +157,7 @@ def synthesize(task, domain, model, device,
     io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
   training_samples = []
 
-  val_embed = model.val(all_values, device=device)
+  val_embed = model.val(all_values, device=device, output_values=output_value)
   while True:
     cur_num_values = len(all_values)
     for operation in domain.operations:
@@ -181,7 +181,7 @@ def synthesize(task, domain, model, device,
       if use_ur:
         assert not is_training
         randomizer = ur.UniqueRandomizer()
-        val_embed = model.val(all_values, device=device)
+        val_embed = model.val(all_values, device=device, output_values=output_value)
         init_embed = model.init(io_embed, val_embed, operation)
 
         new_values = []
@@ -247,7 +247,7 @@ def synthesize(task, domain, model, device,
           args[b] += [np.random.randint(val_offset, len(all_values)) for _ in range(operation.arity)]
       else:
         if len(all_values) > val_embed.shape[0]:
-          more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device)
+          more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device, output_values=output_value)
           val_embed = torch.cat((val_embed, more_val_embed), dim=0)
         op_state = model.init(io_embed, val_embed, operation)
         args, _ = beam_search(operation.arity, k,

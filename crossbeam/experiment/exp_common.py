@@ -14,6 +14,9 @@ flags.DEFINE_integer('grad_accumulate', 1, '# forward / backward steps')
 flags.DEFINE_integer('max_search_weight', 12, '')
 flags.DEFINE_float('timeout', 5, 'time limit in seconds')
 
+flags.DEFINE_string('io_encoder', 'char', 'io encoder, choose from [char, signature, char_signature]')
+flags.DEFINE_string('value_encoder', 'char', 'value encoder, choose from [char, signature, char_signature]')
+
 
 def set_global_seed(seed):
   torch.manual_seed(seed)
