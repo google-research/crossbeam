@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tout=10
+tout=120
 maxw=10
 maxne=4
 maxni=3
@@ -10,7 +10,10 @@ data_folder=$HOME/data/crossbeam/bustle/t-${tout}-maxw-${maxw}-maxne-${maxne}-ma
 
 beam_size=4
 grad_acc=4
-save_dir=$HOME/results/crossbeam/bustle/b-${beam_size}-g-${grad_acc}
+io=signature
+value=char
+
+save_dir=$HOME/results/crossbeam/bustle/io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
 
 if [ ! -e $save_dir ];
 then
@@ -22,6 +25,8 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 python3 -m crossbeam.experiment.run_crossbeam \
     --domain=bustle \
     --model_type=char \
+    --io_encoder=${io} \
+    --value_encoder=${value} \
     --min_task_weight=3 \
     --max_task_weight=$maxw \
     --min_num_examples=2 \
