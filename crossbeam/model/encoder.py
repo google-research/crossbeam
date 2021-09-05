@@ -183,6 +183,26 @@ class CharIOLSTMEncoder(nn.Module):
       return cat_embed
 
 
+class CharAndPropSigIOEncoder(nn.Module):
+  def __init__(self, max_num_inputs, input_char_table, output_char_table, hidden_size,
+               to_string: Callable = repr):
+    super(CharAndPropSigIOEncoder, self).__init__()
+    self.char_io_encoder = CharIOLSTMEncoder(input_char_table, output_char_table, hidden_size, to_string)
+    self.prop_sig_encoder = PropSigIOEncoder(max_num_inputs, hidden_size)
+    self.merge_embed = nn.Linear(4 * hidden_size, 2 * hidden_size)
+
+  def forward(self, list_inputs_dict, list_outputs, device, needs_scatter_idx=False):
+    char_cat_embed, sample_scatter_idx = self.char_io_encoder(list_inputs_dict, list_outputs, device, needs_scatter_idx=True)
+    sig_cat_embed = self.prop_sig_encoder(list_inputs_dict, list_outputs, device)
+    repeat_sig_cat = sig_cat_embed[sample_scatter_idx]
+    merged_embed = torch.cat((char_cat_embed, repeat_sig_cat), dim=-1)
+    merged_embed = self.merge_embed(merged_embed)
+    if needs_scatter_idx:
+      return merged_embed, sample_scatter_idx
+    else:
+      return merged_embed
+
+
 class CharValueLSTMEncoder(nn.Module):
   def __init__(self, val_char_table, hidden_size, to_string: Callable = repr):
     super(CharValueLSTMEncoder, self).__init__()
@@ -218,6 +238,21 @@ class PropSigValueEncoder(nn.Module):
     val_feat = val_feat.to(device)
     val_embed = self.mlp(val_feat)
     return val_embed
+
+
+class CharAndPropSigValueEncoder(nn.Module):
+  def __init__(self, val_char_table, hidden_size, to_string: Callable = repr):
+    super(CharAndPropSigValueEncoder, self).__init__()
+    self.char_encoder = CharValueLSTMEncoder(val_char_table, hidden_size, to_string)
+    self.sig_encoder = PropSigValueEncoder(hidden_size)
+    self.merge_embed = nn.Linear(2 * hidden_size, hidden_size)
+
+  def forward(self, all_values, device, output_values):
+    char_embed = self.char_encoder(all_values, device)
+    sig_embed = self.sig_encoder(all_values, device, output_values)
+    embed = torch.cat((char_embed, sig_embed), dim=-1)
+    embed = self.merge_embed(embed)
+    return embed
 
 
 class ValueAndOpEncoder(nn.Module):
