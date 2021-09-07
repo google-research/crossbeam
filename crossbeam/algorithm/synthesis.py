@@ -198,7 +198,7 @@ def synthesize(task, domain, model, device,
               scores = score_model.step_score(cur_state, val_embed)
               scores = scores.view(-1)
               if type_masks is not None:
-                scores = torch.where(type_mask[arg_index], scores, torch.FloatTensor([-1e10]).to(device))
+                scores = torch.where(type_masks[arg_index], scores, torch.FloatTensor([-1e10]).to(device))
               prob = torch.softmax(scores, dim=0)
             else:
               prob = None
