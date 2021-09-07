@@ -11,7 +11,7 @@ data_folder=$HOME/data/crossbeam/bustle/t-${tout}-maxw-${maxw}-maxne-${maxne}-ma
 beam_size=4
 grad_acc=4
 io=signature
-value=char
+value=signature
 
 save_dir=$HOME/results/crossbeam/bustle/io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
 
