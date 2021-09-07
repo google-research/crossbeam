@@ -1,7 +1,7 @@
 import torch
 import random
 import os
-import pickle as cp
+import pickle5 as cp
 import glob
 from torch.utils.data import DataLoader, Dataset, IterableDataset
 from functools import partial
@@ -53,7 +53,11 @@ class RawOfflineDataset(Dataset):
 
   def __getitem__(self, index):
     t = self.tasks[index]
-    return t, t.inputs_dict, t.outputs, self.prog_tokenizer(t.solution.tokenized_expression())
+    if t.solution is None:
+      sol = []
+    else:
+      sol = self.prog_tokenizer(t.solution.tokenized_expression())
+    return t, t.inputs_dict, t.outputs, sol
 
 
 def sharded_iterator(train_data_glob, batch_size, prog_tokenizer=None, collate_fn=raw_collate_fn, drop_last=True):

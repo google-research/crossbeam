@@ -17,6 +17,7 @@ def get_bustle_char_domain():
     toks.append(STR_ENDS)
     toks = sorted(list(set(toks)))
     new_d = Domain(
+        name='bustle',
         operations=d.operations,
         constants=d.constants,
         constants_extractor=d.constants_extractor,
@@ -29,6 +30,7 @@ def get_bustle_char_domain():
         value_max_len=d.value_max_len,
         program_tokens=toks,
         output_type=d.output_type,
-        small_value_filter=d.small_value_filter
+        small_value_filter=d.small_value_filter,
+        checker_function=d.checker_function
     )
     return new_d
