@@ -6,6 +6,7 @@ import numpy as np
 flags.DEFINE_string('pooling', 'mean', 'pooling method used')
 flags.DEFINE_string('step_score_func', 'mlp', 'score func used at each step of autoregressive model')
 flags.DEFINE_string('train_data_glob', None, 'offline data dumps')
+flags.DEFINE_string('test_data_glob', None, 'test data dumps')
 flags.DEFINE_boolean('op_in_beam', False, 'op selection as part of beam search?')
 flags.DEFINE_boolean('batch_training', False, 'do batch training?')
 flags.DEFINE_boolean('use_ur', True, 'use UR for evaluation?')

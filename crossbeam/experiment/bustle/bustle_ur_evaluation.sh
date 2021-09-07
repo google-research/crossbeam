@@ -6,11 +6,11 @@ maxne=4
 maxni=3
 maxsw=20
 
-data_folder=$HOME/crossbeam/crossbeam/data
+data_folder=$HOME/crossbeam/crossbeam/data/sygus
 
 beam_size=10
 grad_acc=1
-save_dir=$HOME/results/crossbeam/bustle/ur-test
+save_dir=$HOME/results/crossbeam/bustle/
 
 if [ ! -e $save_dir ];
 then
@@ -32,7 +32,7 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --max_search_weight=$maxsw \
     --data_folder=$data_folder \
     --save_dir=$save_dir \
-    --load_model=saved/model-best-valid.ckpt \
+    --load_model=ur-test/saved/model-best-valid.ckpt \
     --grad_accumulate=$grad_acc \
     --beam_size=$beam_size \
     --gpu_list=0 \
@@ -42,5 +42,6 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --train_data_glob=train-tasks*.pkl \
     --random_beam=False \
     --do_test=True \
+    --use_ur=True \
     --timeout=30 \
     $@

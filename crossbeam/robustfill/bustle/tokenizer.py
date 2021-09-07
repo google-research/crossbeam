@@ -1,4 +1,4 @@
-from crossbeam.datasets.bustle_data import ALWAYS_USED_CONSTANTS, ALWAYS_CONST_STR, COMMON_CONSTANTS
+from crossbeam.datasets.bustle_data import ALWAYS_CONST_STR, COMMON_CONSTANTS
 
 STR_PREFIX = 'CSTR'
 STR_STARTS = 'STR_STARTS'
@@ -36,7 +36,7 @@ def unprocess_prog(prog):
         token = prog[pos]
         if token.startswith(AC_PREFIX):
             idx = int(token.split('_')[-1])
-            raw_prog.append(ALWAYS_USED_CONSTANTS[idx])
+            raw_prog.append(ALWAYS_CONST_STR[idx])
         elif token.startswith(STR_PREFIX):
             idx = int(token.split('_')[-1])
             raw_prog.append(quote_string(COMMON_CONSTANTS[idx]))
