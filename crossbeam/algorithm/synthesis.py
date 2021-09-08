@@ -137,13 +137,15 @@ def update_masks(type_masks, operation, all_values, device, vidx_start=0):
   for arg_index in range(operation.arity):
     arg_type = operation.arg_types()[arg_index]
     bool_mask = [all_values[v].type == arg_type for v in range(vidx_start, len(all_values))]
-    if not any(bool_mask):
-      feasible = False
-    step_type_mask = torch.FloatTensor(bool_mask).to(device)
+    step_type_mask = torch.BoolTensor(bool_mask).to(device)
     if len(type_masks) <= arg_index:
       type_masks.append(step_type_mask)
+      if not any(step_type_mask):
+        feasible = False
     else:
       type_masks[arg_index] = torch.cat([type_masks[arg_index], step_type_mask])
+      if not any(type_masks[arg_index]):
+        feasible = False
   return feasible
 
 
@@ -212,7 +214,7 @@ def synthesize(task, domain, model, device,
               scores = score_model.step_score(cur_state, val_embed)
               scores = scores.view(-1)
               if len(type_masks):
-                scores = type_masks[arg_index] * scores + (1.0 - type_masks[arg_index]) * -1e10
+                scores = torch.where(type_masks[arg_index], scores, torch.FloatTensor([-1e10]).to(device))
               prob = torch.softmax(scores, dim=0)
             else:
               prob = None
