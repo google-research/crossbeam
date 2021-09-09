@@ -397,7 +397,7 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
         vid = cur_val_indices[t_idx]
         task_feasible = True
         for step in range(operation.arity):
-            if not torch.any(type_masks[step][1][vid]):
+          if not torch.any(type_masks[step][1][vid]):
             task_feasible = False
             break
         if task_feasible:
