@@ -137,13 +137,15 @@ def update_masks(type_masks, operation, all_values, device, vidx_start=0):
   for arg_index in range(operation.arity):
     arg_type = operation.arg_types()[arg_index]
     bool_mask = [all_values[v].type == arg_type for v in range(vidx_start, len(all_values))]
-    if not any(bool_mask):
-      feasible = False
-    step_type_mask = torch.FloatTensor(bool_mask).to(device)
+    cur_feasible = any(bool_mask)
+    step_type_mask = torch.BoolTensor(bool_mask).to(device)
     if len(type_masks) <= arg_index:
-      type_masks.append(step_type_mask)
+      type_masks.append([cur_feasible, step_type_mask])
     else:
-      type_masks[arg_index] = torch.cat([type_masks[arg_index], step_type_mask])
+      type_masks[arg_index][1] = torch.cat([type_masks[arg_index][1], step_type_mask])
+      cur_feasible = cur_feasible or type_masks[arg_index][0]
+      type_masks[arg_index][0] = cur_feasible
+    feasible = feasible and cur_feasible
   return feasible
 
 
@@ -187,8 +189,8 @@ def synthesize(task, domain, model, device,
       type_masks = mask_dict[operation]
 
       if len(type_masks):
-        if len(all_values) > type_masks[0].shape[0]:
-          feasible = update_masks(type_masks, operation, all_values, device, vidx_start=type_masks[0].shape[0])
+        if len(all_values) > type_masks[0][1].shape[0]:
+          feasible = update_masks(type_masks, operation, all_values, device, vidx_start=type_masks[0][1].shape[0])
           if not feasible:
             continue
 
@@ -212,7 +214,7 @@ def synthesize(task, domain, model, device,
               scores = score_model.step_score(cur_state, val_embed)
               scores = scores.view(-1)
               if len(type_masks):
-                scores = type_masks[arg_index] * scores + (1.0 - type_masks[arg_index]) * -1e10
+                scores = torch.where(type_masks[arg_index][1], scores, torch.FloatTensor([-1e10]).to(device))
               prob = torch.softmax(scores, dim=0)
             else:
               prob = None
@@ -383,8 +385,8 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
       if all(task_done):
         break
       type_masks = mask_dict[operation]
-      if len(type_masks) and len(all_values) > type_masks[0].shape[0]:
-        if not update_masks(type_masks, operation, all_values, device, vidx_start=type_masks[0].shape[0]):
+      if len(type_masks) and len(all_values) > type_masks[0][1].shape[0]:
+        if not update_masks(type_masks, operation, all_values, device, vidx_start=type_masks[0][1].shape[0]):
           continue
 
       cur_val_indices = [torch.LongTensor(vid).to(device) for vid in value_indices]
@@ -395,7 +397,7 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
         vid = cur_val_indices[t_idx]
         task_feasible = True
         for step in range(operation.arity):
-          if torch.max(type_masks[step][vid]) + 1e-8 < 1.0:
+          if not torch.any(type_masks[step][1][vid]):
             task_feasible = False
             break
         if task_feasible:
