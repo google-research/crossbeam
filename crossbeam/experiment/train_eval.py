@@ -18,6 +18,7 @@ from _thread import start_new_thread
 import torch.distributed as dist
 import traceback
 from crossbeam.dsl import domains
+from crossbeam.dsl import value as value_module
 from crossbeam.common.config import get_torch_device
 from absl import logging
 import timeit
@@ -54,7 +55,7 @@ def thread_wrapped_func(func):
 
 def task_loss(task, device, training_samples, all_values, model, score_normed=True):
   io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
-  val_embed = model.val(all_values, device=device)
+  val_embed = model.val(all_values, device=device, output_values=value_module.OutputValue(task.outputs))
   loss = 0.0
   for sample in training_samples:
     arg_options, decision_lens, true_arg_pos, num_vals, op = sample
@@ -125,7 +126,7 @@ def batch_forward(tasks, device, training_samples, all_values, model, score_norm
 
 def do_eval(eval_tasks, domain, model,
             max_search_weight, beam_size, device, verbose=True, 
-            timeout=None, is_stochastic=False, use_ur=True):
+            timeout=None, is_stochastic=False, use_ur=True, use_type_masking=True):
   if verbose:
     print('doing eval...')
 
@@ -150,7 +151,8 @@ def do_eval(eval_tasks, domain, model,
         timeout=timeout,
         is_stochastic=is_stochastic,
         random_beam=False,
-        use_ur=use_ur)
+        use_ur=use_ur,
+        masking=use_type_masking)
     elapsed_time = timeit.default_timer() - start_time
     if verbose:
       print('Elapsed time: {:.2f}'.format(elapsed_time))
@@ -211,7 +213,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
                                 device=device,
                                 timeout=args.timeout,
                                 is_stochastic=args.stochastic_beam,
-                                use_ur=args.use_ur)
+                                use_ur=args.use_ur,
+                                use_type_masking=args.type_masking)
   if args.do_test: # test only
     print('Doing test only!')
     succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
@@ -249,7 +252,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
           max_weight=args.max_search_weight,
           k=args.beam_size,
           is_training=True,
-          random_beam=args.random_beam)
+          random_beam=args.random_beam,
+          masking=args.type_masking)
         loss = batch_forward(batch_tasks, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
         loss.backward()
       else:
@@ -262,7 +266,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
                 max_weight=args.max_search_weight,
                 k=args.beam_size,
                 is_training=True,
-                random_beam=args.random_beam)
+                random_beam=args.random_beam,
+                masking=args.type_masking)
 
           if isinstance(training_samples, list):
             loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc

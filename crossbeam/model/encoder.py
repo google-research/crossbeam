@@ -9,8 +9,10 @@ import torch.nn.functional as F
 import functools
 from torch.nn.utils.rnn import pack_sequence, PackedSequence, pad_packed_sequence, pack_padded_sequence
 from crossbeam.dsl.operation_base import OperationBase
+from crossbeam.dsl import value as value_module
 from crossbeam.model.base import CharSeqEncoder, pad_sequence, _param_init
 from crossbeam.model.util import CharacterTable
+from crossbeam.algorithm import property_signatures
 
 
 def pad_int_seq(int_seqs, device):
@@ -104,6 +106,37 @@ class IntValueEncoder(nn.Module):
     return val_embed
 
 
+class PropSigIOEncoder(nn.Module):
+  def __init__(self, max_num_inputs, hidden_size):
+    super(PropSigIOEncoder, self).__init__()
+    self.max_num_inputs = max_num_inputs
+    self.num_sigs = property_signatures.NUM_SINGLE_VALUE_PROPERTIES + property_signatures.NUM_COMPARISON_PROPERTIES
+    self.feat_dim = self.num_sigs * self.max_num_inputs + property_signatures.NUM_SINGLE_VALUE_PROPERTIES
+    self.mlp = nn.Sequential(
+      nn.Linear(self.feat_dim * 5, hidden_size * 2),
+      nn.ReLU(),
+      nn.Linear(hidden_size * 2, hidden_size * 2)
+    )
+
+  def forward(self, list_inputs_dict, list_outputs, device, needs_scatter_idx=False):
+    num_tasks = len(list_outputs)
+    feat_mat = torch.zeros(num_tasks, 5 * self.feat_dim)
+    for sample_idx, (inputs_dict, outputs) in enumerate(zip(list_inputs_dict, list_outputs)):
+      cur_input = []
+      for input_name, input_value in inputs_dict.items():
+        cur_input.append(value_module.InputValue(input_value, name=input_name))
+      signature = property_signatures.compute_example_signature(cur_input, value_module.OutputValue(outputs))
+      for i, sig in enumerate(signature):
+        feat_mat[sample_idx, i * 5 + int(sig)] = 1.0
+    feat_mat = feat_mat.to(device)
+    io_embed = self.mlp(feat_mat)
+    if needs_scatter_idx:
+      sample_scatter_idx = torch.arange(num_tasks).to(device)
+      return io_embed, sample_scatter_idx
+    else:
+      return io_embed
+
+
 class CharIOLSTMEncoder(nn.Module):
   def __init__(self, input_char_table, output_char_table, hidden_size,
                to_string: Callable = repr):
@@ -150,6 +183,26 @@ class CharIOLSTMEncoder(nn.Module):
       return cat_embed
 
 
+class CharAndPropSigIOEncoder(nn.Module):
+  def __init__(self, max_num_inputs, input_char_table, output_char_table, hidden_size,
+               to_string: Callable = repr):
+    super(CharAndPropSigIOEncoder, self).__init__()
+    self.char_io_encoder = CharIOLSTMEncoder(input_char_table, output_char_table, hidden_size, to_string)
+    self.prop_sig_encoder = PropSigIOEncoder(max_num_inputs, hidden_size)
+    self.merge_embed = nn.Linear(4 * hidden_size, 2 * hidden_size)
+
+  def forward(self, list_inputs_dict, list_outputs, device, needs_scatter_idx=False):
+    char_cat_embed, sample_scatter_idx = self.char_io_encoder(list_inputs_dict, list_outputs, device, needs_scatter_idx=True)
+    sig_cat_embed = self.prop_sig_encoder(list_inputs_dict, list_outputs, device)
+    repeat_sig_cat = sig_cat_embed[sample_scatter_idx]
+    merged_embed = torch.cat((char_cat_embed, repeat_sig_cat), dim=-1)
+    merged_embed = self.merge_embed(merged_embed)
+    if needs_scatter_idx:
+      return merged_embed, sample_scatter_idx
+    else:
+      return merged_embed
+
+
 class CharValueLSTMEncoder(nn.Module):
   def __init__(self, val_char_table, hidden_size, to_string: Callable = repr):
     super(CharValueLSTMEncoder, self).__init__()
@@ -158,12 +211,48 @@ class CharValueLSTMEncoder(nn.Module):
     self.val_char_table = val_char_table
     self.val_encoder = CharSeqEncoder(self.val_char_table.vocab_size, self.hidden_size)
   
-  def forward(self, all_values, device):
+  def forward(self, all_values, device, output_values=None):
     list_values = [self.to_string(x) for x in all_values]
     list_int_vals = [self.val_char_table.encode(x) for x in list_values]
     padded_i, len_i = pad_int_seq(list_int_vals, device)
     val_embed = self.val_encoder(padded_i, len_i)
     return val_embed
+
+
+class PropSigValueEncoder(nn.Module):
+  def __init__(self, hidden_size):
+    super(PropSigValueEncoder, self).__init__()
+    self.num_sigs = property_signatures.NUM_SINGLE_VALUE_PROPERTIES + property_signatures.NUM_COMPARISON_PROPERTIES
+    self.mlp = nn.Sequential(
+      nn.Linear(self.num_sigs * 5, hidden_size * 2),
+      nn.ReLU(),
+      nn.Linear(hidden_size * 2, hidden_size)
+    )
+
+  def forward(self, all_values, device, output_values):
+    val_feat = torch.zeros(len(all_values), self.num_sigs * 5)
+    for v_idx, v in enumerate(all_values):
+      signatures = property_signatures.compute_value_signature(v, output_values)
+      for i, sig in enumerate(signatures):
+        val_feat[v_idx, i * 5 + int(sig)] = 1.0
+    val_feat = val_feat.to(device)
+    val_embed = self.mlp(val_feat)
+    return val_embed
+
+
+class CharAndPropSigValueEncoder(nn.Module):
+  def __init__(self, val_char_table, hidden_size, to_string: Callable = repr):
+    super(CharAndPropSigValueEncoder, self).__init__()
+    self.char_encoder = CharValueLSTMEncoder(val_char_table, hidden_size, to_string)
+    self.sig_encoder = PropSigValueEncoder(hidden_size)
+    self.merge_embed = nn.Linear(2 * hidden_size, hidden_size)
+
+  def forward(self, all_values, device, output_values):
+    char_embed = self.char_encoder(all_values, device)
+    sig_embed = self.sig_encoder(all_values, device, output_values)
+    embed = torch.cat((char_embed, sig_embed), dim=-1)
+    embed = self.merge_embed(embed)
+    return embed
 
 
 class ValueAndOpEncoder(nn.Module):
