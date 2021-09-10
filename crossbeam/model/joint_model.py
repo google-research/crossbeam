@@ -5,7 +5,7 @@ from functools import partial
 from crossbeam.model.op_arg import LSTMArgSelector, OpSpecificLSTMSelector
 from crossbeam.model.op_init import PoolingState, OpPoolingState, OpExplicitPooling
 from crossbeam.model.encoder import CharIOLSTMEncoder, CharValueLSTMEncoder, PropSigIOEncoder, PropSigValueEncoder, IntIOEncoder, IntValueEncoder, ValueAndOpEncoder
-from crossbeam.model.encoder import CharAndPropSigIOEncoder, CharAndPropSigValueEncoder
+from crossbeam.model.encoder import CharAndPropSigIOEncoder, CharAndPropSigValueEncoder, BustlePropSigIOEncoder, BustlePropSigValueEncoder
 
 
 class JointModel(nn.Module):
@@ -20,6 +20,9 @@ class JointModel(nn.Module):
     elif args.io_encoder == 'char_sig':
       self.io = CharAndPropSigIOEncoder(args.max_num_inputs, input_table, output_table, hidden_size=args.embed_dim)
       print('io encoder: char+sig')
+    elif args.io_encoder == 'bustle_sig':
+      self.io = BustlePropSigIOEncoder(args.max_num_inputs, hidden_size=args.embed_dim)
+      print('io encoder: bustle signature')
     else:
       raise ValueError('unknown io encoder %s' % args.io_encoder)
     if args.value_encoder == 'char':
@@ -31,6 +34,9 @@ class JointModel(nn.Module):
     elif args.value_encoder == 'char_sig':
       val = CharAndPropSigValueEncoder(value_table, hidden_size=args.embed_dim)
       print('value encoder: char+sig')
+    elif args.value_encoder == 'bustle_sig':
+      val = BustlePropSigValueEncoder(hidden_size=args.embed_dim)
+      print('value encoder: bustle signature')
     else:
       raise ValueError('unknown value encoder %s' % args.value_encoder)
     self.op_in_beam = args.op_in_beam
