@@ -93,7 +93,8 @@ class IntValueEncoder(nn.Module):
     self.value_int_embed = nn.Embedding(value_range[1] - value_range[0] + 3, hidden_size)
     self.value_linear = nn.Linear(self.num_samples * hidden_size, hidden_size)
 
-  def forward(self, all_values, device):
+  def forward(self, all_values, device, output_values):
+    del output_values  # unused
     int_vals = torch.LongTensor(len(all_values), self.num_samples)
     for i, v in enumerate(all_values):
       assert len(v.values) <= self.num_samples

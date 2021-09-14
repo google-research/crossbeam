@@ -15,7 +15,7 @@ flags.DEFINE_bool('do_test', False, 'eval against test set?')
 
 # nn configs
 flags.DEFINE_integer('batch_size', 32, 'minibatch size')
-flags.DEFINE_integer('embed_dim', 128, 'embedding dimension')
+flags.DEFINE_integer('embed_dim', 512, 'embedding dimension')
 flags.DEFINE_integer('n_para_dataload', 0, 'num of parallel data loader')
 flags.DEFINE_integer('decoder_rnn_layers', 3, '# rnn autoregressive model decoder layers')
 flags.DEFINE_float('grad_clip', 5.0, 'clip grad')
