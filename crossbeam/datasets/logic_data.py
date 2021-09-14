@@ -16,62 +16,180 @@ FLAGS = flags.FLAGS
 
 def get_consts_and_ops():
   operations = logic_operations.get_operations()
-  constants = [np.array([False]*10),
-               np.zeros((10,10)) > 1]
+  constants = list(logic_leaves().values())
   return constants, operations
 
 
 MAXIMUM_ENTITIES = 10
-
-def make_connected_task(operators,p=0.5):
+def make_difference_task(k, operators):
     global MAXIMUM_ENTITIES
-    recursive_clause = operators[0] # bad
+
+    recursive, transpose, chain, disjunction = operators
+    lv = logic_input_values()
+    Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
+
+    P = transpose.apply([S])
+    Sk = S
+    Pk = P
+    for _ in range(k-1):
+        Sk = chain.apply([S,Sk]) # k step predecessor
+        Pk = chain.apply([P,Pk]) # k step predecessor
     
-    A = np.random.random((MAXIMUM_ENTITIES,MAXIMUM_ENTITIES)) < p
-    # split it into two islands, can only go from one island to the other in one direction
-    A[:MAXIMUM_ENTITIES//2,MAXIMUM_ENTITIES//2:] = False
-    C = A
-    for _ in range(MAXIMUM_ENTITIES+1):
-        C = A + A@A
-    A = value_module.InputValue([A],"edge")
-    solution = recursive_clause.apply((A,A))
+    solution = disjunction.apply([Sk,Pk])
     
-    return Task({"edge": A.values}, solution.values, solution)
+    return Task({k: v.values for k, v in lv.items()},
+                solution.values,
+                solution)
+  
+def make_sub_task(k, operators):
+    global MAXIMUM_ENTITIES
+
+    recursive, transpose, chain, disjunction = operators
+    lv = logic_input_values()
+    Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
+    
+    P = transpose.apply([S])
+    Pk = P
+    for _ in range(k-1):
+        Pk = chain.apply([P,Pk]) # k step predecessor
+    
+    solution = Pk
+    
+    return Task({k: v.values for k, v in lv.items()},
+                solution.values,
+                solution)
+
+def make_add_task(k, operators):
+    global MAXIMUM_ENTITIES
+
+    recursive, transpose, chain, disjunction = operators
+    lv = logic_input_values()
+    Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
+    
+    Sk = S
+    for _ in range(k-1):
+        Sk = chain.apply([S,Sk]) # k step predecessor
+    
+    solution = Sk
+    
+    return Task({k: v.values for k, v in lv.items()},
+                solution.values,
+                solution)
 
 def make_divisible_task(k, operators):
     global MAXIMUM_ENTITIES
 
-    transpose = operators[3]
-    chain = operators[4]
-    recursive = operators[0]
-
-    
-    Z = value_module.InputValue([np.array([True] + [False]*(MAXIMUM_ENTITIES-1))],"zero")
-    B = value_module.InputValue([np.zeros((MAXIMUM_ENTITIES,)) > 0],"_|_") # bottom
-    
-    S = np.roll(np.eye(MAXIMUM_ENTITIES),1)
-    S[0,0] = 0
-    S = S > 0
-    S = value_module.InputValue([S],"successor")
+    recursive, transpose, chain, disjunction = operators
+    lv = logic_input_values()
+    Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
 
     P = transpose.apply([S]) # predecessor
     Pk = P
-    for _ in range(k):
-        Pk = chain.apply([B,P,Pk]) # k step predecessor
+    for _ in range(k-1):
+        Pk = chain.apply([P,Pk]) # k step predecessor
     
-    solution = recursive.apply([Z,Pk])   
+    solution = recursive.apply([Z,Pk,eq])   
     
-    return Task({"zero": Z.values,
-                 "_|_": B.values,
-                 "successor": S.values},
+    return Task({k: v.values for k, v in lv.items()},
                 solution.values,
                 solution)
-    
-    
-def logic_inputs_dict_generator(num_inputs, num_examples):
-  assert num_inputs == 4, "number of inputs must be 4"
-  assert num_examples == 1, "number of examples must be 1"
 
+def make_multiply_task(k, operators):
+    global MAXIMUM_ENTITIES
+
+    recursive, transpose, chain, disjunction = operators
+    lv = logic_input_values()
+    Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
+
+    P = transpose.apply([S]) # predecessor
+    Pk = P
+    for _ in range(k-1):
+        Pk = chain.apply([P,Pk]) # k step predecessor
+    
+    solution = recursive.apply([transpose.apply([Z]),P,Pk])   
+    
+    return Task({k: v.values for k, v in lv.items()},
+                solution.values,
+                solution)
+
+def make_divide_task(k, operators):
+    global MAXIMUM_ENTITIES
+
+    recursive, transpose, chain, disjunction = operators
+    lv = logic_input_values()
+    Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
+
+
+    P = transpose.apply([S]) # predecessor
+    Pk = P
+    for _ in range(k-1):
+        Pk = chain.apply([P,Pk]) # k step predecessor
+    
+    solution = recursive.apply([transpose.apply([Z]),Pk,P])   
+    
+    return Task({k: v.values for k, v in lv.items()},
+                solution.values,
+                solution)
+  
+def make_greater_than_task(operators):
+    global MAXIMUM_ENTITIES
+
+    recursive, transpose, chain, disjunction = operators
+    lv = logic_input_values()
+    Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
+
+    P = transpose.apply([S]) # predecessor
+    
+    solution = recursive.apply([P,P,eq])   
+    
+    return Task({k: v.values for k, v in lv.items()},
+                solution.values,
+                solution)
+
+def make_less_than_task(operators):
+    global MAXIMUM_ENTITIES
+
+    recursive, transpose, chain, disjunction = operators
+    lv = logic_input_values()
+    Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
+
+    solution = recursive.apply([S,S,eq])   
+    
+    return Task({k: v.values for k, v in lv.items()},
+                solution.values,
+                solution)
+  
+def make_greater_than_or_equal_task(operators):
+    global MAXIMUM_ENTITIES
+
+    recursive, transpose, chain, disjunction = operators
+    lv = logic_input_values()
+    Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
+
+    P = transpose.apply([S]) # predecessor
+    
+    solution = disjunction.apply([recursive.apply([P,P,eq]), eq])
+    
+    return Task({k: v.values for k, v in lv.items()},
+                solution.values,
+                solution)
+
+
+def make_less_than_or_equal_task(operators):
+    global MAXIMUM_ENTITIES
+
+    recursive, transpose, chain, disjunction = operators
+    lv = logic_input_values()
+    Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
+
+    solution = disjunction.apply([recursive.apply([S,S,eq]),
+                                  eq])
+    
+    return Task({k: v.values for k, v in lv.items()},
+                solution.values,
+                solution)    
+
+def logic_leaves():
   is_zero = np.zeros(MAXIMUM_ENTITIES) > 0
   is_zero[0] = True
 
@@ -79,16 +197,35 @@ def logic_inputs_dict_generator(num_inputs, num_examples):
   S[0,0] = 0
   S = S > 0
 
-  bottom1 = np.zeros(MAXIMUM_ENTITIES) > 0
-  bottom2 = np.zeros((MAXIMUM_ENTITIES,MAXIMUM_ENTITIES)) > 0
+  bottom = np.zeros(MAXIMUM_ENTITIES) > 0
+  eq = np.eye(MAXIMUM_ENTITIES) > 0
+
+  return {"zero": is_zero, "successor": S,
+          "equal": eq, 
+          "bot": bottom}
+
+def logic_input_values():
+  return {k: value_module.InputValue([v], k) for k, v in logic_leaves().items()}
   
-  return {"zero": [is_zero],
-          "successor": [S],
-          "_|_/1": [bottom1],
-          "_|_/2": [bottom2]}
+def logic_inputs_dict_generator(num_inputs, num_examples):
+  ll = logic_leaves()
+  assert num_inputs == len(ll), f"number of inputs must be {len(ll)}"
+  assert num_examples == 1, "number of examples must be 1"
+  
+  return {k: [v] for k, v in ll.items()}
   
     
-
+def all_manual_logic_tasks(operations):
+  return [make_difference_task(k,operations) for k in [1,2,3,4,5,6,7] ] +\
+    [make_divisible_task(k,operations) for k in [2,3,4] ] +\
+    [make_add_task(k,operations) for k in [2,3,4,5,6] ] +\
+    [make_sub_task(k,operations) for k in [2,3,4,5,6] ] +\
+    [make_divide_task(k,operations) for k in [2,3,4] ] +\
+    [make_multiply_task(k,operations) for k in [2,3,4] ] +\
+    [make_less_than_task(operations),
+     make_greater_than_task(operations),
+     make_less_than_or_equal_task(operations),
+     make_greater_than_or_equal_task(operations)] 
 
 def main(argv):
   del argv
@@ -97,8 +234,8 @@ def main(argv):
 
   constants, operations = get_consts_and_ops()
   #eval_tasks = [task_gen(FLAGS, constants, operations) for _ in range(FLAGS.num_eval)]
-  eval_tasks = [make_divisible_task(k,operations) for k in [2,3,4] ]
-  eval_tasks.extend([make_connected_task(operations,p=p) for p in [0.05,0.4]])
+  eval_tasks = all_manual_logic_tasks(operations)
+  #eval_tasks.extend([make_connected_task(operations,p=p) for p in [0.05,0.4]])
 
   with open(FLAGS.output_file, 'wb') as f:
     cp.dump(eval_tasks, f, cp.HIGHEST_PROTOCOL)

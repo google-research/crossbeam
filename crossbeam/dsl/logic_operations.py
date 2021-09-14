@@ -18,67 +18,34 @@ from crossbeam.dsl import operation_base
 import numpy as np
 
 
-class MemorizeDyadicClause(operation_base.OperationBase):
-    """
-    P(x,y).
-    """
-    TOKEN = '(assert/2 '
-    def __init__(self):
-        super(MemorizeDyadicClause, self).__init__('MemorizeDyadicClause', 3)
-
-    def apply_single(self, raw_arguments):
-        base_relation, l, r = raw_arguments
-        new_relation = force_dyadic(np.copy(base_relation))
-        new_relation[l,r] = True
-        return new_relation
-
-    def tokenized_expression(self, arguments):
-        return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + \
-            arguments[1].tokenized_expression() + [')']
-
-class MemorizeMonadicClause(operation_base.OperationBase):
-    """
-    P(x).
-    """
-    TOKEN = '(assert/1 '
-    def __init__(self):
-        super(MemorizeMonadicClause, self).__init__('MemorizeMonadicClause', 2)
-
-    def apply_single(self, raw_arguments):
-        base_relation, i = raw_arguments
-        new_relation = force_monadic(np.copy(base_relation))
-        new_relation[i] = True
-        return new_relation
-
-    def tokenized_expression(self, arguments):
-        return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [')']
 
 class RecursiveClause(operation_base.OperationBase):
     """
-    whenever Q is dyadic:
-    P(x,y) <- Q(x,y). % base case
-    P(x,y) <- R(x,z), P(z,y). % inductive case
+    whenever B is dyadic:
+    P(x,y) <- B(x,y). % base case
+    P(x,y) <- Q(x,u), R(y,v), P(u,v). % inductive case
 
-    whenever Q is monadic:
-    P(x) <- Q(x). % base case
-    P(x) <- R(x,y), P(y). % inductive case
+    whenever B is monadic:
+    P(x) <- B(x). % base case
+    P(x) <- R(x,y), Q(y,z), P(z). % inductive case
 
     """
     TOKEN = '(recursive '
     def __init__(self):
-        super(RecursiveClause, self).__init__("RecursiveClause",2)
+        super(RecursiveClause, self).__init__("RecursiveClause",3)
 
     def apply_single(self, raw_arguments):
-        base_case, inductive_step = raw_arguments
+        base_case, step1, step2 = raw_arguments
 
         # make it so that we can also work with monadic predicates
-        inductive_step = force_dyadic(inductive_step)
+        step1 = force_dyadic(step1)
+        step2 = force_dyadic(step2)
 
         truth_values = base_case
         while True:
             current_size = np.sum(truth_values)
 
-            truth_values = inductive_step @ truth_values + truth_values
+            truth_values = step1 @ truth_values @ (step2.T) + truth_values
             truth_values = truth_values > 0 # not necessary but I'm paranoid that we won't get bool
             
             new_size = np.sum(truth_values)
@@ -88,7 +55,7 @@ class RecursiveClause(operation_base.OperationBase):
         return truth_values
 
     def tokenized_expression(self, arguments):
-        return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + [')']
+        return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression()  + [' '] + arguments[2].tokenized_expression() + [')']
 
 
 class TransposeClause(operation_base.OperationBase):
@@ -131,25 +98,24 @@ class DisjunctionClause(operation_base.OperationBase):
 
 class ChainClause(operation_base.OperationBase):
     """
-    P(x,y) <- Q(x,y).
     P(x,y) <- R(x,z),T(z,y).
     """
 
     TOKEN = '(chain '
     def __init__(self):
-        super(ChainClause, self).__init__("ChainClause",3)
+        super(ChainClause, self).__init__("ChainClause",2)
     def apply_single(self, raw_arguments):
-        q,r,t = raw_arguments
+        r,t = raw_arguments
 
-        q = force_dyadic(q)
         r = force_dyadic(r)
         t = force_dyadic(t)
 
-        return (q + r@t) > 0
+        return r@t > 0
     def tokenized_expression(self, arguments):
-        return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + arguments[2].tokenized_expression() + [')']
+        return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + [')']
     
 def force_dyadic(maybe_monadic):
+    """P'(X, X) <- P(X)."""
     if len(maybe_monadic.shape) == 2: return maybe_monadic
     assert len(maybe_monadic.shape) == 1
     return np.diag(maybe_monadic)
@@ -161,8 +127,8 @@ def force_monadic(maybe_dyadic):
 def get_operations():
   return [
       RecursiveClause(),
-      MemorizeMonadicClause(),
-      MemorizeDyadicClause(),
+      # MemorizeMonadicClause(),
+      # MemorizeDyadicClause(),
       TransposeClause(),
       ChainClause(),
       DisjunctionClause(),
