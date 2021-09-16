@@ -32,7 +32,7 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --max_search_weight=$maxsw \
     --data_folder=$data_folder \
     --save_dir=$save_dir \
-    --load_model=ur-test/saved/model-best-valid.ckpt \
+    --load_model=tout-120-b-4-g-4-masking/model-best-valid.ckpt \
     --grad_accumulate=$grad_acc \
     --beam_size=$beam_size \
     --gpu_list=0 \
