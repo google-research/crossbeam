@@ -19,6 +19,7 @@ flags.DEFINE_float('timeout', 5, 'time limit in seconds')
 
 flags.DEFINE_string('io_encoder', 'char', 'io encoder, choose from [char, signature, char_signature]')
 flags.DEFINE_string('value_encoder', 'char', 'value encoder, choose from [char, signature, char_signature]')
+flags.DEFINE_boolean('encode_weight', False, 'encode value weights?')
 
 
 def set_global_seed(seed):
