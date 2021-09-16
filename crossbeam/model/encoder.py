@@ -107,6 +107,39 @@ class IntValueEncoder(nn.Module):
     return val_embed
 
 
+class BustlePropSigIOEncoder(nn.Module):
+  def __init__(self, max_num_inputs, hidden_size):
+    super(BustlePropSigIOEncoder, self).__init__()
+    self.max_num_inputs = max_num_inputs
+    self.num_sigs = property_signatures.NUM_SINGLE_VALUE_PROPERTIES + property_signatures.NUM_COMPARISON_PROPERTIES
+    self.feat_dim = self.num_sigs * self.max_num_inputs + property_signatures.NUM_SINGLE_VALUE_PROPERTIES
+    self.summary_embed = nn.Embedding(5, 2)
+    self.mlp = nn.Sequential(
+      nn.Linear(self.feat_dim * 2, hidden_size * 2),
+      nn.ReLU(),
+      nn.Linear(hidden_size * 2, hidden_size * 2)
+    )
+
+  def forward(self, list_inputs_dict, list_outputs, device, needs_scatter_idx=False):
+    num_tasks = len(list_outputs)
+    feature_list = []
+    for inputs_dict, outputs in zip(list_inputs_dict, list_outputs):
+      cur_input = []
+      for input_name, input_value in inputs_dict.items():
+        cur_input.append(value_module.InputValue(input_value, name=input_name))
+      signature = property_signatures.compute_example_signature(cur_input, value_module.OutputValue(outputs))
+      cur_feats = [int(sig) for sig in signature]
+      feature_list.append(cur_feats)
+    feat_mat = torch.LongTensor(feature_list).to(device)
+    feat_embed = self.summary_embed(feat_mat).view(-1, self.feat_dim * 2)
+    io_embed = self.mlp(feat_embed)
+    if needs_scatter_idx:
+      sample_scatter_idx = torch.arange(num_tasks).to(device)
+      return io_embed, sample_scatter_idx
+    else:
+      return io_embed
+
+
 class PropSigIOEncoder(nn.Module):
   def __init__(self, max_num_inputs, hidden_size):
     super(PropSigIOEncoder, self).__init__()
@@ -238,6 +271,30 @@ class PropSigValueEncoder(nn.Module):
         val_feat[v_idx, i * 5 + int(sig)] = 1.0
     val_feat = val_feat.to(device)
     val_embed = self.mlp(val_feat)
+    return val_embed
+
+
+class BustlePropSigValueEncoder(nn.Module):
+  def __init__(self, hidden_size):
+    super(BustlePropSigValueEncoder, self).__init__()
+    self.num_sigs = property_signatures.NUM_SINGLE_VALUE_PROPERTIES + property_signatures.NUM_COMPARISON_PROPERTIES
+    self.embed_dim = 2
+    self.summary_embed = nn.Embedding(5, self.embed_dim)
+    self.mlp = nn.Sequential(
+      nn.Linear(self.num_sigs * self.embed_dim, hidden_size * 2),
+      nn.ReLU(),
+      nn.Linear(hidden_size * 2, hidden_size)
+    )
+
+  def forward(self, all_values, device, output_values):
+    feat_list = []
+    for v in all_values:
+      signatures = property_signatures.compute_value_signature(v, output_values)
+      cur_feat = [int(sig) for sig in signatures]
+      feat_list.append(cur_feat)
+    feat_list = torch.LongTensor(feat_list).to(device)
+    feat_embed = self.summary_embed(feat_list).view(-1, self.num_sigs * self.embed_dim)
+    val_embed = self.mlp(feat_embed)
     return val_embed
 
 
