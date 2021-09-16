@@ -55,6 +55,7 @@ def perform_search(domain, min_weight, max_weight, num_examples, num_inputs,
     largest_weight = max(i for i in range(min_weight, max_weight + 1)
                          if values_by_weight[i])
     max_weight = largest_weight - 1
+    print("Reached timeout. Enumerated programs up to size", max_weight)
   choices = [v for v in value_set
              if min_weight <= v.weight <= max_weight and
              (domain.output_type is None or v.type == domain.output_type)]
@@ -76,7 +77,7 @@ def generate_data(domain, min_weight, max_weight,
     tasks.extend(perform_search(
         domain, min_weight, max_weight, num_examples, num_inputs, timeout,
         num_tasks=num_tasks_per_search))
-    print('Completed search {} of {}'.format(i+1, num_searches))
+    print('Completed search {} of {}. {} tasks total.'.format(i+1, num_searches, len(tasks)))
   return tasks
 
 

@@ -28,12 +28,11 @@ def make_difference_task(k, operators):
     lv = logic_input_values()
     Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
 
-    P = transpose.apply([S])
     Sk = S
-    Pk = P
     for _ in range(k-1):
         Sk = chain.apply([S,Sk]) # k step predecessor
-        Pk = chain.apply([P,Pk]) # k step predecessor
+
+    Pk = transpose.apply([Sk])
     
     solution = disjunction.apply([Sk,Pk])
     
@@ -48,12 +47,11 @@ def make_sub_task(k, operators):
     lv = logic_input_values()
     Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
     
-    P = transpose.apply([S])
-    Pk = P
+    Sk = S
     for _ in range(k-1):
-        Pk = chain.apply([P,Pk]) # k step predecessor
+        Sk = chain.apply([S,Sk]) # k step predecessor
     
-    solution = Pk
+    solution = transpose.apply([Sk])
     
     return Task({k: v.values for k, v in lv.items()},
                 solution.values,
@@ -82,11 +80,12 @@ def make_divisible_task(k, operators):
     recursive, transpose, chain, disjunction = operators
     lv = logic_input_values()
     Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
-
-    P = transpose.apply([S]) # predecessor
-    Pk = P
+    
+    Sk = S
     for _ in range(k-1):
-        Pk = chain.apply([P,Pk]) # k step predecessor
+        Sk = chain.apply([S,Sk]) # k step predecessor
+
+    Pk = transpose.apply([Sk]) # predecessor
     
     solution = recursive.apply([Z,Pk,eq])   
     
@@ -102,9 +101,11 @@ def make_multiply_task(k, operators):
     Z, S, eq, B = lv["zero"], lv["successor"], lv["equal"], lv["bot"]
 
     P = transpose.apply([S]) # predecessor
-    Pk = P
+    Sk = S
     for _ in range(k-1):
-        Pk = chain.apply([P,Pk]) # k step predecessor
+        Sk = chain.apply([S,Sk]) # k step predecessor
+
+    Pk = transpose.apply([Sk]) # predecessor
     
     solution = recursive.apply([transpose.apply([Z]),P,Pk])   
     
@@ -121,9 +122,11 @@ def make_divide_task(k, operators):
 
 
     P = transpose.apply([S]) # predecessor
-    Pk = P
+    Sk = S
     for _ in range(k-1):
-        Pk = chain.apply([P,Pk]) # k step predecessor
+        Sk = chain.apply([S,Sk]) # k step predecessor
+
+    Pk = transpose.apply([Sk]) # predecessor
     
     solution = recursive.apply([transpose.apply([Z]),Pk,P])   
     
@@ -216,7 +219,7 @@ def logic_inputs_dict_generator(num_inputs, num_examples):
   
     
 def all_manual_logic_tasks(operations):
-  return [make_difference_task(k,operations) for k in [1,2,3,4,5,6,7] ] +\
+  tasks = [make_difference_task(k,operations) for k in [1,2,3,4,5,6,7] ] +\
     [make_divisible_task(k,operations) for k in [2,3,4] ] +\
     [make_add_task(k,operations) for k in [2,3,4,5,6] ] +\
     [make_sub_task(k,operations) for k in [2,3,4,5,6] ] +\
@@ -225,7 +228,9 @@ def all_manual_logic_tasks(operations):
     [make_less_than_task(operations),
      make_greater_than_task(operations),
      make_less_than_or_equal_task(operations),
-     make_greater_than_or_equal_task(operations)] 
+     make_greater_than_or_equal_task(operations)]
+  return tasks
+  
 
 def main(argv):
   del argv
