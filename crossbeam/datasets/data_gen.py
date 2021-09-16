@@ -79,11 +79,11 @@ def main(argv):
                                   max_num_inputs=FLAGS.max_num_inputs,
                                   verbose=FLAGS.verbose)
   else:
-    # FIXME: make it so that logic programming makes random data like everyone else
-    from crossbeam.datasets.logic_data import make_divisible_task, make_connected_task
+    from crossbeam.datasets.logic_data import all_manual_logic_tasks
     operations = domain.operations
-    eval_tasks = [make_divisible_task(k,operations) for k in [2,3,4] ]
-    eval_tasks.extend([make_connected_task(operations,p=p) for p in [0.05,0.4]])
+    eval_tasks = all_manual_logic_tasks(operations)
+    
+    #eval_tasks.extend([make_connected_task(operations,p=p) for p in [0.05,0.4]])
 
   with open(FLAGS.output_file, 'wb') as f:
     cp.dump(eval_tasks, f, cp.HIGHEST_PROTOCOL)

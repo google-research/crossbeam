@@ -15,6 +15,10 @@ NUM_SINGLE_VALUE_PROPERTIES = (
 NUM_COMPARISON_PROPERTIES = (
     NUM_STRING_COMPARISON_PROPERTIES + NUM_INT_COMPARISON_PROPERTIES)
 
+_CONTAINS_DIGITS_REGEX = re.compile(r'.*\d.*')
+_ONLY_DIGITS_REGEX = re.compile(r'\d+')
+_CONTAINS_LETTERS_REGEX = re.compile(r'.*[a-zA-Z].*')
+_ONLY_LETTERS_REGEX = re.compile(r'[a-zA-Z]+')
 
 @enum.unique
 class PropertySummary(enum.IntEnum):
@@ -82,10 +86,10 @@ def process_single_value(value, signature):
           '.' in s,  # contains period?
           '-' in s,  # contains dash?
           '/' in s,  # contains slash?
-          re.match(r'.*\d.*', s),  # contains digits?
-          re.match(r'\d+', s),  # only digits?
-          re.match(r'.*[a-zA-Z].*', s),  # contains letters?
-          re.match(r'[a-zA-Z]+', s),  # only letters?
+          _CONTAINS_DIGITS_REGEX.match(s),  # contains digits?
+          _ONLY_DIGITS_REGEX.match(s),  # only digits?
+          _CONTAINS_LETTERS_REGEX.match(s),  # contains letters?
+          _ONLY_LETTERS_REGEX.match(s),  # only letters?
       ]
       assert len(properties) == NUM_STRING_PROPERTIES
       property_results.append(properties)
