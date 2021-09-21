@@ -59,10 +59,33 @@ def perform_search(domain, min_weight, max_weight, num_examples, num_inputs,
   choices = [v for v in value_set
              if min_weight <= v.weight <= max_weight and
              (domain.output_type is None or v.type == domain.output_type)]
-  num_tasks = min(num_tasks, len(choices))
-  selected_values = random.sample(choices, k=num_tasks)
-  return [task_module.Task(inputs_dict, v.values, solution=v)
-          for v in selected_values]
+
+  single_split = isinstance(num_tasks, int)
+  if single_split:
+    num_tasks = min(num_tasks, len(choices))
+    num_tasks = [num_tasks]
+
+  assert isinstance(num_tasks, (list, tuple))
+  if sum(num_tasks) > len(choices):
+    raise ValueError(
+        'Splits sum to {} tasks, but there are only {} values'.format(
+            sum(num_tasks), len(choices)))
+
+  random.shuffle(choices)
+  splits = []
+  last_index = 0
+  for split_num_tasks in num_tasks:
+    this_split = [task_module.Task(inputs_dict, v.values, solution=v)
+                  for v in choices[last_index : last_index + split_num_tasks]]
+    assert len(this_split) == split_num_tasks
+    last_index += split_num_tasks
+    splits.append(this_split)
+
+  if single_split:
+    assert len(splits) == 1
+    return splits[0]
+  else:
+    return splits
 
 
 def generate_data(domain, min_weight, max_weight,

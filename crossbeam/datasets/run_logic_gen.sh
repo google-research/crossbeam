@@ -11,10 +11,9 @@ fi
 
 seed=10
 eval_file=$data_dir/test-tasks.pkl
-max_size=15
-let time_out=60*60 # an hour of enumeration
+max_size=20
 
-python data_gen.py \
+python3 -m crossbeam.datasets.data_gen \
     --domain=logic  --num_searches 1\
     --data_gen_seed $seed \
     --output_file $eval_file #--num_eval 1000 \
@@ -23,7 +22,7 @@ python data_gen.py \
 seed=10
 eval_file=$data_dir/valid-tasks.pkl
 
-python data_gen.py \
+python3 -m crossbeam.datasets.data_gen \
     --domain=logic --num_searches 1\
     --data_gen_seed $seed \
     --output_file $eval_file #--num_eval 1000
@@ -31,18 +30,24 @@ python data_gen.py \
 echo "Making procedurally generated tasks via bottom-up enumeration"
 
 
-data_dir=$HOME/data/crossbeam/logic_synthesis
+data_dir=$HOME/data/crossbeam/logic_synthesis_10hr
 
 if [ ! -e $data_dir ];
 then
     mkdir -p $data_dir
 fi
 
-NT=1000000 # number of training tasks
-for fn in $data_dir/train-tasks.pkl $data_dir/test-tasks.pkl $data_dir/valid-tasks.pkl; do
-    echo "producing output in" $fn
-    
-    python bottom_up_data_generation.py --domain=logic  --num_searches 1 --max_num_examples=1 --min_num_examples=1 --max_num_inputs=4 --min_num_inputs=4 --output_file $fn --max_task_weight $max_size --data_gen_timeout=$time_out  --num_tasks=$NT
+let time_out=10*60*60 # 10 hours of enumeration
 
-    NT=1000 # number of testing and validation tasks
-done
+NUM_TRAIN=1000000
+NUM_VALID=1000
+NUM_TEST=1000
+
+python3 -m crossbeam.datasets.bottom_up_data_generation_logic \
+  --max_num_examples=1 --min_num_examples=1 \
+  --max_num_inputs=4 --min_num_inputs=4 \
+  --max_task_weight $max_size \
+  --data_gen_timeout=$time_out \
+  --num_tasks_per_split=${NUM_TRAIN} --split_filenames=$data_dir/train-tasks.pkl \
+  --num_tasks_per_split=${NUM_VALID} --split_filenames=$data_dir/valid-tasks.pkl \
+  --num_tasks_per_split=${NUM_TEST} --split_filenames=$data_dir/test-tasks.pkl
