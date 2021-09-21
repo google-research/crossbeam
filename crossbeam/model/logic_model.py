@@ -13,6 +13,9 @@ class LogicModel(nn.Module):
 
     self.max_entities = max_entities
 
+    self.op_in_beam = args.op_in_beam
+    assert not self.op_in_beam
+
     self.arg = LSTMArgSelector(hidden_size=args.embed_dim,
                                mlp_sizes=[256, 1],
                                step_score_func=args.step_score_func,
@@ -124,7 +127,7 @@ class LogicModel(nn.Module):
 
     return torch.cat((specification,values),-1)
     
-  def val(self, all_values, device):
+  def val(self, all_values, device, output_values=None):
     """all_values: list of values. each value is represented by its instantiation on each I/O example
     so if you have three I/O examples and ten values then you will have 10x3 matrix as input
     returns as output [number_of_values,embedding_size]"""
