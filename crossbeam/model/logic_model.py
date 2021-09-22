@@ -8,7 +8,7 @@ from crossbeam.model.great import Great
 
 
 class LogicModel(nn.Module):
-  def __init__(self, args, operations, max_entities=10, hidden=256):
+  def __init__(self, args, operations, max_entities=10):
     super(LogicModel, self).__init__()
 
     self.max_entities = max_entities
@@ -46,11 +46,13 @@ class LogicModel(nn.Module):
     else:
       self.great = None
       self.embed_spec,self.embed_value,self.embed_input = \
-                      [ nn.Sequential(nn.Linear(max_entities*max_entities + 1, hidden),
+                      [ nn.Sequential(nn.Linear(max_entities*max_entities + 1, args.embed_dim),
                                      nn.ReLU(),
-                                     nn.Linear(hidden, hidden),
+                                     nn.Linear(args.embed_dim, args.embed_dim),
                                      nn.ReLU(),
-                                     nn.Linear(hidden, args.embed_dim))
+                                     nn.Linear(args.embed_dim, args.embed_dim),
+                                     nn.ReLU(),
+                                     nn.Linear(args.embed_dim, args.embed_dim))
                         for _ in range(3) ]
 
   @staticmethod
