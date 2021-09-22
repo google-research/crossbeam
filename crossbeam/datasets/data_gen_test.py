@@ -30,7 +30,7 @@ class DataGenTest(parameterized.TestCase):
     for task in tasks:
       self.assertTrue(1 <= task.num_inputs <= 3)
       self.assertTrue(2 <= task.num_examples <= 4)
-      self.assertTrue(3 <= task.solution.weight() <= 6)
+      self.assertTrue(3 <= task.solution.get_weight() <= 6)
 
     exp_common.set_global_seed(123)
     other_tasks = generate_tasks_func()

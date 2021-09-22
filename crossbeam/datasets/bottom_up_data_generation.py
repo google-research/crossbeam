@@ -57,7 +57,7 @@ def perform_search(domain, min_weight, max_weight, num_examples, num_inputs,
     max_weight = largest_weight - 1
     print("Reached timeout. Enumerated programs up to size", max_weight)
   choices = [v for v in value_set
-             if min_weight <= v.weight() <= max_weight and
+             if min_weight <= v.get_weight() <= max_weight and
              (domain.output_type is None or v.type == domain.output_type)]
 
   single_split = isinstance(num_tasks, int)

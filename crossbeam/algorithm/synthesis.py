@@ -87,7 +87,7 @@ def op_in_beam_synthesize(task, domain, model, device,
       operation = arg_list[0]
       arg_list = arg_list[1:operation.arity + 1]
       result_value = operation.apply(arg_list)
-      if result_value is None or result_value.weight() > max_weight:
+      if result_value is None or result_value.get_weight() > max_weight:
         continue
       if (domain.small_value_filter and
           not all(domain.small_value_filter(v) for v in result_value.values)):
@@ -153,16 +153,16 @@ def update_with_better_value(result_value, all_value_dict, all_values, model,
                              device, output_value, verbose):
   if verbose:
     print('duplicate value: {}, {}, weight {}'.format(
-        result_value, result_value.expression(), result_value.weight()))
+        result_value, result_value.expression(), result_value.get_weight()))
   old_value = all_values[all_value_dict[result_value]]
-  if result_value.weight() < old_value.weight():
+  if result_value.get_weight() < old_value.get_weight():
     assert isinstance(old_value, value_module.OperationValue)
     old_value.operation = result_value.operation
     old_value.arg_values = result_value.arg_values
     old_value._repr_cache = None
     if verbose:
       print('  updated: {}, {}, weight {}'.format(
-          old_value, old_value.expression(), old_value.weight()))
+          old_value, old_value.expression(), old_value.get_weight()))
 
 
 def synthesize(task, domain, model, device,
@@ -248,7 +248,7 @@ def synthesize(task, domain, model, device,
           stats['num_values_explored'] += 1
           if verbose and result_value is None:
             print('Cannot apply {} to {}'.format(operation, arg_list))
-          if result_value is None or result_value.weight() > max_weight:
+          if result_value is None or result_value.get_weight() > max_weight:
             continue
           if (domain.small_value_filter and
               not all(domain.small_value_filter(v) for v in result_value.values)):
@@ -294,7 +294,7 @@ def synthesize(task, domain, model, device,
       trace_in_beam = -1
       for i, arg_list in enumerate(beam):
         result_value = operation.apply(arg_list)
-        if result_value is None or result_value.weight() > max_weight:
+        if result_value is None or result_value.get_weight() > max_weight:
           continue
         if (domain.small_value_filter and
             not all(domain.small_value_filter(v) for v in result_value.values)):
@@ -446,7 +446,7 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
         trace_in_beam = -1
         for bid, arg_list in enumerate(beam):
           result_value = operation.apply(arg_list)
-          if result_value is None or result_value.weight() > max_weight:
+          if result_value is None or result_value.get_weight() > max_weight:
             continue
           if (domain.small_value_filter and
               not all(domain.small_value_filter(v) for v in result_value.values)):

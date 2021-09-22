@@ -72,7 +72,7 @@ class Value(abc.ABC):
     """Returns a code expression (tokenized) that creates this value."""
 
   @abc.abstractmethod
-  def weight(self):
+  def get_weight(self):
     """Returns this expression's weight, computed recursively."""
 
 
@@ -88,9 +88,9 @@ class OperationValue(Value):
     """See base class."""
     return self.operation.tokenized_expression(self.arg_values)
 
-  def weight(self):
+  def get_weight(self):
     """See base class."""
-    return self.operation.weight + sum(v.weight() for v in self.arg_values)
+    return self.operation.weight + sum(v.get_weight() for v in self.arg_values)
 
 
 class ConstantValue(Value):
@@ -105,8 +105,12 @@ class ConstantValue(Value):
     """See base class."""
     return [repr(self.constant)]
 
-  def weight(self):
+  def get_weight(self):
     """See base class."""
+    if not hasattr(self, '_weight'):
+      # Hack to support .pkl files created before the _weight attr was added
+      assert isinstance(self.weight, int)
+      return self.weight
     return self._weight
 
 
@@ -123,8 +127,12 @@ class InputValue(Value):
     """See base class."""
     return [self.name]
 
-  def weight(self):
+  def get_weight(self):
     """See base class."""
+    if not hasattr(self, '_weight'):
+      # Hack to support .pkl files created before the _weight attr was added
+      assert isinstance(self.weight, int)
+      return self.weight
     return self._weight
 
 
@@ -139,6 +147,6 @@ class OutputValue(Value):
     """An OutputValue is not created from any expression."""
     raise NotImplementedError()
 
-  def weight(self):
+  def get_weight(self):
     """See base class."""
     raise NotImplementedError()
