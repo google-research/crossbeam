@@ -151,17 +151,17 @@ def update_masks(type_masks, operation, all_values, device, vidx_start=0):
 
 def update_with_better_value(result_value, all_value_dict, all_values, model,
                              device, output_value, verbose):
-  if verbose:
-    print('duplicate value: {}, {}, weight {}'.format(
-        result_value, result_value.expression(), result_value.get_weight()))
   old_value = all_values[all_value_dict[result_value]]
   if result_value.get_weight() < old_value.get_weight():
     assert isinstance(old_value, value_module.OperationValue)
+    if verbose:
+      print('duplicate value found. was: {}, {}, weight {}'.format(
+          old_value, old_value.expression(), old_value.get_weight()))
     old_value.operation = result_value.operation
     old_value.arg_values = result_value.arg_values
     old_value._repr_cache = None
     if verbose:
-      print('  updated: {}, {}, weight {}'.format(
+      print('  updated to: {}, {}, weight {}'.format(
           old_value, old_value.expression(), old_value.get_weight()))
 
 
