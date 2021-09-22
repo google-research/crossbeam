@@ -46,10 +46,10 @@ def run_synthesis(domain, tasks, timeout, verbose=False):
 
     if verbose:
       print('Task {}: {}'.format(i, task))
-      print('Task solution has weight {}'.format(task.solution.weight))
+      print('Task solution has weight {}'.format(task.solution.weight()))
       print('Solution: {}, weight {}'.format(
           result.expression() if result else None,
-          result.weight if result else None))
+          result.weight() if result else None))
       print('Time: {:.2f}, num values explored: {}'.format(
           elapsed_time, len(value_set)))
       print()

@@ -42,7 +42,7 @@ class BottomUpDataGenerationTest(parameterized.TestCase):
         num_tasks_per_search=10)
 
     self.assertLen(tasks, 20)
-    self.assertTrue(all(4 <= t.solution.weight <= 6 for t in tasks))
+    self.assertTrue(all(4 <= t.solution.weight() <= 6 for t in tasks))
     if domain.output_type:
       self.assertTrue(all(t.solution.type == domain.output_type for t in tasks))
 

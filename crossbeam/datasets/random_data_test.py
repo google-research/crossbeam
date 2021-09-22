@@ -53,7 +53,7 @@ class RandomDataTest(absltest.TestCase):
           value_index=value_index)
       value_set.add(value)
       expression_set.add(value.expression())
-      self.assertLessEqual(value.weight, max_weight)
+      self.assertLessEqual(value.weight(), max_weight)
 
     self.assertLen(value_set, dp_info.answer)
     self.assertLen(expression_set, dp_info.answer)
@@ -73,7 +73,7 @@ class RandomDataTest(absltest.TestCase):
             # This is the only combination that leaves no possible tasks.
             self.assertIsNone(task)
           else:
-            self.assertIn(task.solution.weight,
+            self.assertIn(task.solution.weight(),
                           range(min_weight, max_weight + 1))
 
 
