@@ -9,8 +9,8 @@ from crossbeam.dsl import value as value_module
 
 
 def _add_value_by_weight(values_by_weight, value):
-  if value.weight < len(values_by_weight):
-    values_by_weight[value.weight][value] = value
+  if value.get_weight() < len(values_by_weight):
+    values_by_weight[value.get_weight()][value] = value
 
 
 def _gather_values_with_weight_and_type(values_by_weight, arg_weight, arg_type,

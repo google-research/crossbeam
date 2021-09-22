@@ -260,7 +260,7 @@ class ValueWeightEncoder(nn.Module):
     self.weight_embedding = nn.Embedding(max_weight + 1, hidden_size)
 
   def forward(self, all_values, device):
-    wids = [min(v.weight, self.max_weight + 1) - 1 for v in all_values]
+    wids = [min(v.get_weight(), self.max_weight + 1) - 1 for v in all_values]
     wids = torch.LongTensor(wids).to(device)
     w_embed = self.weight_embedding(wids)
     return w_embed

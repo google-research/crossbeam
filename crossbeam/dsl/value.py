@@ -20,10 +20,9 @@ import abc
 class Value(abc.ABC):
   """Values in search, one for each I/O example."""
 
-  def __init__(self, values, weight):
+  def __init__(self, values):
     assert isinstance(values, (list, tuple)) and values
     self.values = values
-    self.weight = weight
     self.type = type(values[0])
     self.num_examples = len(values)
     self._repr_cache = None
@@ -66,23 +65,22 @@ class Value(abc.ABC):
 
   def expression(self):
     """Returns a code expression (as a string) that creates this value."""
-    try:
-      return ''.join(self.tokenized_expression())
-    except:
-      import pdb; pdb.set_trace()
-      
+    return ''.join(self.tokenized_expression())
 
   @abc.abstractmethod
   def tokenized_expression(self):
     """Returns a code expression (tokenized) that creates this value."""
+
+  @abc.abstractmethod
+  def get_weight(self):
+    """Returns this expression's weight, computed recursively."""
 
 
 class OperationValue(Value):
   """A Value resulting from the application of an Operation."""
 
   def __init__(self, value, operation, arg_values):
-    super(OperationValue, self).__init__(
-        value, weight=operation.weight + sum(a.weight for a in arg_values))
+    super(OperationValue, self).__init__(value)
     self.operation = operation
     self.arg_values = arg_values
 
@@ -90,17 +88,30 @@ class OperationValue(Value):
     """See base class."""
     return self.operation.tokenized_expression(self.arg_values)
 
+  def get_weight(self):
+    """See base class."""
+    return self.operation.weight + sum(v.get_weight() for v in self.arg_values)
+
 
 class ConstantValue(Value):
   """A constant value that is not created by any operation."""
 
   def __init__(self, constant, num_examples, weight=1):
-    super(ConstantValue, self).__init__([constant] * num_examples, weight)
+    super(ConstantValue, self).__init__([constant] * num_examples)
     self.constant = constant
+    self._weight = weight
 
   def tokenized_expression(self):
     """See base class."""
     return [repr(self.constant)]
+
+  def get_weight(self):
+    """See base class."""
+    if not hasattr(self, '_weight'):
+      # Hack to support .pkl files created before the _weight attr was added
+      assert isinstance(self.weight, int)
+      return self.weight
+    return self._weight
 
 
 class InputValue(Value):
@@ -108,12 +119,21 @@ class InputValue(Value):
 
   def __init__(self, values, name, weight=1):
     """Initializes an InputValue to contain `values` with name `name`."""
-    super(InputValue, self).__init__(values, weight)
+    super(InputValue, self).__init__(values)
     self.name = name
+    self._weight = weight
 
   def tokenized_expression(self):
     """See base class."""
     return [self.name]
+
+  def get_weight(self):
+    """See base class."""
+    if not hasattr(self, '_weight'):
+      # Hack to support .pkl files created before the _weight attr was added
+      assert isinstance(self.weight, int)
+      return self.weight
+    return self._weight
 
 
 class OutputValue(Value):
@@ -123,10 +143,10 @@ class OutputValue(Value):
   compared to other Value objects.
   """
 
-  def __init__(self, values, weight=-1):
-    """Initializes an OutputValue with a sentinel weight."""
-    super(OutputValue, self).__init__(values, weight)
-
   def tokenized_expression(self):
     """An OutputValue is not created from any expression."""
+    raise NotImplementedError()
+
+  def get_weight(self):
+    """See base class."""
     raise NotImplementedError()

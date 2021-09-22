@@ -87,7 +87,7 @@ class PropertySignaturesTest(absltest.TestCase):
         property_signatures.MAX_INPUTS *
         property_signatures.NUM_COMPARISON_PROPERTIES)
 
-  def compute_value_signature_test(self):
+  def test_compute_value_signature_test(self):
     value = value_module.InputValue(['butter', 'abc', 'xyz'], 'input_1')
     output = value_module.OutputValue(['butterfly', 'abc_', 'XYZ_'])
 
@@ -101,7 +101,7 @@ class PropertySignaturesTest(absltest.TestCase):
                        property_signatures.NUM_BOOL_PROPERTIES +
                        property_signatures.NUM_STRING_COMPARISON_PROPERTIES +
                        property_signatures.NUM_INT_COMPARISON_PROPERTIES)
-    self.assertEqual(value_signature, exampleSignature[: expected_length])
+    self.assertEqual(value_signature, example_signature[: expected_length])
 
 
 if __name__ == '__main__':
