@@ -58,15 +58,16 @@ def task_loss(task, device, training_samples, all_values, model, score_normed=Tr
   val_embed = model.val(all_values, device=device, output_values=value_module.OutputValue(task.outputs))
   loss = 0.0
   for sample in training_samples:
-    arg_options, decision_lens, true_arg_pos, num_vals, op = sample
+    arg_options, aux_info, true_arg_pos, num_vals, op = sample
     arg_options = torch.LongTensor(arg_options).to(device)
     cur_vals = val_embed[:num_vals]
+    cur_vals = model.encode_weight(cur_vals, aux_info)
     op_state = model.init(io_embed, cur_vals, op)
     scores = model.arg(op_state, cur_vals, arg_options)
     if model.op_in_beam:
       prefix_scores = torch.cumsum(scores, dim=-1)
       assert score_normed
-      true_steps = decision_lens[true_arg_pos]
+      true_steps = aux_info[true_arg_pos]
       nll = -prefix_scores[true_arg_pos][true_steps - 1]
     else:
       scores = torch.sum(scores, dim=-1)
@@ -126,7 +127,8 @@ def batch_forward(tasks, device, training_samples, all_values, model, score_norm
 
 def do_eval(eval_tasks, domain, model,
             max_search_weight, beam_size, device, verbose=True, 
-            timeout=None, is_stochastic=False, use_ur=True, use_type_masking=True):
+            timeout=None, is_stochastic=False, use_ur=True, use_type_masking=True,
+            static_weight=False):
   if verbose:
     print('doing eval...')
 
@@ -152,7 +154,8 @@ def do_eval(eval_tasks, domain, model,
         is_stochastic=is_stochastic,
         random_beam=False,
         use_ur=use_ur,
-        masking=use_type_masking)
+        masking=use_type_masking,
+        static_weight=static_weight)
     elapsed_time = timeit.default_timer() - start_time
     if verbose:
       print('Elapsed time: {:.2f}'.format(elapsed_time))
@@ -214,7 +217,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
                                 timeout=args.timeout,
                                 is_stochastic=args.stochastic_beam,
                                 use_ur=args.use_ur,
-                                use_type_masking=args.type_masking)
+                                use_type_masking=args.type_masking,
+                                static_weight=args.static_weight)
   if args.do_test: # test only
     print('Doing test only!')
     succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
@@ -267,7 +271,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
                 k=args.beam_size,
                 is_training=True,
                 random_beam=args.random_beam,
-                masking=args.type_masking)
+                masking=args.type_masking,
+                static_weight=args.static_weight)
 
           if isinstance(training_samples, list):
             loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc

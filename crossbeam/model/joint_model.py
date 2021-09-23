@@ -5,7 +5,7 @@ from functools import partial
 from crossbeam.model.op_arg import LSTMArgSelector, OpSpecificLSTMSelector
 from crossbeam.model.op_init import PoolingState, OpPoolingState, OpExplicitPooling
 from crossbeam.model.encoder import CharIOLSTMEncoder, CharValueLSTMEncoder, PropSigIOEncoder, PropSigValueEncoder, IntIOEncoder, IntValueEncoder, ValueAndOpEncoder
-from crossbeam.model.encoder import CharAndPropSigIOEncoder, CharAndPropSigValueEncoder, BustlePropSigIOEncoder, BustlePropSigValueEncoder
+from crossbeam.model.encoder import CharAndPropSigIOEncoder, CharAndPropSigValueEncoder, BustlePropSigIOEncoder, BustlePropSigValueEncoder, DummyWeightEncoder, ValueWeightEncoder
 
 
 class JointModel(nn.Module):
@@ -29,16 +29,20 @@ class JointModel(nn.Module):
       val = CharValueLSTMEncoder(value_table, hidden_size=args.embed_dim)
       print('value encoder: char')
     elif args.value_encoder == 'signature':
-      val = PropSigValueEncoder(hidden_size=args.embed_dim, encode_weight=args.encode_weight, max_weight=20)
+      val = PropSigValueEncoder(hidden_size=args.embed_dim)
       print('value encoder: signature')
     elif args.value_encoder == 'char_sig':
       val = CharAndPropSigValueEncoder(value_table, hidden_size=args.embed_dim)
       print('value encoder: char+sig')
     elif args.value_encoder == 'bustle_sig':
-      val = BustlePropSigValueEncoder(hidden_size=args.embed_dim, encode_weight=args.encode_weight, max_weight=20)
+      val = BustlePropSigValueEncoder(hidden_size=args.embed_dim)
       print('value encoder: bustle signature')
     else:
       raise ValueError('unknown value encoder %s' % args.value_encoder)
+    if args.encode_weight:
+      self.encode_weight = ValueWeightEncoder(hidden_size=args.embed_dim)
+    else:
+      self.encode_weight = DummyWeightEncoder()
     self.op_in_beam = args.op_in_beam
     if args.op_in_beam:
       self.val = ValueAndOpEncoder(operations, val)
