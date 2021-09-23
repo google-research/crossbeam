@@ -253,21 +253,8 @@ class CharValueLSTMEncoder(nn.Module):
     return val_embed
 
 
-class ValueWeightEncoder(nn.Module):
-  def __init__(self, hidden_size, max_weight=20):
-    super(ValueWeightEncoder, self).__init__()
-    self.max_weight = max_weight
-    self.weight_embedding = nn.Embedding(max_weight + 1, hidden_size)
-
-  def forward(self, all_values, device):
-    wids = [min(v.get_weight(), self.max_weight + 1) - 1 for v in all_values]
-    wids = torch.LongTensor(wids).to(device)
-    w_embed = self.weight_embedding(wids)
-    return w_embed
-
-
 class PropSigValueEncoder(nn.Module):
-  def __init__(self, hidden_size, encode_weight=False, max_weight=20):
+  def __init__(self, hidden_size):
     super(PropSigValueEncoder, self).__init__()
     self.num_sigs = property_signatures.NUM_SINGLE_VALUE_PROPERTIES + property_signatures.NUM_COMPARISON_PROPERTIES
     self.mlp = nn.Sequential(
@@ -275,9 +262,6 @@ class PropSigValueEncoder(nn.Module):
       nn.ReLU(),
       nn.Linear(hidden_size * 2, hidden_size)
     )
-    self.encode_weight = encode_weight
-    if encode_weight:
-      self.weight_encoder = ValueWeightEncoder(hidden_size, max_weight)
 
   def forward(self, all_values, device, output_values):
     val_feat = torch.zeros(len(all_values), self.num_sigs * 5)
@@ -287,13 +271,11 @@ class PropSigValueEncoder(nn.Module):
         val_feat[v_idx, i * 5 + int(sig)] = 1.0
     val_feat = val_feat.to(device)
     val_embed = self.mlp(val_feat)
-    if self.encode_weight:
-      val_embed = val_embed + self.weight_encoder(all_values, device)
     return val_embed
 
 
 class BustlePropSigValueEncoder(nn.Module):
-  def __init__(self, hidden_size, encode_weight=False, max_weight=20):
+  def __init__(self, hidden_size):
     super(BustlePropSigValueEncoder, self).__init__()
     self.num_sigs = property_signatures.NUM_SINGLE_VALUE_PROPERTIES + property_signatures.NUM_COMPARISON_PROPERTIES
     self.embed_dim = 2
@@ -303,9 +285,6 @@ class BustlePropSigValueEncoder(nn.Module):
       nn.ReLU(),
       nn.Linear(hidden_size * 2, hidden_size)
     )
-    self.encode_weight = encode_weight
-    if encode_weight:
-      self.weight_encoder = ValueWeightEncoder(hidden_size, max_weight)
 
   def forward(self, all_values, device, output_values):
     feat_list = []
@@ -316,8 +295,6 @@ class BustlePropSigValueEncoder(nn.Module):
     feat_list = torch.LongTensor(feat_list).to(device)
     feat_embed = self.summary_embed(feat_list).view(-1, self.num_sigs * self.embed_dim)
     val_embed = self.mlp(feat_embed)
-    if self.encode_weight:
-      val_embed = val_embed + self.weight_encoder(all_values, device)
     return val_embed
 
 
@@ -352,3 +329,25 @@ class ValueAndOpEncoder(nn.Module):
     else:
       val_embed = self.val_encoder(all_values, device)    
     return val_embed
+
+
+class DummyWeightEncoder(nn.Module):
+  def __init__(self):
+    super(DummyWeightEncoder, self).__init__()
+
+  def forward(self, value_embed, all_values):
+    return value_embed
+
+
+class ValueWeightEncoder(nn.Module):
+  def __init__(self, hidden_size, max_weight=20):
+    super(ValueWeightEncoder, self).__init__()
+    self.max_weight = max_weight
+    self.weight_embedding = nn.Embedding(max_weight + 1, hidden_size)
+
+  def forward(self, value_embed, all_weights):
+    wids = [min(v, self.max_weight + 1) - 1 for v in all_weights]
+    wids = torch.LongTensor(wids).to(value_embed.device)
+    w_embed = self.weight_embedding(wids)
+    value_embed = value_embed + w_embed
+    return value_embed

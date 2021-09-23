@@ -186,7 +186,8 @@ def synthesize(task, domain, model, device,
     io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
   training_samples = []
 
-  val_embed = model.val(all_values, device=device, output_values=output_value)
+  val_base_embed = model.val(all_values, device=device, output_values=output_value)
+  value_embed = model.encode_weight(val_base_embed, [v.get_weight() for v in all_values])
   mask_dict = {}
   for operation in domain.operations:
     type_masks = []
@@ -213,8 +214,11 @@ def synthesize(task, domain, model, device,
       if use_ur:
         assert not is_training
         randomizer = ur.UniqueRandomizer()
-        val_embed = model.val(all_values, device=device, output_values=output_value)
-        init_embed = model.init(io_embed, val_embed, operation)
+        if len(all_values) > val_base_embed.shape[0]:
+          more_val_embed = model.val(all_values[val_base_embed.shape[0]:], device=device, output_values=output_value)
+          val_base_embed = torch.cat((val_base_embed, more_val_embed), dim=0)
+        value_embed = model.encode_weight(val_base_embed, [v.get_weight() for v in all_values])
+        init_embed = model.init(io_embed, value_embed, operation)
 
         new_values = []
         score_model = model.arg
@@ -227,7 +231,7 @@ def synthesize(task, domain, model, device,
           for arg_index in range(operation.arity):
             cur_state = randomizer.current_node.cache['state']
             if randomizer.needs_probabilities():
-              scores = score_model.step_score(cur_state, val_embed)
+              scores = score_model.step_score(cur_state, value_embed)
               scores = scores.view(-1)
               if len(type_masks):
                 scores = torch.where(type_masks[arg_index][1], scores, torch.FloatTensor([-1e10]).to(device))
@@ -237,7 +241,7 @@ def synthesize(task, domain, model, device,
             choice_index = randomizer.sample_distribution(prob)
             arg_list.append(all_values[choice_index])
             if 'state' not in randomizer.current_node.cache:
-              choice_embed = val_embed[[choice_index]]
+              choice_embed = value_embed[[choice_index]]
               if cur_state is None:
                 raise ValueError('cur_state is None!!')
               cur_state = score_model.step_state(cur_state, choice_embed)
@@ -268,19 +272,21 @@ def synthesize(task, domain, model, device,
             return new_value, all_values, stats
 
         continue
-
+      
+      weight_snapshot = [v.get_weight() for v in all_values]
       if random_beam:
         args = [[] for _ in range(k)]
         val_offset = 0
         for b in range(k):
           args[b] += [np.random.randint(val_offset, len(all_values)) for _ in range(operation.arity)]
       else:
-        if len(all_values) > val_embed.shape[0]:
-          more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device, output_values=output_value)
-          val_embed = torch.cat((val_embed, more_val_embed), dim=0)
-        op_state = model.init(io_embed, val_embed, operation)
+        if len(all_values) > val_base_embed.shape[0]:
+          more_val_embed = model.val(all_values[val_base_embed.shape[0]:], device=device, output_values=output_value)
+          val_base_embed = torch.cat((val_base_embed, more_val_embed), dim=0)
+        value_embed = model.encode_weight(val_base_embed, weight_snapshot)
+        op_state = model.init(io_embed, value_embed, operation)
         args, _ = beam_search(operation.arity, k,
-                              val_embed,
+                              value_embed,
                               op_state,
                               model.arg,
                               device=device,
@@ -326,7 +332,7 @@ def synthesize(task, domain, model, device,
             true_args = np.array(true_args, dtype=np.int32)
             args = np.concatenate((args, np.expand_dims(true_args, 0)), axis=0)
             trace_in_beam = args.shape[0] - 1
-          training_samples.append((args, [], trace_in_beam, num_values_before_op, operation))
+          training_samples.append((args, weight_snapshot, trace_in_beam, num_values_before_op, operation))
         trace.pop(0)
         if len(trace) == 0:
           return training_samples, all_values, stats

@@ -58,15 +58,16 @@ def task_loss(task, device, training_samples, all_values, model, score_normed=Tr
   val_embed = model.val(all_values, device=device, output_values=value_module.OutputValue(task.outputs))
   loss = 0.0
   for sample in training_samples:
-    arg_options, decision_lens, true_arg_pos, num_vals, op = sample
+    arg_options, aux_info, true_arg_pos, num_vals, op = sample
     arg_options = torch.LongTensor(arg_options).to(device)
     cur_vals = val_embed[:num_vals]
+    cur_vals = model.encode_weight(cur_vals, aux_info)
     op_state = model.init(io_embed, cur_vals, op)
     scores = model.arg(op_state, cur_vals, arg_options)
     if model.op_in_beam:
       prefix_scores = torch.cumsum(scores, dim=-1)
       assert score_normed
-      true_steps = decision_lens[true_arg_pos]
+      true_steps = aux_info[true_arg_pos]
       nll = -prefix_scores[true_arg_pos][true_steps - 1]
     else:
       scores = torch.sum(scores, dim=-1)
