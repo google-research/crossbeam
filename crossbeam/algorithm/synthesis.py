@@ -159,10 +159,15 @@ def update_with_better_value(result_value, all_value_dict, all_values, model,
           old_value, old_value.expression(), old_value.get_weight()))
     old_value.operation = result_value.operation
     old_value.arg_values = result_value.arg_values
-    old_value._repr_cache = None
     if verbose:
       print('  updated to: {}, {}, weight {}'.format(
           old_value, old_value.expression(), old_value.get_weight()))
+
+
+def copy_operation_value(value, all_values, all_value_dict):
+  assert isinstance(value, value_module.OperationValue)
+  arg_values = [all_values[all_value_dict[v]] for v in value.arg_values]
+  return value_module.OperationValue(value.values, value.operation, arg_values)
 
 
 def synthesize(task, domain, model, device,
@@ -321,7 +326,7 @@ def synthesize(task, domain, model, device,
         if include_as_train(trace_in_beam):  # construct training example
           if trace_in_beam < 0:  # true arg not found
             true_args = []
-            true_val = trace[0]
+            true_val = copy_operation_value(trace[0], all_values, all_value_dict)
             if not true_val in all_value_dict:
               all_value_dict[true_val] = len(all_values)
               all_values.append(true_val)
@@ -472,7 +477,7 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
           if include_as_train(trace_in_beam):
             if trace_in_beam < 0:  # true arg not found
               true_args = []
-              true_val = trace[0]
+              true_val = copy_operation_value(trace[0], all_values, all_value_dict)
               vid = get_or_add_value(true_val, all_values, all_value_dict)
               value_indices[t_idx].append(vid)
               true_arg_vals = true_val.arg_values
