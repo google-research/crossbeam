@@ -27,6 +27,7 @@ class LogicModel(nn.Module):
     else:
       self.encode_weight = DummyWeightEncoder()
     if args.great_transformer:
+      print('use great transformer')
       self.entity_project = nn.Embedding(max_entities, args.embed_dim)
 
       # relations:
@@ -48,6 +49,7 @@ class LogicModel(nn.Module):
 
       self.final_projection = nn.Linear(max_entities*args.embed_dim,args.embed_dim)
     else:
+      print('use mlp')
       self.great = None
       self.embed_spec,self.embed_value,self.embed_input = \
                       [ nn.Sequential(nn.Linear(max_entities*max_entities + 1, args.embed_dim),
