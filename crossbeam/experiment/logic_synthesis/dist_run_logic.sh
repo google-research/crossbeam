@@ -5,10 +5,11 @@
 data_folder=$HOME/data/crossbeam/logic_synthesis_10hr
 
 hiddenunits=512
-usegreattransformer=1
-
-beam_size=4
-save_dir=$HOME/results/crossbeam/logic_synthesis/b-$beam_size-h-$hiddenunits-g-$usegreattransformer
+usegreattransformer=0
+beam_size=10
+grad_acc=4
+encode_weight=True
+save_dir=$HOME/results/crossbeam/logic_synthesis/b-$beam_size-h-$hiddenunits-g-$usegreattransformer-ew-${encode_weight}
 
 if [ ! -e $save_dir ];
 then
@@ -32,7 +33,9 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --beam_size $beam_size \
     --max_search_weight 20 \
     --gpu_list=0,1,2,3,4,5,6,7 \
+    --grad_accumulate $grad_acc \
     --num_proc=8 \
+    --encode_weight=$encode_weight \
     --embed_dim $hiddenunits \
     --eval_every 10000 \
     --num_valid=50 \

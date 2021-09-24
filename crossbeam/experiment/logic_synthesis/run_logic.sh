@@ -4,9 +4,9 @@
 #data_folder=$HOME/data/crossbeam/logic_synthesis_manual
 data_folder=$HOME/data/crossbeam/logic_synthesis_10hr
 
-hiddenunits=128
+hiddenunits=512
 usegreattransformer=0
-
+grad_acc=4
 beam_size=4
 save_dir=$HOME/results/crossbeam/logic_synthesis/b-$beam_size-h-$hiddenunits-g-$usegreattransformer
 
@@ -30,6 +30,7 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --data_folder $data_folder \
     --save_dir $save_dir \
     --beam_size $beam_size \
+    --grad_accumulate $grad_acc \
     --max_search_weight 20 \
     --gpu 0 \
     --embed_dim $hiddenunits \
