@@ -5,6 +5,7 @@ import torch.nn as nn
 from crossbeam.model.op_arg import LSTMArgSelector
 from crossbeam.model.op_init import OpPoolingState
 from crossbeam.model.great import Great
+from crossbeam.model.encoder import DummyWeightEncoder, ValueWeightEncoder
 
 
 class LogicModel(nn.Module):
@@ -21,8 +22,13 @@ class LogicModel(nn.Module):
                                step_score_func=args.step_score_func,
                                step_score_normalize=args.score_normed)
     self.init = OpPoolingState(ops=tuple(operations), state_dim=args.embed_dim, pool_method='mean')
-
+    if args.encode_weight:
+      self.encode_weight = ValueWeightEncoder(hidden_size=args.embed_dim)
+      print('encode weight')
+    else:
+      self.encode_weight = DummyWeightEncoder()
     if args.great_transformer:
+      print('use great transformer')
       self.entity_project = nn.Embedding(max_entities, args.embed_dim)
 
       # relations:
@@ -44,6 +50,7 @@ class LogicModel(nn.Module):
 
       self.final_projection = nn.Linear(max_entities*args.embed_dim,args.embed_dim)
     else:
+      print('use mlp')
       self.great = None
       self.embed_spec,self.embed_value,self.embed_input = \
                       [ nn.Sequential(nn.Linear(max_entities*max_entities + 1, args.embed_dim),

@@ -104,7 +104,7 @@ class MultiheadAttentionRelation(nn.Module):
         if '_qkv_same_embed_dim' not in state:
             state['_qkv_same_embed_dim'] = True
 
-        super(MultiheadAttention, self).__setstate__(state)
+        super(MultiheadAttentionRelation, self).__setstate__(state)
 
     def forward(self, query: Tensor, key: Tensor, value: Tensor, relation: Tensor, key_padding_mask: Optional[Tensor] = None,
                 need_weights: bool = True, attn_mask: Optional[Tensor] = None) -> Tuple[Tensor, Optional[Tensor]]:
@@ -221,7 +221,7 @@ class GreatLayer(nn.Module):
     def __setstate__(self, state):
         if 'activation' not in state:
             state['activation'] = F.relu
-        super(TransformerEncoderLayer, self).__setstate__(state)
+        super(GreatLayer, self).__setstate__(state)
 
     def forward(self, src: Tensor, relation: Tensor, mask: Optional[Tensor] = None) -> Tensor:
         r"""Pass the input through the encoder layer.
