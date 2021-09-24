@@ -173,7 +173,7 @@ def copy_operation_value(value, all_values, all_value_dict):
 def synthesize(task, domain, model, device,
                trace=None, max_weight=15, k=2, is_training=False,
                include_as_train=None, timeout=None, is_stochastic=False,
-               random_beam=False, use_ur=False, masking=True):
+               random_beam=False, use_ur=False, masking=True, static_weight=False):
   stats = {'num_values_explored': 0}
 
   verbose = False
@@ -263,8 +263,9 @@ def synthesize(task, domain, model, device,
               not all(domain.small_value_filter(v) for v in result_value.values)):
             continue
           if result_value in all_value_dict:
-            update_with_better_value(result_value, all_value_dict, all_values,
-                                     model, device, output_value, verbose)
+            if not static_weight:
+              update_with_better_value(result_value, all_value_dict, all_values,
+                                       model, device, output_value, verbose)
             continue
           if verbose:
             print('new value: {}, {}'.format(result_value, result_value.expression()))
@@ -311,8 +312,9 @@ def synthesize(task, domain, model, device,
             not all(domain.small_value_filter(v) for v in result_value.values)):
           continue
         if result_value in all_value_dict:
-          update_with_better_value(result_value, all_value_dict, all_values,
-                                   model, device, output_value, verbose)
+          if not static_weight:
+            update_with_better_value(result_value, all_value_dict, all_values,
+                                     model, device, output_value, verbose)
           continue
         all_value_dict[result_value] = len(all_values)
         all_values.append(result_value)
