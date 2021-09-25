@@ -114,28 +114,33 @@ class LogicModel(nn.Module):
     output = self.final_projection(output)
     return output
 
-  def io(self, input_dictionary, outputs, device):
+  def io(self, list_input_dictionary, list_outputs, device, needs_scatter_idx=False):
     """input_dictionary/outputs: list of length batch_size, batching over task
     Each element of outputs is the output for a particular I/O example
     Here we only ever have one I/O example
     
     """
-    assert len(input_dictionary) == 1
-    assert len(outputs) == 1
-    assert len(outputs[0]) == 1
+    list_feat = []
+    for input_dictionary, outputs in zip(list_input_dictionary, list_outputs):
+      assert len(outputs) == 1
+      outputs = outputs[0]
 
-    input_dictionary = input_dictionary[0]
-    outputs = outputs[0][0]
-
-    specification = self.features_of_relation([outputs], True, device)
+      specification = self.features_of_relation([outputs], True, device)
     
-    values = self.val(list(input_dictionary.values()),
+      values = self.val(list(input_dictionary.values()),
                         device)
 
-    values = values.max(0).values.unsqueeze(0)
+      values = values.max(0).values.unsqueeze(0)
 
-    return torch.cat((specification,values),-1)
-    
+      feat = torch.cat((specification,values),-1)
+      list_feat.append(feat)
+    feats = torch.cat(list_feat, dim=0)
+    if needs_scatter_idx:
+      idx = torch.arange(len(list_input_dictionary)).to(device)
+      return feats, idx
+    else:
+      return feats
+
   def val(self, all_values, device, output_values=None):
     """all_values: list of values. each value is represented by its instantiation on each I/O example
     so if you have three I/O examples and ten values then you will have 10x3 matrix as input

@@ -422,12 +422,13 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
       for t_idx, task in enumerate(tasks):
         if task_done[t_idx]:
           continue
-        vid = cur_val_indices[t_idx]
         task_feasible = True
-        for step in range(operation.arity):
-          if not torch.any(type_masks[step][1][vid]):
-            task_feasible = False
-            break
+        if len(type_masks):
+          vid = cur_val_indices[t_idx]
+          for step in range(operation.arity):
+            if not torch.any(type_masks[step][1][vid]):
+              task_feasible = False
+              break
         if task_feasible:
           active_tasks.append(t_idx)
       if len(active_tasks) == 0:
