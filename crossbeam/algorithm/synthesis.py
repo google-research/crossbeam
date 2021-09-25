@@ -189,10 +189,10 @@ def synthesize(task, domain, model, device,
 
   if not random_beam:
     io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
-  training_samples = []
+    val_base_embed = model.val(all_values, device=device, output_values=output_value)
+    value_embed = model.encode_weight(val_base_embed, [v.get_weight() for v in all_values])
 
-  val_base_embed = model.val(all_values, device=device, output_values=output_value)
-  value_embed = model.encode_weight(val_base_embed, [v.get_weight() for v in all_values])
+  training_samples = []
   mask_dict = {}
   for operation in domain.operations:
     type_masks = []
@@ -282,9 +282,8 @@ def synthesize(task, domain, model, device,
       weight_snapshot = [v.get_weight() for v in all_values]
       if random_beam:
         args = [[] for _ in range(k)]
-        val_offset = 0
         for b in range(k):
-          args[b] += [np.random.randint(val_offset, len(all_values)) for _ in range(operation.arity)]
+          args[b] += [np.random.randint(0, len(all_values)) for _ in range(operation.arity)]
       else:
         if len(all_values) > val_base_embed.shape[0]:
           more_val_embed = model.val(all_values[val_base_embed.shape[0]:], device=device, output_values=output_value)
