@@ -62,6 +62,9 @@ class LogicModel(nn.Module):
                                      nn.Linear(args.embed_dim, args.embed_dim))
                         for _ in range(3) ]
 
+  def batch_init(self, io_embed, io_scatter, val_embed, value_indices, operation, sample_indices=None, io_gather=None):
+    return self.init.batch_forward(io_embed, io_scatter, val_embed, value_indices, operation, sample_indices, io_gather)
+
   @staticmethod
   def serialize_relation(r):
     if len(r.shape) == 1:
