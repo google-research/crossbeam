@@ -397,7 +397,8 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
                                     device=device,
                                     needs_scatter_idx=True)
 
-    val_embed = model.val(all_values, device=device)
+    val_base_embed = model.val(all_values, device=device)
+    value_embed = model.encode_weight(val_base_embed, [v.get_weight() for v in all_values])
   mask_dict = {}
   for operation in domain.operations:
     type_masks = []
@@ -431,14 +432,16 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
           active_tasks.append(t_idx)
       if len(active_tasks) == 0:
         continue
+      weight_snapshot = [v.get_weight() for v in all_values]
       if not random_beam:
-        if len(all_values) > val_embed.shape[0]:
-          more_val_embed = model.val(all_values[val_embed.shape[0]:], device=device)
-          val_embed = torch.cat((val_embed, more_val_embed), dim=0)        
-        op_states = model.batch_init(io_embed, io_scatter, val_embed, cur_val_indices, operation,
+        if len(all_values) > val_base_embed.shape[0]:
+          more_val_embed = model.val(all_values[val_base_embed.shape[0]:], device=device)
+          val_base_embed = torch.cat((val_base_embed, more_val_embed), dim=0)
+        value_embed = model.encode_weight(val_base_embed, weight_snapshot)
+        op_states = model.batch_init(io_embed, io_scatter, value_embed, cur_val_indices, operation,
                                      sample_indices=active_tasks)
         batch_beam, _ = batch_beam_search(operation.arity, k,
-                                          val_embed,
+                                          value_embed,
                                           [cur_val_indices[v] for v in active_tasks],
                                           op_states,
                                           model.arg,
@@ -464,7 +467,7 @@ def batch_synthesize(tasks, domain, model, device, traces=None, max_weight=10, k
           if (domain.small_value_filter and
               not all(domain.small_value_filter(v) for v in result_value.values)):
             continue
-          if result_value in all_value_dict:
+          if result_value in all_value_dict:  #TODO: how to update weight in batch training mode?
             continue
           vid = get_or_add_value(result_value, all_values, all_value_dict)
           value_indices[t_idx].append(vid)
