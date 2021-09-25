@@ -12,6 +12,7 @@ flags.DEFINE_string('data_folder', None, 'folder for offline data dump')
 flags.DEFINE_string('save_dir', None, 'folder for saving model dump/logs')
 flags.DEFINE_string('load_model', None, 'load saved model from $save_dir/$load_model')
 flags.DEFINE_bool('do_test', False, 'eval against test set?')
+flags.DEFINE_string('json_results_file', None, 'Where to write JSON results')
 
 # nn configs
 flags.DEFINE_integer('batch_size', 32, 'minibatch size')
