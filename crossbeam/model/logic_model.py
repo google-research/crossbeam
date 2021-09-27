@@ -124,6 +124,7 @@ class LogicModel(nn.Module):
     
     """
     list_feat = []
+    #TODO: make this vectorized, instead of using the manual loop
     for input_dictionary, outputs in zip(list_input_dictionary, list_outputs):
       assert len(outputs) == 1
       outputs = outputs[0]
