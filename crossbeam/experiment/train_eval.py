@@ -86,7 +86,8 @@ def batch_forward(tasks, device, training_samples, all_values, model, score_norm
                                   [task.outputs for task in tasks],
                                   device=device,
                                   needs_scatter_idx=True)
-  val_embed = model.val(all_values, device=device)
+  val_base_embed = model.val(all_values, device=device)
+  value_embed = model.encode_weight(val_base_embed, [v.get_weight() for v in all_values])
   masks = []
   sample_repeats = []
   offset = 0
@@ -117,9 +118,9 @@ def batch_forward(tasks, device, training_samples, all_values, model, score_norm
   op_arity_mask = torch.repeat_interleave(torch.Tensor(op_arity_mask).to(device), sample_repeats, dim=0)
   masks = torch.cat(masks, dim=0)
   masks = torch.repeat_interleave(masks, sample_repeats, dim=0)
-  op_states = model.batch_init(io_embed, io_scatter, val_embed, list_vid, list_operations, io_gather=io_gather)
+  op_states = model.batch_init(io_embed, io_scatter, value_embed, list_vid, list_operations, io_gather=io_gather)
   op_states = torch.repeat_interleave(op_states, sample_repeats, dim=0)
-  scores = model.arg.batch_forward(op_states, val_embed, arg_options, masks)
+  scores = model.arg.batch_forward(op_states, value_embed, arg_options, masks)
   scores = torch.sum(scores * op_arity_mask, dim=-1)
   nll = -scores[target_arg_pos]
   return torch.mean(nll)
@@ -250,6 +251,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
       batch_tasks = next(train_gen)
       batch_traces = [list(trace_gen(t.solution)) for t in batch_tasks]
       if args.batch_training:
+        assert args.static_weight
         training_samples, all_values = synthesis.batch_synthesize(
           batch_tasks, domain, model, device,
           traces=batch_traces,
