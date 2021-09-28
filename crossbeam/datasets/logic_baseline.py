@@ -101,7 +101,7 @@ for m in range(2):
 print('Run all of the following')        
 for m in range(2):
     for i in range(len(tasks)):
-        print(f"timeout 30s swipl -s {output_directory}/{i}_{m}.pl -t halt | tee ~/data/crossbeam/logic_baseline/{i}_{m}.out")
+        print(f"timeout 30s swipl -s {output_directory}/{i}_{m}.pl -t halt | tee {output_directory}/{i}_{m}.out")
 
 print("Or run just this")
 print('for m in `seq 0 1`; do for i in `seq 0 %s`; do timeout 30s swipl -s %s/"$i"_"$m".pl -t halt | tee %s/"$i"_"$m".out; done; done'%(len(tasks)-1, output_directory, output_directory))
