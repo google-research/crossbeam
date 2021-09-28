@@ -16,6 +16,7 @@ flags.DEFINE_integer('grad_accumulate', 1, '# forward / backward steps')
 flags.DEFINE_integer('max_search_weight', 12, '')
 flags.DEFINE_integer('num_valid', -1, 'num tasks for evaluation per process during training')
 flags.DEFINE_float('timeout', 5, 'time limit in seconds')
+flags.DEFINE_integer('max_values_explored', None, 'max number of values to explore per search')
 
 flags.DEFINE_string('io_encoder', 'char', 'io encoder, choose from [char, signature, char_signature]')
 flags.DEFINE_string('value_encoder', 'char', 'value encoder, choose from [char, signature, char_signature]')

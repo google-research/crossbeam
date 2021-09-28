@@ -22,6 +22,8 @@ from crossbeam.dsl import value as value_module
 from crossbeam.common.config import get_torch_device
 from absl import logging
 import timeit
+import json
+
 
 def thread_wrapped_func(func):
     """Wrapped func for torch.multiprocessing.Process.
@@ -127,37 +129,41 @@ def batch_forward(tasks, device, training_samples, all_values, model, score_norm
 
 
 def do_eval(eval_tasks, domain, model,
-            max_search_weight, beam_size, device, verbose=True, 
-            timeout=None, is_stochastic=False, use_ur=True, use_type_masking=True,
-            static_weight=False):
+            max_search_weight, beam_size, device, verbose=True,
+            timeout=None, max_values_explored=None, is_stochastic=False, use_ur=True,
+            use_type_masking=True, static_weight=False):
   if verbose:
     print('doing eval...')
 
-    # if we are verbose then we will show up to ten random task solutions
-    if len(eval_tasks) > 10:
-      should_show = np.random.choice(list(range(len(eval_tasks))),
-                                     min(len(eval_tasks),10))
-    else:
-      should_show = range(len(eval_tasks))
-  succ = 0.0
-  for i,t in enumerate(eval_tasks):
+  num_tasks_solved = 0
+  json_dict = {'results': []}
+  for t in eval_tasks:
     start_time = timeit.default_timer()
     if verbose:
       print('\nTask: ', t)
     with torch.no_grad():
       out, all_values, stats = synthesis.synthesize(
-        t, domain, model,
-        device=device,
-        max_weight=max_search_weight,
-        k=beam_size,
-        is_training=False,
-        timeout=timeout,
-        is_stochastic=is_stochastic,
-        random_beam=False,
-        use_ur=use_ur,
-        masking=use_type_masking,
-        static_weight=static_weight)
+          t, domain, model,
+          device=device,
+          max_weight=max_search_weight,
+          k=beam_size,
+          is_training=False,
+          timeout=timeout,
+          max_values_explored=max_values_explored,
+          is_stochastic=is_stochastic,
+          random_beam=False,
+          use_ur=use_ur,
+          masking=use_type_masking,
+          static_weight=static_weight)
     elapsed_time = timeit.default_timer() - start_time
+    json_dict['results'].append({
+        'task': str(t),
+        'success': bool(out),
+        'elapsed_time': elapsed_time,
+        'num_values_explored': stats['num_values_explored'],
+        'num_unique_values': len(all_values),
+        'solution': out.expression() if out else None,
+    })
     if verbose:
       print('Elapsed time: {:.2f}'.format(elapsed_time))
       print('Num values explored: {}'.format(stats['num_values_explored']))
@@ -165,18 +171,18 @@ def do_eval(eval_tasks, domain, model,
       print('out: {} {}'.format(out, out.expression()) if out else None)
       sys.stdout.flush()
     if out is not None:
-      # if verbose and i in should_show:
-      #   print("successfully synthesized a solution to",t)
-      #   print(out, out.expression())
-      succ += 1.0
-    # elif verbose and i in should_show:
-    #   print("could not successfully solve",t)
+      num_tasks_solved += 1
   if verbose:
-    print('\nSolved {} of {} tasks'.format(succ, len(eval_tasks)))
-  succ /= len(eval_tasks)
+    print('\nSolved {} of {} tasks'.format(num_tasks_solved, len(eval_tasks)))
+  success_rate = num_tasks_solved / len(eval_tasks)
   if verbose:
-    print('eval success rate: {:.1f}%'.format(succ * 100))
-  return succ
+    print('eval success rate: {:.1f}%'.format(success_rate * 100))
+
+  json_dict['num_tasks'] = len(eval_tasks)
+  json_dict['num_tasks_solved'] = num_tasks_solved
+  json_dict['success_rate'] = success_rate
+
+  return success_rate, json_dict
 
 
 def _gather_eval_info(rank, device, local_acc, local_num):
@@ -216,15 +222,19 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
                                 beam_size=args.beam_size,
                                 device=device,
                                 timeout=args.timeout,
+                                max_values_explored=args.max_values_explored,
                                 is_stochastic=args.stochastic_beam,
                                 use_ur=args.use_ur,
                                 use_type_masking=args.type_masking,
                                 static_weight=args.static_weight)
   if args.do_test: # test only
+    assert args.num_proc == 1
     print('Doing test only!')
-    succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
-    if args.num_proc > 1:
-      succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
+    succ, json_dict = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
+    if args.json_results_file:
+      with open(args.json_results_file, 'w') as f:
+        json.dump(json_dict, f, indent=4, sort_keys=True)
+      print('Wrote JSON results file at {}'.format(args.json_results_file))
     print('Done testing! Exiting.')
     sys.exit()
   optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
@@ -235,7 +245,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
     if cur_step > 0:
       if rank == 0:
         print('eval at step %d' % cur_step)
-      succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
+      succ, json_dict = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
       if args.num_proc > 1:
         succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
       if succ > best_succ and rank == 0 and args.save_dir:
@@ -243,6 +253,11 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
         best_succ = succ
         save_file = os.path.join(args.save_dir, 'model-best-valid.ckpt')
         torch.save(model.state_dict(), save_file)
+        # Is it too slow to write eval results to a file? It might be a huge file
+        # if args.json_results_file:
+        #   with open(args.json_results_file, 'w') as f:
+        #     json.dump(json_dict, f, indent=4, sort_keys=True)
+        #   print('Wrote JSON results file at {}'.format(args.json_results_file))
 
     # Training
     pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)

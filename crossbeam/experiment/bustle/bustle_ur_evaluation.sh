@@ -32,7 +32,6 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --max_search_weight=$maxsw \
     --data_folder=$data_folder \
     --save_dir=$save_dir \
-    --load_model=tout-120-b-4-g-4-masking/model-best-valid.ckpt \
     --grad_accumulate=$grad_acc \
     --beam_size=$beam_size \
     --gpu_list=0 \
@@ -43,5 +42,7 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --random_beam=False \
     --do_test=True \
     --use_ur=True \
-    --timeout=30 \
+    --timeout=600 \
+    --max_values_explored=50000 \
     $@
+    #--load_model=io-bustle_sig-value-bustle_sig-b-4-g-4/model-best-valid.ckpt \
