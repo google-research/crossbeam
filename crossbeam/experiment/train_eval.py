@@ -22,6 +22,8 @@ from crossbeam.dsl import value as value_module
 from crossbeam.common.config import get_torch_device
 from absl import logging
 import timeit
+import json
+
 
 def thread_wrapped_func(func):
     """Wrapped func for torch.multiprocessing.Process.
@@ -127,7 +129,7 @@ def batch_forward(tasks, device, training_samples, all_values, model, score_norm
 
 def do_eval(eval_tasks, domain, model,
             max_search_weight, beam_size, device, verbose=True,
-            timeout=None, is_stochastic=False, use_ur=True,
+            timeout=None, max_values_explored=None, is_stochastic=False, use_ur=True,
             use_type_masking=True, static_weight=False):
   if verbose:
     print('doing eval...')
@@ -146,6 +148,7 @@ def do_eval(eval_tasks, domain, model,
           k=beam_size,
           is_training=False,
           timeout=timeout,
+          max_values_explored=max_values_explored,
           is_stochastic=is_stochastic,
           random_beam=False,
           use_ur=use_ur,
@@ -218,6 +221,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
                                 beam_size=args.beam_size,
                                 device=device,
                                 timeout=args.timeout,
+                                max_values_explored=args.max_values_explored,
                                 is_stochastic=args.stochastic_beam,
                                 use_ur=args.use_ur,
                                 use_type_masking=args.type_masking,
@@ -228,7 +232,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
     succ, json_dict = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
     if args.json_results_file:
       with open(args.json_results_file, 'w') as f:
-        json.dump(json_dict, f)
+        json.dump(json_dict, f, indent=4, sort_keys=True)
       print('Wrote JSON results file at {}'.format(args.json_results_file))
     print('Done testing! Exiting.')
     sys.exit()
@@ -248,10 +252,11 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
         best_succ = succ
         save_file = os.path.join(args.save_dir, 'model-best-valid.ckpt')
         torch.save(model.state_dict(), save_file)
-        if args.json_results_file:
-          with open(args.json_results_file, 'w') as f:
-            json.dump(json_dict, f)
-          print('Wrote JSON results file at {}'.format(args.json_results_file))
+        # Is it too slow to write eval results to a file? It might be a huge file
+        # if args.json_results_file:
+        #   with open(args.json_results_file, 'w') as f:
+        #     json.dump(json_dict, f, indent=4, sort_keys=True)
+        #   print('Wrote JSON results file at {}'.format(args.json_results_file))
 
     # Training
     pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)

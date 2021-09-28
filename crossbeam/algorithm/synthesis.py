@@ -172,7 +172,7 @@ def copy_operation_value(value, all_values, all_value_dict):
 
 def synthesize(task, domain, model, device,
                trace=None, max_weight=15, k=2, is_training=False,
-               include_as_train=None, timeout=None, is_stochastic=False,
+               include_as_train=None, timeout=None, max_values_explored=None, is_stochastic=False,
                random_beam=False, use_ur=False, masking=True, static_weight=False):
   stats = {'num_values_explored': 0}
 
@@ -203,7 +203,8 @@ def synthesize(task, domain, model, device,
   while True:
     cur_num_values = len(all_values)
     for operation in domain.operations:
-      if end_time is not None and timeit.default_timer() > end_time:
+      if (end_time is not None and timeit.default_timer() > end_time) or (
+          max_values_explored is not None and stats['num_values_explored'] >= max_values_explored):
         return None, all_values, stats
       if verbose:
         print('Operation: {}'.format(operation))
