@@ -163,6 +163,7 @@ def do_eval(eval_tasks, domain, model,
         'num_values_explored': stats['num_values_explored'],
         'num_unique_values': len(all_values),
         'solution': out.expression() if out else None,
+        'solution_weight': out.get_weight() if out else None,
     })
     if verbose:
       print('Elapsed time: {:.2f}'.format(elapsed_time))

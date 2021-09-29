@@ -44,7 +44,7 @@ def perform_search(domain, min_weight, max_weight, num_examples, num_inputs,
   task = task_module.Task(inputs_dict, dummy_outputs)
 
   start_time = timeit.default_timer()
-  _, value_set, values_by_weight = baseline_enumeration.synthesize_baseline(
+  _, value_set, values_by_weight, _ = baseline_enumeration.synthesize_baseline(
       task, domain, max_weight=max_weight, timeout=timeout)
   elapsed_time = timeit.default_timer() - start_time
 

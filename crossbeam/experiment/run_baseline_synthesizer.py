@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pickle as cp
+import json
+import os
+import pickle5 as cp
 import timeit
 from absl import app
 from absl import flags
@@ -29,20 +31,31 @@ flags.DEFINE_string('eval_set_pkl', None, 'pkl file for evaluation set tasks')
 flags.DEFINE_integer('num_eval_tasks', 5, 'number of evaluation tasks')
 
 
-def run_synthesis(domain, tasks, timeout, verbose=False):
+def run_synthesis(domain, tasks, timeout, max_values_explored=None,
+                  max_weight=20, verbose=False, output_file=None):
   """Performs baseline synthesis on the tasks."""
   num_tasks = len(tasks)
   print('Num tasks: {}'.format(num_tasks))
   success_count = 0
   successful_times = []
-  results_and_times = []
+  json_dict = {'results': []}
 
   for i, task in enumerate(tasks):
     start_time = timeit.default_timer()
-    result, value_set, _ = baseline_enumeration.synthesize_baseline(
-        task, domain, max_weight=10, timeout=timeout)
+    result, value_set, _, stats = baseline_enumeration.synthesize_baseline(
+        task, domain, max_weight=max_weight, timeout=timeout,
+        max_values_explored=max_values_explored)
     elapsed_time = timeit.default_timer() - start_time
-    results_and_times.append((result, elapsed_time))
+
+    json_dict['results'].append({
+        'task': str(task),
+        'success': bool(result),
+        'elapsed_time': elapsed_time,
+        'num_values_explored': stats['num_values_explored'],
+        'num_unique_values': len(value_set),
+        'solution': result.expression() if result else None,
+        'solution_weight': result.get_weight() if result else None,
+    })
 
     if verbose:
       print('Task {}: {}'.format(i, task))
@@ -51,19 +64,28 @@ def run_synthesis(domain, tasks, timeout, verbose=False):
           result.expression() if result else None,
           result.get_weight() if result else None))
       print('Time: {:.2f}, num values explored: {}'.format(
-          elapsed_time, len(value_set)))
+          elapsed_time, stats['num_values_explored']))
       print()
 
     if result is not None:
       success_count += 1
       successful_times.append(elapsed_time)
 
-  print('Solved {} / {} ({:.2f}%) tasks within {} sec time limit each'.format(
-      success_count, num_tasks, success_count / num_tasks * 100, timeout))
+  json_dict['num_tasks'] = len(tasks)
+  json_dict['num_tasks_solved'] = success_count
+  json_dict['success_rate'] = success_count / len(tasks)
+
+  print('Solved {} / {} ({:.2f}%) tasks within {} sec time limit or {} values explored'.format(
+      success_count, num_tasks, success_count / num_tasks * 100, timeout, max_values_explored))
   print('Successful solve time mean: {:.2f} sec, median: {:.2f} sec'.format(
       np.mean(successful_times), np.median(successful_times)))
 
-  return results_and_times
+  if output_file:
+    with open(os.path.expanduser(output_file), 'w') as f:
+      json.dump(json_dict, f, indent=4, sort_keys=True)
+    print('Wrote JSON results file at {}'.format(output_file))
+
+  return json_dict
 
 
 def main(argv):
@@ -74,7 +96,7 @@ def main(argv):
   domain = domains.get_domain(FLAGS.domain)
 
   if FLAGS.eval_set_pkl:
-    with open(FLAGS.eval_set_pkl, 'rb') as f:
+    with open(os.path.expanduser(FLAGS.eval_set_pkl), 'rb') as f:
       tasks = cp.load(f)
     if FLAGS.num_tasks > 0:
       tasks = tasks[:FLAGS.num_tasks]
@@ -90,7 +112,9 @@ def main(argv):
   run_synthesis(domain=domain,
                 tasks=tasks,
                 timeout=FLAGS.timeout,
-                verbose=FLAGS.verbose)
+                max_values_explored=FLAGS.max_values_explored,
+                verbose=FLAGS.verbose,
+                output_file=FLAGS.json_results_file)
 
 
 if __name__ == '__main__':

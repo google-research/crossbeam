@@ -63,10 +63,12 @@ def generate_partitions(num_elements, num_parts):
   return results
 
 
-def synthesize_baseline(task, domain, max_weight=10, timeout=5):
+def synthesize_baseline(task, domain, max_weight=10, timeout=5,
+                        max_values_explored=None):
   """Synthesizes a solution using normal bottom-up enumerative search."""
   end_time = timeit.default_timer() + timeout
   num_examples = task.num_examples
+  stats = {'num_values_explored': 0}
 
   # A list of OrderedDicts mapping Value objects to themselves. The i-th
   # OrderedDict contains all Value objects of weight i.
@@ -112,8 +114,9 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5):
       for arg_weights_minus_1 in generate_partitions(
           target_weight - op.weight - arity, arity):
 
-        if timeit.default_timer() > end_time:
-          return None, value_set, values_by_weight
+        if (end_time is not None and timeit.default_timer() > end_time) or (
+            max_values_explored is not None and stats['num_values_explored'] >= max_values_explored):
+          return None, value_set, values_by_weight, stats
 
         arg_options_list = []
         arg_weights = [w + 1 for w in arg_weights_minus_1]
@@ -123,6 +126,7 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5):
 
         for arg_list in itertools.product(*arg_options_list):
           value = op.apply(arg_list)
+          stats['num_values_explored'] += 1
 
           if value is None or value in value_set:
             continue
@@ -132,9 +136,9 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5):
 
           if value == output_value:
             # Found solution!
-            return value, value_set, values_by_weight
+            return value, value_set, values_by_weight, stats
 
           values_by_weight[target_weight][value] = value
           value_set.add(value)
 
-  return None, value_set, values_by_weight
+  return None, value_set, values_by_weight, stats
