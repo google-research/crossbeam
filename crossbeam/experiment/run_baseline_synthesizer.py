@@ -59,7 +59,8 @@ def run_synthesis(domain, tasks, timeout, max_values_explored=None,
 
     if verbose:
       print('Task {}: {}'.format(i, task))
-      print('Task solution has weight {}'.format(task.solution.get_weight()))
+      print('Task solution has weight {}'.format(task.solution.get_weight()
+                                                 if task.solution else None))
       print('Solution: {}, weight {}'.format(
           result.expression() if result else None,
           result.get_weight() if result else None))

@@ -92,9 +92,18 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
 
   # A set storing all values found so far.
   value_set = set().union(*values_by_weight)
+  typechecking_cache = {}
 
   output_value = value_module.OutputValue(task.outputs)
-  typechecking_cache = {}
+  if output_value in value_set:
+    # Found solution!
+    match = None
+    for candidate in value_set:
+      if output_value == candidate:
+        match = candidate
+        break
+    assert match is not None
+    return match, value_set, values_by_weight, stats
 
   for target_weight in range(2, max_weight + 1):
     for op in domain.operations:
