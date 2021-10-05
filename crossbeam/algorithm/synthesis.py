@@ -306,6 +306,7 @@ def synthesize(task, domain, model, device,
       trace_in_beam = -1
       for i, arg_list in enumerate(beam):
         result_value = operation.apply(arg_list)
+        stats['num_values_explored'] += 1
         if result_value is None or result_value.get_weight() > max_weight:
           continue
         if (domain.small_value_filter and
@@ -343,7 +344,8 @@ def synthesize(task, domain, model, device,
         trace.pop(0)
         if len(trace) == 0:
           return training_samples, all_values, stats
-    if len(all_values) == cur_num_values:  # no improvement
+    if len(all_values) == cur_num_values and not use_ur and not is_stochastic:
+      # no improvement
       break
   return None, all_values, stats
 

@@ -49,6 +49,8 @@ def run_synthesis(domain, tasks, timeout, max_values_explored=None,
 
     json_dict['results'].append({
         'task': str(task),
+        'task_solution': task.solution.expression() if task.solution else None,
+        'task_solution_weight': task.solution.get_weight() if task.solution else None,
         'success': bool(result),
         'elapsed_time': elapsed_time,
         'num_values_explored': stats['num_values_explored'],
