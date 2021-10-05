@@ -28,6 +28,7 @@ flags.DEFINE_string('baseline_pkl_file', 'logic_baseline_data.pkl',
 
 MIN_TASK_SIZE = 5
 MAX_TASK_SIZE = 19
+TIME_LIMIT = 30  # Time limit in seconds.
 
 NUM_TASKS_PER_SIZE = collections.defaultdict(lambda: 50)
 NUM_TASKS_PER_SIZE[5] = 13
@@ -71,6 +72,7 @@ def create_plot(baseline_pkl_file):
   for file_format, (label, color, linestyle, linewidth, border_width,
                     marker, markersize) in CROSSBEAM_FORMATS.items():
     all_runs = []
+    solve_times_by_size = collections.defaultdict(list)
     for filename in sorted(glob.glob(os.path.join(CROSSBEAM_DIR, file_format))):
       print('Reading CrossBeam results file: {}'.format(filename))
       with open(filename) as f:
@@ -78,8 +80,10 @@ def create_plot(baseline_pkl_file):
 
       solves_by_size = [0] * (MAX_TASK_SIZE + 1)
       for result in this_data['results']:
-        if result['success'] and result['elapsed_time'] < 30:
-          solves_by_size[result['task_solution_weight']] += 1
+        if result['success'] and result['elapsed_time'] < TIME_LIMIT:
+          size = result['task_solution_weight']
+          solve_times_by_size[size].append(result['elapsed_time'])
+          solves_by_size[size] += 1
       success_rate_by_size = [
           100 * solves_by_size[size] / NUM_TASKS_PER_SIZE[size] for size in xs]
       all_runs.append(success_rate_by_size)
@@ -101,16 +105,25 @@ def create_plot(baseline_pkl_file):
              linestyle='-', linewidth=border_width)
     legend_handles.append((line, fill))
 
+    print('For method {}:'.format(label))
+    for size, rate in zip(xs, all_runs_mean):
+      print('  Size {}: solved {:.1f}% of tasks in {:.2f} sec on average'
+            .format(size, rate, np.mean(solve_times_by_size[size])))
+
   # Line for baseline bottom-up enumerative search.
   solves_by_size = {}
+  solve_times_by_size = {}
   for size in BASELINE_SIZES:
     filename = os.path.join(CROSSBEAM_DIR, BASELINE_FILE_FORMAT.format(size))
     print('Reading baseline results file: {}'.format(filename))
     with open(filename) as f:
       data_for_size = json.load(f)
-    solves_by_size[size] = sum(result['success'] and result['elapsed_time'] < 30
-                               for result in data_for_size['results'])
-  print('Baseline solves_by_size: {}'.format(solves_by_size))
+    solves_by_size[size] = sum(
+        result['success'] and result['elapsed_time'] < TIME_LIMIT
+        for result in data_for_size['results'])
+    solve_times_by_size[size] = np.mean(
+        [r['elapsed_time'] for r in data_for_size['results']
+         if r['success'] and r['elapsed_time'] < TIME_LIMIT])
 
   success_rate_by_size = []
   for size in xs:
@@ -127,6 +140,14 @@ def create_plot(baseline_pkl_file):
                    marker=marker, markersize=markersize)
   legend_handles.append(line)
 
+  print('Baseline solves_by_size: {}'.format(solves_by_size))
+  print('For Baseline:')
+  for size, rate in zip(xs, success_rate_by_size):
+    print('  Size {}: solved {:.1f}% of tasks in {:.2f} sec on average'.format(
+        size, rate, solve_times_by_size.get(size, float('nan'))))
+    if rate == 0:
+      break
+
   # Lines for logic baselines.
   with open(os.path.expanduser(baseline_pkl_file), 'rb') as f:
     baseline_results = pkl.load(f)
@@ -134,8 +155,11 @@ def create_plot(baseline_pkl_file):
   for key, (label, color, linestyle, linewidth,
             marker, markersize) in LINE_FORMATS.items():
     results = baseline_results[key]
-    solves_by_size = [sum(bool(0 < time < 30) for time in results[i])
+    solves_by_size = [sum(bool(0 < time < TIME_LIMIT) for time in results[i])
                       for i in range(len(results))]
+    solve_times_by_size = [np.mean([time for time in results[i]
+                                    if 0 < time < TIME_LIMIT])
+                           for i in range(len(results))]
     success_rate_by_size = [
         100 * solves_by_size[size] / NUM_TASKS_PER_SIZE[size] for size in xs]
 
@@ -144,10 +168,16 @@ def create_plot(baseline_pkl_file):
                      markersize=markersize)
     legend_handles.append(line)
 
+    print('For method {}:'.format(label))
+    for size, rate in zip(xs, success_rate_by_size):
+      print('  Size {}: solved {:.1f}% of tasks in {:.2f} sec on average'
+            .format(size, rate, solve_times_by_size[size]))
+      if rate == 0:
+        break
+
   plt.xlim(MIN_TASK_SIZE - 0.25, MAX_TASK_SIZE + 0.25)
   plt.xticks(xs)
   plt.ylim(-2, 102)
-  plt.yticks(np.arange(0, 101, 10))
   plt.title(TITLE, fontsize=14)
   plt.xlabel('Task Size', fontsize=12)
   plt.ylabel('Success Rate (%)', fontsize=12)
@@ -161,6 +191,10 @@ def create_plot(baseline_pkl_file):
 
 def main(_):
   sns.set()
+
+  default_width = 6.4
+  default_height = 4.8
+  plt.figure(figsize=(default_width, default_height * 2/3))
 
   legend = create_plot(baseline_pkl_file=FLAGS.baseline_pkl_file)
 
