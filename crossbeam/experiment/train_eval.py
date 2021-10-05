@@ -158,11 +158,14 @@ def do_eval(eval_tasks, domain, model,
     elapsed_time = timeit.default_timer() - start_time
     json_dict['results'].append({
         'task': str(t),
+        'task_solution': t.solution.expression() if t.solution else None,
+        'task_solution_weight': t.solution.get_weight() if t.solution else None,
         'success': bool(out),
         'elapsed_time': elapsed_time,
         'num_values_explored': stats['num_values_explored'],
         'num_unique_values': len(all_values),
         'solution': out.expression() if out else None,
+        'solution_weight': out.get_weight() if out else None,
     })
     if verbose:
       print('Elapsed time: {:.2f}'.format(elapsed_time))

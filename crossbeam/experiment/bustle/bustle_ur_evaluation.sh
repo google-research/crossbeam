@@ -7,6 +7,7 @@ maxni=3
 maxsw=20
 
 data_folder=$HOME/crossbeam/crossbeam/data/sygus
+#data_folder=$HOME/crossbeam/crossbeam/data/new
 
 beam_size=10
 grad_acc=1
