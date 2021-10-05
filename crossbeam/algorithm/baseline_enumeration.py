@@ -66,7 +66,8 @@ def generate_partitions(num_elements, num_parts):
 def synthesize_baseline(task, domain, max_weight=10, timeout=5,
                         max_values_explored=None):
   """Synthesizes a solution using normal bottom-up enumerative search."""
-  end_time = timeit.default_timer() + timeout
+  start_time = timeit.default_timer()
+  end_time = start_time + timeout if timeout else None
   num_examples = task.num_examples
   stats = {'num_values_explored': 0}
 
@@ -149,5 +150,10 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
 
           values_by_weight[target_weight][value] = value
           value_set.add(value)
+
+    print('Bottom-up enumeration found {} distinct tasks of weight {}, or {} '
+          'distinct tasks total, in {:.2f} seconds total'.format(
+              len(values_by_weight[target_weight]), target_weight,
+              len(value_set), timeit.default_timer() - start_time))
 
   return None, value_set, values_by_weight, stats
