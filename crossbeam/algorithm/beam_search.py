@@ -1,7 +1,6 @@
 import torch
 import functools
 import math
-from crossbeam.model.util import ceil_power_of_2
 from torch.nn.utils.rnn import pad_sequence
 import numpy as np
 

@@ -8,12 +8,12 @@ maxsw=12
 
 data_folder=$HOME/data/crossbeam/bustle/t-${tout}-maxw-${maxw}-maxne-${maxne}-maxni-${maxni}
 
-beam_size=4
+beam_size=10
 grad_acc=4
-io=signature
-value=signature
+io=bustle_sig
+value=bustle_sig
 
-save_dir=$HOME/results/crossbeam/bustle/io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
+save_dir=$HOME/results/crossbeam/bustle/op_vw-tout-${tout}-io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
 
 if [ ! -e $save_dir ];
 then
@@ -24,7 +24,7 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 
 python3 -m crossbeam.experiment.run_crossbeam \
     --domain=bustle \
-    --model_type=char \
+    --model_type=char_op \
     --io_encoder=${io} \
     --value_encoder=${value} \
     --min_task_weight=3 \
@@ -43,7 +43,9 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --embed_dim=512 \
     --eval_every 10000 \
     --use_ur=False \
+    --encode_weight=True \
     --train_steps 1000000 \
+    --load_model model-best-valid.ckpt \
     --train_data_glob train-tasks*.pkl \
     --random_beam=False \
     $@
