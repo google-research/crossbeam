@@ -14,12 +14,13 @@
 
 import os
 import pickle5 as pkl
+import sys
 
 from crossbeam.datasets import logic_data
 
-data_file = '~/data/crossbeam/logic_synthesis_10hr/train-tasks.pkl'
-
-with open(os.path.expanduser(data_file), 'rb') as f:
+data_file = sys.argv[1]
+output_file = sys.argv[2]
+with open(data_file, 'rb') as f:
   data = pkl.load(f)
 
 print('Original data length: {}'.format(len(data)))
@@ -44,5 +45,5 @@ for i in sorted(bad_indices, reverse=True):
 
 print('Filtered data length: {}'.format(len(data)))
 
-with open('cleaned-train-tasks.pkl', 'wb') as f:
+with open(output_file, 'wb') as f:
   pkl.dump(data, f, pkl.HIGHEST_PROTOCOL)
