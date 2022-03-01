@@ -1,3 +1,17 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from absl import flags
 import torch
 import random
@@ -7,8 +21,6 @@ flags.DEFINE_string('pooling', 'mean', 'pooling method used')
 flags.DEFINE_string('step_score_func', 'mlp', 'score func used at each step of autoregressive model')
 flags.DEFINE_string('train_data_glob', None, 'offline data dumps')
 flags.DEFINE_string('test_data_glob', None, 'test data dumps')
-flags.DEFINE_boolean('op_in_beam', False, 'op selection as part of beam search?')
-flags.DEFINE_boolean('batch_training', False, 'do batch training?')
 flags.DEFINE_boolean('use_ur', True, 'use UR for evaluation?')
 flags.DEFINE_boolean('score_normed', True, 'whether to normalize the score into valid probability')
 flags.DEFINE_boolean('type_masking', True, 'use type masking during synthesis?')

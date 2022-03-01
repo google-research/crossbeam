@@ -102,36 +102,3 @@ def beam_step(raw_scores, cur_sizes, beam_size):
   pred_opts = pred_opts[valid]
   scores = topk_scores[valid].view(-1, 1)
   return predecessors, pred_opts, scores, cur_sizes
-
-
-def batch_beam_search(beam_steps, k, choice_embed, choice_indices, init_embed, score_model, device, choice_masks=None, is_stochastic=False):
-  batch_size = len(choice_indices)
-  cur_state = score_model.get_batch_init_state(init_embed)
-  arg_choices = torch.LongTensor([[] for _ in range(batch_size)]).to(device)
-  prefix_scores = torch.zeros(batch_size, 1).to(device)
-  ancestors = torch.LongTensor(list(range(batch_size))).to(device)
-  cur_sizes = [1] * batch_size
-
-  mask = torch.zeros(batch_size, choice_embed.shape[0]).to(device)
-  for i, idx in enumerate(choice_indices):
-    mask[i, idx] = 1.0
-  for step in range(beam_steps):
-    scores = score_model.step_score(cur_state, choice_embed)
-    joint_scores = prefix_scores + scores
-    joint_scores = joint_scores * mask + (1 - mask) * N_INF
-    if choice_masks is not None and len(choice_masks):
-      choice_mask = choice_masks[step][1].view(1, -1).float()
-      joint_scores = joint_scores * choice_mask + (1 - choice_mask) * N_INF
-
-    predecessors, op_choice, prefix_scores, cur_sizes = beam_step(joint_scores, cur_sizes, k)
-    ancestors = ancestors[predecessors]
-    mask = mask[predecessors]
-    prev_state = score_model.state_select(cur_state, predecessors)
-    cur_op_embed = choice_embed[op_choice]
-    cur_state = score_model.step_state(prev_state, cur_op_embed)
-
-    new_arg_choices = arg_choices[predecessors]
-    arg_choices = torch.cat((new_arg_choices, op_choice.unsqueeze(1)), axis=1)
-  arg_choices = arg_choices.data.cpu().split(cur_sizes, dim=0)
-  beam_batch = [args.numpy().astype(np.int32) for args in arg_choices]
-  return beam_batch, prefix_scores

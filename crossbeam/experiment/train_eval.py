@@ -1,3 +1,17 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import numpy as np
 import os
 import sys
@@ -66,66 +80,14 @@ def task_loss(task, device, training_samples, all_values, model, score_normed=Tr
     cur_vals = model.encode_weight(cur_vals, aux_info)
     op_state = model.init(io_embed, cur_vals, op)
     scores = model.arg(op_state, cur_vals, arg_options)
-    if model.op_in_beam:
-      prefix_scores = torch.cumsum(scores, dim=-1)
-      assert score_normed
-      true_steps = aux_info[true_arg_pos]
-      nll = -prefix_scores[true_arg_pos][true_steps - 1]
+    scores = torch.sum(scores, dim=-1)
+    if score_normed:
+      nll = -scores[true_arg_pos]
     else:
-      scores = torch.sum(scores, dim=-1)
-      if score_normed:
-        nll = -scores[true_arg_pos]
-      else:
-        nll = -F.log_softmax(scores, dim=0)[true_arg_pos]
+      nll = -F.log_softmax(scores, dim=0)[true_arg_pos]
     loss = loss + nll
   loss = loss / len(training_samples)
   return loss
-
-
-def batch_forward(tasks, device, training_samples, all_values, model, score_normed=True):
-  assert score_normed
-  io_embed, io_scatter = model.io([task.inputs_dict for task in tasks],
-                                  [task.outputs for task in tasks],
-                                  device=device,
-                                  needs_scatter_idx=True)
-  val_base_embed = model.val(all_values, device=device)
-  value_embed = model.encode_weight(val_base_embed, [v.get_weight() for v in all_values])
-  masks = []
-  sample_repeats = []
-  offset = 0
-  target_arg_pos = []
-  list_vid = []
-  list_operations = []
-  io_gather = []
-  arg_options = []
-  for t_idx, args, trace_in_beam, vid, op in training_samples:
-    io_gather.append(t_idx)
-    num_cands = args.shape[0]
-    arg_options.append(torch.LongTensor(args))
-    target_arg_pos.append(trace_in_beam + offset)
-    vid = torch.LongTensor(vid).to(device)
-    list_vid.append(vid)
-    list_operations.append(op)
-
-    mask = torch.zeros(1, len(all_values)).to(device)
-    mask[0, vid] = 1.0
-    masks.append(mask)
-    sample_repeats.append(num_cands)
-    offset += num_cands
-  sample_repeats = torch.LongTensor(sample_repeats).to(device)
-  arg_options = torch.cat(arg_options, axis=0).to(device)
-  op_arity_mask = np.ones((len(training_samples), arg_options.shape[1]), dtype=np.float32)
-  for idx, (_, _, _, _, op) in enumerate(training_samples):
-    op_arity_mask[idx, op.arity:] = 0.0
-  op_arity_mask = torch.repeat_interleave(torch.Tensor(op_arity_mask).to(device), sample_repeats, dim=0)
-  masks = torch.cat(masks, dim=0)
-  masks = torch.repeat_interleave(masks, sample_repeats, dim=0)
-  op_states = model.batch_init(io_embed, io_scatter, value_embed, list_vid, list_operations, io_gather=io_gather)
-  op_states = torch.repeat_interleave(op_states, sample_repeats, dim=0)
-  scores = model.arg.batch_forward(op_states, value_embed, arg_options, masks)
-  scores = torch.sum(scores * op_arity_mask, dim=-1)
-  nll = -scores[target_arg_pos]
-  return torch.mean(nll)
 
 
 def do_eval(eval_tasks, domain, model,
@@ -268,38 +230,25 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
       optimizer.zero_grad()
       batch_tasks = next(train_gen)
       batch_traces = [list(trace_gen(t.solution)) for t in batch_tasks]
-      if args.batch_training:
-        assert args.static_weight
-        training_samples, all_values = synthesis.batch_synthesize(
-          batch_tasks, domain, model, device,
-          traces=batch_traces,
-          max_weight=args.max_search_weight,
-          k=args.beam_size,
-          is_training=True,
-          random_beam=args.random_beam,
-          masking=args.type_masking)
-        loss = batch_forward(batch_tasks, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
-        loss.backward()
-      else:
-        loss_acc = []
-        for t, trace in zip(batch_tasks, batch_traces):
-          with torch.no_grad():
-            training_samples, all_values, _ = synthesis.synthesize(
-                t, domain, model, device=device,
-                trace=trace,
-                max_weight=args.max_search_weight,
-                k=args.beam_size,
-                is_training=True,
-                random_beam=args.random_beam,
-                masking=args.type_masking,
-                static_weight=args.static_weight)
+      loss_acc = []
+      for t, trace in zip(batch_tasks, batch_traces):
+        with torch.no_grad():
+          training_samples, all_values, _ = synthesis.synthesize(
+              t, domain, model, device=device,
+              trace=trace,
+              max_weight=args.max_search_weight,
+              k=args.beam_size,
+              is_training=True,
+              random_beam=args.random_beam,
+              masking=args.type_masking,
+              static_weight=args.static_weight)
 
-          if isinstance(training_samples, list):
-            loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
-            loss = loss / args.grad_accumulate
-            loss.backward()
-            loss_acc.append(loss.item())
-        loss = np.sum(loss_acc)
+        if isinstance(training_samples, list):
+          loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
+          loss = loss / args.grad_accumulate
+          loss.backward()
+          loss_acc.append(loss.item())
+      loss = np.sum(loss_acc)
       if is_distributed:
         for param in model.parameters():
           if param.grad is None:

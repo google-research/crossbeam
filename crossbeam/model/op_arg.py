@@ -1,3 +1,17 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from random import sample
 import torch
 import torch.nn as nn
@@ -117,41 +131,3 @@ class LSTMArgSelector(nn.Module):
     h0, c0 = self.get_batch_init_state(init_state)
     step_scores = self.get_step_scores(h0, c0, choice_embed, arg_seq, masks)
     return step_scores
-
-
-class OpSpecificLSTMSelector(nn.Module):
-  def __init__(self, ops, hidden_size, mlp_sizes, n_lstm_layers = 1,
-               step_score_func: str = 'mlp', step_score_normalize: bool = False):
-    super(OpSpecificLSTMSelector, self).__init__()
-    self.ops = ops
-    self.op_specific_mod = nn.ModuleList([LSTMArgSelector(hidden_size, 
-                                                          mlp_sizes, 
-                                                          n_lstm_layers, 
-                                                          step_score_func,
-                                                          step_score_normalize) for _ in range(len(self.ops))])
-    self.op_idx_map = {repr(op): i for i, op in enumerate(self.ops)}
-
-  def get_mod(self, op):
-    return self.op_specific_mod[self.op_idx_map[repr(op)]]
-
-  def state_select(self, state, indices, axis=1):
-    state, op = state
-    selected_state = self.get_mod(op).state_select(state, indices, axis)
-    return selected_state, op
-
-  def get_init_state(self, init_state, batch_size):
-    init_state, op = init_state
-    init_state = self.get_mod(op).get_init_state(init_state, batch_size)
-    return init_state, op
-
-  def step_score(self, state, x):
-    state, op = state
-    return self.get_mod(op).step_score(state, x)
-
-  def step_state(self, state, x):
-    state, op = state
-    return self.get_mod(op).step_state(state, x), op
-
-  def forward(self, init_state, choice_embed, arg_seq):
-    init_state, op = init_state
-    return self.get_mod(op)(init_state, choice_embed, arg_seq)

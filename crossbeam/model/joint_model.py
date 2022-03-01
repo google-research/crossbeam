@@ -1,9 +1,23 @@
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from functools import partial
-from crossbeam.model.op_arg import LSTMArgSelector, OpSpecificLSTMSelector
-from crossbeam.model.op_init import PoolingState, OpPoolingState, OpExplicitPooling
+from crossbeam.model.op_arg import LSTMArgSelector
+from crossbeam.model.op_init import PoolingState, OpPoolingState
 from crossbeam.model.encoder import CharIOLSTMEncoder, CharValueLSTMEncoder, PropSigIOEncoder, PropSigValueEncoder, IntIOEncoder, IntValueEncoder, ValueAndOpEncoder
 from crossbeam.model.encoder import CharAndPropSigIOEncoder, CharAndPropSigValueEncoder, BustlePropSigIOEncoder, BustlePropSigValueEncoder, DummyWeightEncoder, ValueWeightEncoder
 
@@ -42,21 +56,11 @@ class JointModel(nn.Module):
     if args.encode_weight:
       self.encode_weight = ValueWeightEncoder(hidden_size=args.embed_dim)
     else:
-      self.encode_weight = DummyWeightEncoder()
-    self.op_in_beam = args.op_in_beam
-    if args.op_in_beam:
-      self.val = ValueAndOpEncoder(operations, val)
-      arg_mod = LSTMArgSelector
-      self.init = PoolingState(state_dim=args.embed_dim, pool_method='mean')
-    else:
-      self.val = val
-      if 'op' in args.model_type:
-        arg_mod = partial(OpSpecificLSTMSelector, operations)
-        init_mod = OpExplicitPooling
-      else:
-        arg_mod = LSTMArgSelector
-        init_mod = OpPoolingState
-      self.init = init_mod(ops=tuple(operations), state_dim=args.embed_dim, pool_method='mean')
+      self.encode_weight = DummyWeightEncoder()    
+    self.val = val
+    arg_mod = LSTMArgSelector
+    init_mod = OpPoolingState
+    self.init = init_mod(ops=tuple(operations), state_dim=args.embed_dim, pool_method='mean')
     self.arg = arg_mod(hidden_size=args.embed_dim,
                        mlp_sizes=[256, 1],
                        step_score_func=args.step_score_func,
@@ -76,4 +80,3 @@ class IntJointModel(nn.Module):
                                step_score_func=args.step_score_func,
                                step_score_normalize=args.score_normed)
     self.init = OpPoolingState(ops=tuple(operations), state_dim=args.embed_dim, pool_method='mean')
-    self.op_in_beam = args.op_in_beam

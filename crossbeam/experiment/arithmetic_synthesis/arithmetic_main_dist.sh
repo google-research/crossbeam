@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Copyright 2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,3 +13,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+
+data_folder=$HOME/data/crossbeam/arithmetic_synthesis
+
+beam_size=4
+save_dir=$HOME/results/crossbeam/arithmetic_synthesis/dist-b-$beam_size
+
+if [ ! -e $save_dir ];
+then
+    mkdir -p $save_dir
+fi
+
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+
+python3 -m crossbeam.experiment.run_crossbeam \
+    --domain=arithmetic \
+    --model_type=int \
+    --data_folder $data_folder \
+    --save_dir $save_dir \
+    --gpu_list 0,1,2,3 \
+    --num_proc 4 \
+    --eval_every 10000 \
+    --train_steps 1000000 \
+    --port 29501 \
+    $@
