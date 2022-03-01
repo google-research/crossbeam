@@ -80,3 +80,7 @@ class IntJointModel(nn.Module):
                                step_score_func=args.step_score_func,
                                step_score_normalize=args.score_normed)
     self.init = OpPoolingState(ops=tuple(operations), state_dim=args.embed_dim, pool_method='mean')
+    if args.encode_weight:
+      self.encode_weight = ValueWeightEncoder(hidden_size=args.embed_dim)
+    else:
+      self.encode_weight = DummyWeightEncoder()
