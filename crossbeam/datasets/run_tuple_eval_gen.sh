@@ -16,7 +16,7 @@
 
 ne=3
 ni=3
-maxw=8
+maxw=6
 
 data_dir=$HOME/data/crossbeam/tuple_synthesis/ne-${ne}-ni-${ni}-maxw-${maxw}
 
