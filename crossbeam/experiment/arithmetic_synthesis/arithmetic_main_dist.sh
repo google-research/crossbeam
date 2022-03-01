@@ -25,15 +25,15 @@ then
     mkdir -p $save_dir
 fi
 
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 
 python3 -m crossbeam.experiment.run_crossbeam \
     --domain=arithmetic \
     --model_type=int \
     --data_folder $data_folder \
     --save_dir $save_dir \
-    --gpu_list 0,1,2,3 \
-    --num_proc 4 \
+    --gpu_list 0,1,2,3,4,5,6,7 \
+    --num_proc 8 \
     --eval_every 10000 \
     --train_steps 1000000 \
     --port 29501 \
