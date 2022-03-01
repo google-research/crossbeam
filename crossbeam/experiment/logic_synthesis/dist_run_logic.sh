@@ -2,10 +2,11 @@
 
 #if you want to do train/test on a handful of tasks that I manually designed
 #data_folder=$HOME/data/crossbeam/logic_synthesis_manual
-data_folder=$HOME/data/crossbeam/logic_synthesis_10hr
+
+data_folder=$HOME/data/crossbeam/logic_synthesis_dedup
 
 hiddenunits=512
-usegreattransformer=0
+usegreattransformer=1
 beam_size=10
 grad_acc=4
 encode_weight=True
