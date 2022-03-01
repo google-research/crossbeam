@@ -17,7 +17,7 @@ import random
 import timeit
 import torch
 from copy import deepcopy
-from crossbeam.algorithm.beam_search import beam_search, batch_beam_search
+from crossbeam.algorithm.beam_search import beam_search 
 from crossbeam.dsl import value as value_module
 from crossbeam.unique_randomizer import unique_randomizer as ur
 

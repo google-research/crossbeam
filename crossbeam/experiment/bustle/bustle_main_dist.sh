@@ -27,7 +27,7 @@ grad_acc=4
 io=bustle_sig
 value=bustle_sig
 
-save_dir=$HOME/results/crossbeam/bustle/op_vw-tout-${tout}-io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
+save_dir=$HOME/results/crossbeam/bustle/vw-tout-${tout}-io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
 
 if [ ! -e $save_dir ];
 then
@@ -38,7 +38,7 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 
 python3 -m crossbeam.experiment.run_crossbeam \
     --domain=bustle \
-    --model_type=char_op \
+    --model_type=char \
     --io_encoder=${io} \
     --value_encoder=${value} \
     --min_task_weight=3 \
@@ -59,7 +59,6 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --use_ur=False \
     --encode_weight=True \
     --train_steps 1000000 \
-    --load_model model-best-valid.ckpt \
     --train_data_glob train-tasks*.pkl \
     --random_beam=False \
     $@
