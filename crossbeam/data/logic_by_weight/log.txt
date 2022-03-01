@@ -1,0 +1,73 @@
+$ python3 -m crossbeam.datasets.bottom_up_logic_test_data \
+> --min_weight=5 \
+> --max_weight=19 \
+> --train_tasks_pkl_file=~/crossbeam/logic_synthesis_10hr/train-tasks.pkl \
+> --output_file_format=~/crossbeam/logic_by_weight/test-tasks-size-{}.pkl
+
+Bottom-up enumeration found 3 distinct tasks of weight 2, or 7 distinct tasks total, in 0.00 seconds total
+Bottom-up enumeration found 4 distinct tasks of weight 3, or 11 distinct tasks total, in 0.01 seconds total
+Bottom-up enumeration found 11 distinct tasks of weight 4, or 22 distinct tasks total, in 0.02 seconds total
+Bottom-up enumeration found 20 distinct tasks of weight 5, or 42 distinct tasks total, in 0.06 seconds total
+Bottom-up enumeration found 50 distinct tasks of weight 6, or 92 distinct tasks total, in 0.15 seconds total
+Bottom-up enumeration found 104 distinct tasks of weight 7, or 196 distinct tasks total, in 0.39 seconds total
+Bottom-up enumeration found 267 distinct tasks of weight 8, or 463 distinct tasks total, in 0.96 seconds total
+Bottom-up enumeration found 526 distinct tasks of weight 9, or 989 distinct tasks total, in 2.41 seconds total
+Bottom-up enumeration found 1376 distinct tasks of weight 10, or 2365 distinct tasks total, in 6.05 seconds total
+Bottom-up enumeration found 2916 distinct tasks of weight 11, or 5281 distinct tasks total, in 15.18 seconds total
+Bottom-up enumeration found 7187 distinct tasks of weight 12, or 12468 distinct tasks total, in 37.85 seconds total
+Bottom-up enumeration found 15897 distinct tasks of weight 13, or 28365 distinct tasks total, in 94.87 seconds total
+Bottom-up enumeration found 37977 distinct tasks of weight 14, or 66342 distinct tasks total, in 237.06 seconds total
+Bottom-up enumeration found 85892 distinct tasks of weight 15, or 152234 distinct tasks total, in 634.29 seconds total
+Bottom-up enumeration found 199122 distinct tasks of weight 16, or 351356 distinct tasks total, in 1508.11 seconds total
+Bottom-up enumeration found 448300 distinct tasks of weight 17, or 799656 distinct tasks total, in 3657.47 seconds total
+Bottom-up enumeration found 1022689 distinct tasks of weight 18, or 1822345 distinct tasks total, in 8943.09 seconds total
+Bottom-up enumeration found 2284249 distinct tasks of weight 19, or 4106594 distinct tasks total, in 21893.74 seconds total
+Finished bottom-up search.
+
+The training tasks contain 1000000 unique values to avoid.
+We have 20 distinct values of size 5
+  Selected 13 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-5.pkl
+We have 50 distinct values of size 6
+  Selected 40 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-6.pkl
+We have 104 distinct values of size 7
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-7.pkl
+We have 267 distinct values of size 8
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-8.pkl
+We have 526 distinct values of size 9
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-9.pkl
+We have 1376 distinct values of size 10
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-10.pkl
+We have 2916 distinct values of size 11
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-11.pkl
+We have 7187 distinct values of size 12
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-12.pkl
+We have 15897 distinct values of size 13
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-13.pkl
+We have 37977 distinct values of size 14
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-14.pkl
+We have 85892 distinct values of size 15
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-15.pkl
+We have 199122 distinct values of size 16
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-16.pkl
+We have 448300 distinct values of size 17
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-17.pkl
+We have 1022689 distinct values of size 18
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-18.pkl
+We have 2284249 distinct values of size 19
+  Selected 50 values that were not in training.
+  Wrote output: /usr/local/google/home/kshi/crossbeam/logic_by_weight/test-tasks-size-19.pkl
+
