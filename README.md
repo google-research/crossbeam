@@ -1,13 +1,13 @@
-# CrossBeam: Learned beam search
+# CrossBeam: Learning to Search in Bottom-Up Program Synthesis
 
 This repository contains the source code associated with the paper published at
 ICLR'22:
 
 > CrossBeam: Learning to Search in Bottom-Up Program Synthesis
 
-In this research project, we propose training a neural model to learn a
-hands-on search policy for bottom-up program synthesis, in an effort to tame
-the search space blowup.
+In this research project, we train a neural model to learn a hands-on search
+policy for bottom-up program synthesis, in an effort to tame the search space
+blowup.
 
 TODO(kshi): Link to arxiv and/or OpenReview here
 
