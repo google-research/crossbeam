@@ -1,7 +1,7 @@
 [
   {
     "name": "bikes.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/bikes.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/bikes.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -84,7 +84,7 @@
   },
   {
     "name": "dr-name.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/dr-name.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/dr-name.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -143,7 +143,7 @@
   },
   {
     "name": "firstname.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/firstname.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/firstname.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -202,7 +202,7 @@
   },
   {
     "name": "initials.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/initials.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/initials.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -261,7 +261,7 @@
   },
   {
     "name": "lastname.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/lastname.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/lastname.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -320,7 +320,7 @@
   },
   {
     "name": "name-combine-2.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/name-combine-2.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/name-combine-2.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -387,7 +387,7 @@
   },
   {
     "name": "name-combine-3.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/name-combine-3.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/name-combine-3.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -482,7 +482,7 @@
   },
   {
     "name": "name-combine-4.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/name-combine-4.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/name-combine-4.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -563,7 +563,7 @@
   },
   {
     "name": "name-combine.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/name-combine.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/name-combine.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -658,7 +658,7 @@
   },
   {
     "name": "phone-1.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-1.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/phone-1.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -741,7 +741,7 @@
   },
   {
     "name": "phone-10.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-10.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/phone-10.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -836,7 +836,7 @@
   },
   {
     "name": "phone-2.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-2.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/phone-2.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -919,7 +919,7 @@
   },
   {
     "name": "phone-3.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-3.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/phone-3.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -1014,7 +1014,7 @@
   },
   {
     "name": "phone-4.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-4.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/phone-4.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -1097,7 +1097,7 @@
   },
   {
     "name": "phone-5.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-5.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/phone-5.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -1192,7 +1192,7 @@
   },
   {
     "name": "phone-6.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-6.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/phone-6.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -1287,7 +1287,7 @@
   },
   {
     "name": "phone-7.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-7.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/phone-7.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -1382,7 +1382,7 @@
   },
   {
     "name": "phone-8.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-8.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/phone-8.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -1477,7 +1477,7 @@
   },
   {
     "name": "phone-9.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone-9.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/phone-9.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -1572,7 +1572,7 @@
   },
   {
     "name": "phone.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/phone.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/phone.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -1655,7 +1655,7 @@
   },
   {
     "name": "reverse-name.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/reverse-name.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/reverse-name.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -1750,7 +1750,7 @@
   },
   {
     "name": "univ_1.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/univ_1.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/univ_1.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -1845,7 +1845,7 @@
   },
   {
     "name": "univ_2.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/univ_2.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/univ_2.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -1940,7 +1940,7 @@
   },
   {
     "name": "univ_3.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/univ_3.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/univ_3.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2035,7 +2035,7 @@
   },
   {
     "name": "univ_4.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/univ_4.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/univ_4.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2158,7 +2158,7 @@
   },
   {
     "name": "univ_5.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/univ_5.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/univ_5.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2281,7 +2281,7 @@
   },
   {
     "name": "univ_6.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/PBE_Strings_Track/univ_6.sl",
+    "description": "SyGuS benchmark from PBE_Strings_Track/univ_6.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2404,7 +2404,7 @@
   },
   {
     "name": "11604909.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/11604909.sl",
+    "description": "SyGuS benchmark from euphony/11604909.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2487,7 +2487,7 @@
   },
   {
     "name": "17212077.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/17212077.sl",
+    "description": "SyGuS benchmark from euphony/17212077.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2534,7 +2534,7 @@
   },
   {
     "name": "2171308.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/2171308.sl",
+    "description": "SyGuS benchmark from euphony/2171308.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2581,7 +2581,7 @@
   },
   {
     "name": "25239569.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/25239569.sl",
+    "description": "SyGuS benchmark from euphony/25239569.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2628,7 +2628,7 @@
   },
   {
     "name": "28627624_1.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/28627624_1.sl",
+    "description": "SyGuS benchmark from euphony/28627624_1.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2663,7 +2663,7 @@
   },
   {
     "name": "30732554.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/30732554.sl",
+    "description": "SyGuS benchmark from euphony/30732554.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2722,7 +2722,7 @@
   },
   {
     "name": "31753108.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/31753108.sl",
+    "description": "SyGuS benchmark from euphony/31753108.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2769,7 +2769,7 @@
   },
   {
     "name": "33619752.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/33619752.sl",
+    "description": "SyGuS benchmark from euphony/33619752.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2864,7 +2864,7 @@
   },
   {
     "name": "34801680.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/34801680.sl",
+    "description": "SyGuS benchmark from euphony/34801680.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2899,7 +2899,7 @@
   },
   {
     "name": "35016216.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/35016216.sl",
+    "description": "SyGuS benchmark from euphony/35016216.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -2966,7 +2966,7 @@
   },
   {
     "name": "35744094.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/35744094.sl",
+    "description": "SyGuS benchmark from euphony/35744094.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3013,7 +3013,7 @@
   },
   {
     "name": "36462127.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/36462127.sl",
+    "description": "SyGuS benchmark from euphony/36462127.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3048,7 +3048,7 @@
   },
   {
     "name": "37534494.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/37534494.sl",
+    "description": "SyGuS benchmark from euphony/37534494.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3091,7 +3091,7 @@
   },
   {
     "name": "38664547.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/38664547.sl",
+    "description": "SyGuS benchmark from euphony/38664547.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3186,7 +3186,7 @@
   },
   {
     "name": "38871714.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/38871714.sl",
+    "description": "SyGuS benchmark from euphony/38871714.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3221,7 +3221,7 @@
   },
   {
     "name": "39060015.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/39060015.sl",
+    "description": "SyGuS benchmark from euphony/39060015.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3256,7 +3256,7 @@
   },
   {
     "name": "41503046.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/41503046.sl",
+    "description": "SyGuS benchmark from euphony/41503046.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3339,7 +3339,7 @@
   },
   {
     "name": "43120683.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/43120683.sl",
+    "description": "SyGuS benchmark from euphony/43120683.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3398,7 +3398,7 @@
   },
   {
     "name": "43606446.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/43606446.sl",
+    "description": "SyGuS benchmark from euphony/43606446.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3457,7 +3457,7 @@
   },
   {
     "name": "add-a-line-break-with-a-formula.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/add-a-line-break-with-a-formula.sl",
+    "description": "SyGuS benchmark from euphony/add-a-line-break-with-a-formula.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3516,7 +3516,7 @@
   },
   {
     "name": "change-negative-numbers-to-positive.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/change-negative-numbers-to-positive.sl",
+    "description": "SyGuS benchmark from euphony/change-negative-numbers-to-positive.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3575,7 +3575,7 @@
   },
   {
     "name": "clean-and-reformat-telephone-numbers.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/clean-and-reformat-telephone-numbers.sl",
+    "description": "SyGuS benchmark from euphony/clean-and-reformat-telephone-numbers.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3622,7 +3622,7 @@
   },
   {
     "name": "create-email-address-from-name.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/create-email-address-from-name.sl",
+    "description": "SyGuS benchmark from euphony/create-email-address-from-name.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3675,7 +3675,7 @@
   },
   {
     "name": "create-email-address-with-name-and-domain.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/create-email-address-with-name-and-domain.sl",
+    "description": "SyGuS benchmark from euphony/create-email-address-with-name-and-domain.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3734,7 +3734,7 @@
   },
   {
     "name": "exceljet1.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/exceljet1.sl",
+    "description": "SyGuS benchmark from euphony/exceljet1.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3787,7 +3787,7 @@
   },
   {
     "name": "exceljet2.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/exceljet2.sl",
+    "description": "SyGuS benchmark from euphony/exceljet2.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3834,7 +3834,7 @@
   },
   {
     "name": "exceljet3.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/exceljet3.sl",
+    "description": "SyGuS benchmark from euphony/exceljet3.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3893,7 +3893,7 @@
   },
   {
     "name": "exceljet4.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/exceljet4.sl",
+    "description": "SyGuS benchmark from euphony/exceljet4.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3952,7 +3952,7 @@
   },
   {
     "name": "extract-word-containing-specific-text.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/extract-word-containing-specific-text.sl",
+    "description": "SyGuS benchmark from euphony/extract-word-containing-specific-text.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -3987,7 +3987,7 @@
   },
   {
     "name": "extract-word-that-begins-with-specific-character.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/extract-word-that-begins-with-specific-character.sl",
+    "description": "SyGuS benchmark from euphony/extract-word-that-begins-with-specific-character.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4034,7 +4034,7 @@
   },
   {
     "name": "get-domain-from-email-address_2.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-domain-from-email-address_2.sl",
+    "description": "SyGuS benchmark from euphony/get-domain-from-email-address_2.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4087,7 +4087,7 @@
   },
   {
     "name": "get-domain-name-from-url.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-domain-name-from-url.sl",
+    "description": "SyGuS benchmark from euphony/get-domain-name-from-url.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4134,7 +4134,7 @@
   },
   {
     "name": "get-first-name-from-name.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-first-name-from-name.sl",
+    "description": "SyGuS benchmark from euphony/get-first-name-from-name.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4181,7 +4181,7 @@
   },
   {
     "name": "get-first-word.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-first-word.sl",
+    "description": "SyGuS benchmark from euphony/get-first-word.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4228,7 +4228,7 @@
   },
   {
     "name": "get-last-line-in-cell.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-last-line-in-cell.sl",
+    "description": "SyGuS benchmark from euphony/get-last-line-in-cell.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4275,7 +4275,7 @@
   },
   {
     "name": "get-last-name-from-name-with-comma.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-last-name-from-name-with-comma.sl",
+    "description": "SyGuS benchmark from euphony/get-last-name-from-name-with-comma.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4322,7 +4322,7 @@
   },
   {
     "name": "get-last-name-from-name.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-last-name-from-name.sl",
+    "description": "SyGuS benchmark from euphony/get-last-name-from-name.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4369,7 +4369,7 @@
   },
   {
     "name": "get-last-word.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-last-word.sl",
+    "description": "SyGuS benchmark from euphony/get-last-word.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4416,7 +4416,7 @@
   },
   {
     "name": "get-middle-name-from-full-name.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/get-middle-name-from-full-name.sl",
+    "description": "SyGuS benchmark from euphony/get-middle-name-from-full-name.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4475,7 +4475,7 @@
   },
   {
     "name": "join-cells-with-comma.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/join-cells-with-comma.sl",
+    "description": "SyGuS benchmark from euphony/join-cells-with-comma.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4518,7 +4518,7 @@
   },
   {
     "name": "join-first-and-last-name.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/join-first-and-last-name.sl",
+    "description": "SyGuS benchmark from euphony/join-first-and-last-name.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4557,7 +4557,7 @@
   },
   {
     "name": "most-frequently-occurring-text.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/most-frequently-occurring-text.sl",
+    "description": "SyGuS benchmark from euphony/most-frequently-occurring-text.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4632,7 +4632,7 @@
   },
   {
     "name": "remove-file-extension-from-filename.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/remove-file-extension-from-filename.sl",
+    "description": "SyGuS benchmark from euphony/remove-file-extension-from-filename.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4691,7 +4691,7 @@
   },
   {
     "name": "remove-leading-and-trailing-spaces-from-text.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/remove-leading-and-trailing-spaces-from-text.sl",
+    "description": "SyGuS benchmark from euphony/remove-leading-and-trailing-spaces-from-text.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4738,7 +4738,7 @@
   },
   {
     "name": "remove-text-by-matching.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/remove-text-by-matching.sl",
+    "description": "SyGuS benchmark from euphony/remove-text-by-matching.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4773,7 +4773,7 @@
   },
   {
     "name": "remove-text-by-position.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/remove-text-by-position.sl",
+    "description": "SyGuS benchmark from euphony/remove-text-by-position.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4820,7 +4820,7 @@
   },
   {
     "name": "remove-unwanted-characters.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/remove-unwanted-characters.sl",
+    "description": "SyGuS benchmark from euphony/remove-unwanted-characters.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4901,7 +4901,7 @@
   },
   {
     "name": "replace-one-character-with-another.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/replace-one-character-with-another.sl",
+    "description": "SyGuS benchmark from euphony/replace-one-character-with-another.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4936,7 +4936,7 @@
   },
   {
     "name": "stackoverflow1.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow1.sl",
+    "description": "SyGuS benchmark from euphony/stackoverflow1.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -4983,7 +4983,7 @@
   },
   {
     "name": "stackoverflow10.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow10.sl",
+    "description": "SyGuS benchmark from euphony/stackoverflow10.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -5186,7 +5186,7 @@
   },
   {
     "name": "stackoverflow11.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow11.sl",
+    "description": "SyGuS benchmark from euphony/stackoverflow11.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -5233,7 +5233,7 @@
   },
   {
     "name": "stackoverflow2.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow2.sl",
+    "description": "SyGuS benchmark from euphony/stackoverflow2.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -5268,7 +5268,7 @@
   },
   {
     "name": "stackoverflow3.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow3.sl",
+    "description": "SyGuS benchmark from euphony/stackoverflow3.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -5315,7 +5315,7 @@
   },
   {
     "name": "stackoverflow4.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow4.sl",
+    "description": "SyGuS benchmark from euphony/stackoverflow4.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -5362,7 +5362,7 @@
   },
   {
     "name": "stackoverflow5.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow5.sl",
+    "description": "SyGuS benchmark from euphony/stackoverflow5.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -5397,7 +5397,7 @@
   },
   {
     "name": "stackoverflow6.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow6.sl",
+    "description": "SyGuS benchmark from euphony/stackoverflow6.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -5432,7 +5432,7 @@
   },
   {
     "name": "stackoverflow7.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow7.sl",
+    "description": "SyGuS benchmark from euphony/stackoverflow7.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -5471,7 +5471,7 @@
   },
   {
     "name": "stackoverflow8.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow8.sl",
+    "description": "SyGuS benchmark from euphony/stackoverflow8.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -5506,7 +5506,7 @@
   },
   {
     "name": "stackoverflow9.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/stackoverflow9.sl",
+    "description": "SyGuS benchmark from euphony/stackoverflow9.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -5541,7 +5541,7 @@
   },
   {
     "name": "strip-html-from-text-or-numbers.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/strip-html-from-text-or-numbers.sl",
+    "description": "SyGuS benchmark from euphony/strip-html-from-text-or-numbers.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -5588,7 +5588,7 @@
   },
   {
     "name": "strip-non-numeric-characters.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/strip-non-numeric-characters.sl",
+    "description": "SyGuS benchmark from euphony/strip-non-numeric-characters.sl",
     "trainExamples": [
       {
         "inputs": [
@@ -5635,7 +5635,7 @@
   },
   {
     "name": "strip-numeric-characters-from-cell.sl",
-    "description": "SyGuS benchmark from /usr/local/google/home/kshi/sheets/sygus_benchmarks/euphony/strip-numeric-characters-from-cell.sl",
+    "description": "SyGuS benchmark from euphony/strip-numeric-characters-from-cell.sl",
     "trainExamples": [
       {
         "inputs": [
