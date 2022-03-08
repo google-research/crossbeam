@@ -1,14 +1,15 @@
 # CrossBeam: Learned beam search
 
-This repository contains the source code associated with the paper
+This repository contains the source code associated with the paper published at
+ICLR'22:
 
-> CrossBeam: Learning bottom-up search strategies for progam synthesis.
+> CrossBeam: Learning to Search in Bottom-Up Program Synthesis
 
-Title and venue subject to change, after the paper is written and published.
+In this research project, we propose training a neural model to learn a
+hands-on search policy for bottom-up program synthesis, in an effort to tame
+the search space blowup.
 
-This is a research project that aims to develop new methods for learning to
-prioritize partial programs within beam search for program synthesis.
-
+TODO(kshi): Link to arxiv and/or OpenReview here
 
 ## Setup
 
@@ -19,22 +20,6 @@ folder:
 
 You can also append `--user` option if you don't want to install globally.
 
-## Singularity container
-
-Build with `sudo singularity build --sandbox container singularity`
-
-And then run the above setup, after entering the container with `sudo singularity shell -B /home --writable container`
-
-After that you can enter the container via `singularity shell -B /home container`
-
-## Running code
-
-From the root `crossbeam` directory:
-
-```
-python3 -m crossbeam.experiment.tuple_synthesis.main
-```
-
 ## Running tests
 
 From the root `crossbeam` directory:
@@ -43,12 +28,31 @@ From the root `crossbeam` directory:
 pytest
 ```
 
-## Running domains
+## Generate training and test datasets
 
-### Logic programming
+Training data is not included in this repo, but we include steps to generate the
+synthetic training data:
 ```
-cd crossbeam/datasets; ./run_logic_gen.sh; cd ../..
-cd crossbeam/experiment; ./run_logic.sh
+TODO(kshi)
+```
+
+Test datasets are in `crossbeam/data/`, but they can also be generated:
+```
+TODO(kshi)
+```
+
+## Train the model
+
+```
+TODO(hadai)
+```
+
+## Running the trained model on test datasets
+
+From the root `crossbeam/` directory:
+```
+./iclr2022/bustle_experiments.sh
+./iclr2022/logic_experiments.sh
 ```
 
 ## Disclaimer
