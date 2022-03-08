@@ -28,21 +28,11 @@ eval_file=$data_dir/test-tasks.pkl
 max_size=20
 
 python3 -m crossbeam.datasets.data_gen \
-    --domain=logic  --num_searches 1\
+    --domain=logic  --num_searches 1 \
     --data_gen_seed $seed \
-    --output_file $eval_file #--num_eval 1000 \
-
-
-seed=10
-eval_file=$data_dir/valid-tasks.pkl
-
-python3 -m crossbeam.datasets.data_gen \
-    --domain=logic --num_searches 1\
-    --data_gen_seed $seed \
-    --output_file $eval_file #--num_eval 1000
+    --output_file $eval_file
 
 echo "Making procedurally generated tasks via bottom-up enumeration"
-
 
 data_dir=$HOME/data/crossbeam/logic_synthesis_10hr
 
