@@ -58,9 +58,24 @@ Trained models are included in this repo in `trained_models/`. If you wish to
 re-train the models, first generate training data with the commands above, and
 then run:
 
+### BUSTLE domain:
+
+First navigate to `crossbeam/experiment/bustle` folder, and then make necessary edits to the scripts, including the data folder and number of GPUs to use.
 ```
-TODO(hadai)
+cd crossbeam/experiment/bustle
+./bustle_main_dist.sh
 ```
+The default hyperparameter should reproduce the results we presented in the paper. 
+
+### Logic domain:
+
+Similar to the above case, please 
+```
+cd crossbeam/experiment/logic_synthesis
+./dist_run_logic.sh
+```
+
+You can set `usegreattransformer` to either 1 or 0, to use Transformer encoder or not. 
 
 ## Running the trained model on test datasets
 
