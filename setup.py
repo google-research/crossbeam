@@ -24,5 +24,14 @@ BASEPATH = os.path.dirname(os.path.abspath(__file__))
 setup(name='crossbeam',
       py_modules=['crossbeam'],
       install_requires=[
+        'absl-py',
+        'matplotlib',
+        'numpy',
+        'pickle5',
+        'pytest',
+        'seaborn',
+        'tqdm',
+        'torch==1.8.0',
+        'torch-scatter',
       ]
 )
