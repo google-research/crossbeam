@@ -15,10 +15,12 @@
 """UniqueRandomizer for CrossBeam.
 
 This differs from standard UniqueRandomizer in two ways:
- * This supports adding new children to trie nodes (new values found during
-   search).
+ * This supports adding new children to trie nodes.
  * In order to support that, this implementation keeps track of different info
    per trie node compared to the standard implementation.
+
+But actually the ICLR'22 paper does not use this functionality. Instead, a fresh
+UniqueRandomizer data structure is used each iteration of search.
 """
 
 import numpy as np
