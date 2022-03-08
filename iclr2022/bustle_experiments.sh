@@ -23,14 +23,14 @@ python3 -m crossbeam.experiment.run_baseline_synthesizer \
   --domain=bustle \
   --timeout=30 \
   --verbose=True \
-  --json_results_file=iclr2022/results/baseline.sygus.30s.json
+  --json_results_file=${results_dir}/baseline.sygus.30s.json
 
 python3 -m crossbeam.experiment.run_baseline_synthesizer \
   --eval_set_pkl=crossbeam/data/new/test-tasks-new.pkl \
   --domain=bustle \
   --timeout=30 \
   --verbose=True \
-  --json_results_file=iclr2022/results/baseline.new.30s.json
+  --json_results_file=${results_dir}/baseline.new.30s.json
 
 # CrossBeam
 maxni=3

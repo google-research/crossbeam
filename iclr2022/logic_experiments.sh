@@ -19,7 +19,7 @@ fi
 
 # Baseline on manual tasks
 python3 -m crossbeam.experiment.run_baseline_synthesizer \
-  --eval_set_pkl=~/data/crossbeam/logic_synthesis_manual/test-tasks.pkl \
+  --eval_set_pkl=crossbeam/data/logic_synthesis_manual/test-tasks.pkl \
   --domain=logic \
   --timeout=30 \
   --verbose=True \
@@ -28,7 +28,7 @@ python3 -m crossbeam.experiment.run_baseline_synthesizer \
 # Baseline on synthetic tasks by size
 for size in $(seq 5 14) ; do
   python3 -m crossbeam.experiment.run_baseline_synthesizer \
-    --eval_set_pkl=~/data/crossbeam/logic_by_weight/test-tasks-size-${size}.pkl \
+    --eval_set_pkl=crossbeam/data/logic_by_weight/test-tasks-size-${size}.pkl \
     --domain=logic \
     --timeout=30 \
     --verbose=True \
