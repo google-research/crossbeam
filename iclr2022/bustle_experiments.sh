@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Run from the root crossbeam/ directory.
+
 results_dir=iclr2022/bustle_results
 if [ -d "$results_dir" ]; then
   echo "WARNING: The results directory ${results_dir} already exists. If you continue, results may be overwritten."
@@ -34,8 +36,8 @@ python3 -m crossbeam.experiment.run_baseline_synthesizer \
 maxni=3
 maxsw=20
 beam_size=10
-data_root=$HOME/crossbeam/crossbeam/data
-models_dir=$HOME/results/crossbeam/bustle/
+data_root=crossbeam/data
+models_dir=trained_models/bustle/
 export CUDA_VISIBLE_DEVICES=0
 
 for run in 1 2 3 4 5 ; do

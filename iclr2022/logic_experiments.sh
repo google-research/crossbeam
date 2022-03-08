@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Run from the root crossbeam/ directory.
+
 results_dir=iclr2022/logic_results
 if [ -d "$results_dir" ]; then
   echo "WARNING: The results directory ${results_dir} already exists. If you continue, results may be overwritten."
@@ -35,8 +37,8 @@ done
 
 # CrossBeam models on manual tasks and synthetic tasks by size
 beam_size=10
-data_root=$HOME/data/crossbeam
-models_dir=$HOME/results/crossbeam/logic/
+data_root=crossbeam/data
+models_dir=trained_models/logic/
 export CUDA_VISIBLE_DEVICES=0
 
 for run in 1 2 3 4 5 ; do
