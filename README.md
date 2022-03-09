@@ -22,8 +22,6 @@ To cite this work, you can use the following BibTeX entry:
 }
 ```
 
-TODO(kshi): Link to arxiv
-
 ## Setup
 
 For dependencies, first install
@@ -71,7 +69,7 @@ Trained models are included in this repo in `trained_models/`. If you wish to
 re-train the models, first generate training data with the commands above, and
 then follow the steps below.
 
-### BUSTLE domain:
+#### BUSTLE domain:
 
 Navigate to `crossbeam/experiment/bustle` directory, make any necessary edits
 to `bustle_main_dist.sh` including the data folder and number of GPUs to use,
@@ -84,7 +82,7 @@ cd crossbeam/experiment/bustle
 
 The default hyperparameters should mirror the settings in the paper.
 
-### Logic domain:
+#### Logic domain:
 
 Similar to the case above, run the following script:
 
