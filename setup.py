@@ -31,7 +31,5 @@ setup(name='crossbeam',
         'pytest',
         'seaborn',
         'tqdm',
-        'torch',
-        'torch-scatter',
       ]
 )
