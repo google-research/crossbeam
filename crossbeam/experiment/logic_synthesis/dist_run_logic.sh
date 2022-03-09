@@ -52,7 +52,7 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --eval_every 10000 \
     --num_valid=50 \
     --train_steps 1000000 \
-    --train_data_glob train*.pkl \
+    --train_data_glob train-00*.pkl \
     --max_num_examples=1 --min_num_examples=1 \
     --max_num_inputs=4 --min_num_inputs=4 \
     $greatnesscommand \

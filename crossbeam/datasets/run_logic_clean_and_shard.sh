@@ -28,3 +28,5 @@ python clean_logic.py \
 
 python make_shards.py \
   $output_root
+
+cp $data_root/valid-tasks.pkl $output_root
