@@ -262,7 +262,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
 
   if rank == 0:
     print('Training finished. Performing final evaluation...')
-  succ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
+  succ, _ = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
   if args.num_proc > 1:
     _gather_eval_info(rank, device, succ, len(eval_tasks))
 
