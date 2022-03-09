@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import os
-import pickle as cp
+import pickle5 as cp
 import sys
 from tqdm import tqdm
 
