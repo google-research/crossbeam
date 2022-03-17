@@ -1,0 +1,349 @@
+{
+    "num_tasks": 38,
+    "num_tasks_solved": 20,
+    "results": [
+        {
+            "elapsed_time": 9.43426952700247,
+            "num_unique_values": 89147,
+            "num_values_explored": 1103905,
+            "solution": "Substitute(var_0, Substitute(var_0, '.', ''), Concatenate(var_0, '.0'))",
+            "solution_weight": 9,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['1.23', '45', '67.0', '9876']},\n    outputs=['1.23', '45.0', '67.0', '9876.0'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 1.529560399998445,
+            "num_unique_values": 12000,
+            "num_values_explored": 175204,
+            "solution": "Substitute(Concatenate('+', var_0), Concatenate('+', '-'), '-')",
+            "solution_weight": 8,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['12', '-34', '567', '-8']},\n    outputs=['+12', '-34', '+567', '-8'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.063844001007965,
+            "num_unique_values": 224645,
+            "num_values_explored": 3078153,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['9:00', '11:00', '3:00', '9:00'], 'var_1': ['morning', 'morning', 'afternoon', 'night']},\n    outputs=['9 AM', '11 AM', '3 PM', '9 PM'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.17897060100222,
+            "num_unique_values": 391024,
+            "num_values_explored": 4206337,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['mountain view, ca', 'HOUSTON, TX']},\n    outputs=['Mountain View, CA', 'Houston, TX'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 5.998600471997634,
+            "num_unique_values": 90283,
+            "num_values_explored": 935822,
+            "solution": "Replace(Lower(var_0), 1, 1, Left(Upper(var_0), 1))",
+            "solution_weight": 9,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['this is a sentence.', 'FIX CAPITALIZATION.']},\n    outputs=['This is a sentence.', 'Fix capitalization.'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.05586233799113,
+            "num_unique_values": 461315,
+            "num_values_explored": 3075272,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['same', 'the text to search in', 'the text to search in', 'the text to search in', 'the text to search in'], 'var_1': ['same', 'find this', 'SEARCH', 'search', 't to s']},\n    outputs=['TRUE', 'FALSE', 'FALSE', 'TRUE', 'TRUE'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.521437437011627,
+            "num_unique_values": 471813,
+            "num_values_explored": 3417222,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['the text to search in', 'the text to search in', 'the text to search in', 'THE TEXT TO SEARCH IN'], 'var_1': ['find this', 's.arch', 'SeArCh', 't to s']},\n    outputs=['FALSE', 'FALSE', 'TRUE', 'TRUE'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.36530122102704,
+            "num_unique_values": 334730,
+            "num_values_explored": 3150526,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['the text to search in', 'the text to search in', 'the text to search in', 'the text to search in'], 'var_1': ['to', ' ', 't', ' t']},\n    outputs=['1', '4', '4', '2'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.568377078016056,
+            "num_unique_values": 657781,
+            "num_values_explored": 3754993,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['Larry', 'Bill'], 'var_1': ['Page', 'Gates'], 'var_2': ['Google', 'Microsoft']},\n    outputs=['lpage@google.com', 'bgates@microsoft.com'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.73728360098903,
+            "num_unique_values": 489153,
+            "num_values_explored": 4422619,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['08092019', '12032020']},\n    outputs=['09/08/2019', '03/12/2020'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.12960255800862797,
+            "num_unique_values": 148,
+            "num_values_explored": 1259,
+            "solution": "Substitute(var_0, '-', '/')",
+            "solution_weight": 4,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['2019-11-23', '2020-03-07']},\n    outputs=['2019/11/23', '2020/03/07'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 1.9990325959806796,
+            "num_unique_values": 24821,
+            "num_values_explored": 323100,
+            "solution": "Right(Substitute(var_0, '-', '/'), Add(2, 3))",
+            "solution_weight": 8,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['2019-11-23', '2020-03-07']},\n    outputs=['11/23', '03/07'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.10099503802485,
+            "num_unique_values": 584738,
+            "num_values_explored": 4156195,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['https://www.google.com/', 'http://www.stanford.edu/news/', 'http://a.b.c.org/d/e/f.g']},\n    outputs=['www.google.com', 'www.stanford.edu', 'a.b.c.org'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.323048491991358,
+            "num_unique_values": 325613,
+            "num_values_explored": 3558675,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['https://www.google.com/', 'http://www.stanford.edu/news/', 'http://a.b.c.org/d/e/f.g']},\n    outputs=['/', '/news/', '/d/e/f.g'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.20711889502126724,
+            "num_unique_values": 2615,
+            "num_values_explored": 18189,
+            "solution": "Trim(Left(var_1, Find(' ', var_1)))",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Larry Page', ''], 'var_1': ['Sergey Brin', 'Bill Gates']},\n    outputs=['Sergey', 'Bill'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 3.5657626769971102,
+            "num_unique_values": 42271,
+            "num_values_explored": 397976,
+            "solution": "If(Exact(var_0, Lower(var_0)), 'true', 'false')",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['this text is lowercase', 'Not Lowercase', '123', 'XYZ']},\n    outputs=['true', 'false', 'true', 'false'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.759082579985261,
+            "num_unique_values": 15625,
+            "num_values_explored": 116664,
+            "solution": "Replace(var_0, 1, Find(' ', var_0), '')",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Larry Page', 'George Washington'], 'var_1': ['Sergey Brin', '']},\n    outputs=['Page', 'Washington'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.633653052005684,
+            "num_unique_values": 392366,
+            "num_values_explored": 1986110,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['43%', '0%', '52%', '100%', '47%', '100%', '58%', '0%']},\n    outputs=['In Progress', 'Not Yet Started', 'In Progress', 'Completed', 'In Progress', 'Completed', 'In Progress', 'Not Yet Started'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.19768524300889,
+            "num_unique_values": 218942,
+            "num_values_explored": 3633230,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['12', '-34', '567', '-8']},\n    outputs=['12', '(34)', '567', '(8)'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.228675001009833,
+            "num_unique_values": 253904,
+            "num_values_explored": 3688956,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['string', 'text', 'multiple words'], 'var_1': ['10', '5', '17']},\n    outputs=['    string', ' text', '   multiple words'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 4.0228599649854,
+            "num_unique_values": 51381,
+            "num_values_explored": 389655,
+            "solution": "Concatenate(Mid(Concatenate('0', '000'), Len(var_0), 99), var_0)",
+            "solution_weight": 9,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['123', '45', '6780', '9', '54321']},\n    outputs=['00123', '00045', '06780', '00009', '54321'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 14.522030883003026,
+            "num_unique_values": 148339,
+            "num_values_explored": 1788626,
+            "solution": "To_Text(Minus(Len(var_0), Len(Substitute(var_0, '/', ''))))",
+            "solution_weight": 9,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['/this/is/a/path', '/home', '/a/b']},\n    outputs=['4', '1', '2'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.07173775500268675,
+            "num_unique_values": 501,
+            "num_values_explored": 3612,
+            "solution": "Substitute(var_0, var_1, '', 1)",
+            "solution_weight": 5,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['prefix', 'nonsense', 'atypical'], 'var_1': ['pre', 'non', 'a']},\n    outputs=['fix', 'sense', 'typical'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.9494426769961137,
+            "num_unique_values": 17450,
+            "num_values_explored": 151818,
+            "solution": "Replace(var_0, 1, Find(' ', var_0), 'Mr. ')",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['George Washington', 'Alan Turing']},\n    outputs=['Mr. Washington', 'Mr. Turing'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.219010870991042,
+            "num_unique_values": 300765,
+            "num_values_explored": 3321671,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['George Washington', 'Alan Turing', 'Grace Hopper', 'Ruth Porat'], 'var_1': ['male', 'male', 'female', 'female']},\n    outputs=['Mr. Washington', 'Mr. Turing', 'Ms. Hopper', 'Ms. Porat'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.08729469100944698,
+            "num_unique_values": 81,
+            "num_values_explored": 273,
+            "solution": "Trim(Lower(var_0))",
+            "solution_weight": 3,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['  TEXT ', 'Two words    ', '   before and after  ']},\n    outputs=['text', 'two words', 'before and after'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.573371437989408,
+            "num_unique_values": 501379,
+            "num_values_explored": 3948032,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['Employees at <COMPANY> love its culture.', \"<COMPANY> employees are excited for <COMPANY>'s future.\"], 'var_1': ['Google', 'Microsoft']},\n    outputs=['Employees at Google love its culture.', \"Microsoft employees are excited for Microsoft's future.\"],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.1350865449931007,
+            "num_unique_values": 422,
+            "num_values_explored": 2471,
+            "solution": "Substitute(var_0, 'https://www.google.com/', 'https://www.google.org/')",
+            "solution_weight": 4,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['https://www.google.com/company-strategy.html', 'https://www.google.com/some/path']},\n    outputs=['https://www.google.org/company-strategy.html', 'https://www.google.org/some/path'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 1.177501211001072,
+            "num_unique_values": 14334,
+            "num_values_explored": 116532,
+            "solution": "If(Exact('NONE', var_0), var_1, var_0)",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['primary', 'ABC', 'NOT NONE', 'NONE', 'NONE'], 'var_1': ['secondary', 'XYZ', '123', 'select this instead', '<BACKUP>']},\n    outputs=['primary', 'ABC', 'NOT NONE', 'select this instead', '<BACKUP>'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 17.258017170999665,
+            "num_unique_values": 178811,
+            "num_values_explored": 1661698,
+            "solution": "If(Gt(Len(var_1), Len(var_0)), var_1, var_0)",
+            "solution_weight": 8,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['length,', '123', 'xyz', 'aa', 'aa'], 'var_1': ['is same', '45', 'abcdef', 'aaa', 'a']},\n    outputs=['length,', '123', 'abcdef', 'aaa', 'aa'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 1.9859072369872592,
+            "num_unique_values": 25962,
+            "num_values_explored": 190458,
+            "solution": "If(Exact(var_0, var_1), 'yes', 'no')",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['string', 'string', 'match this', 'match this'], 'var_1': ['string', 'STRING', 'match this', 'match that']},\n    outputs=['yes', 'no', 'yes', 'no'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 31.58785756098223,
+            "num_unique_values": 450585,
+            "num_values_explored": 3152245,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['text', 'StRiNg', 'match this', 'match those', 'substring'], 'var_1': ['text', 'sTrInG', 'match this', 'match that', 'substring.']},\n    outputs=['yes', 'yes', 'yes', 'no', 'no'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.14363950601546094,
+            "num_unique_values": 36,
+            "num_values_explored": 139,
+            "solution": "To_Text(Len(var_0))",
+            "solution_weight": 3,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['alphabet', 'google']},\n    outputs=['8', '6'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.39430169598199427,
+            "num_unique_values": 8887,
+            "num_values_explored": 60027,
+            "solution": "Left(var_0, Minus(Len(var_0), Len(var_1)))",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['suffix', 'declaration', 'analyticly'], 'var_1': ['fix', 'tion', 'ly']},\n    outputs=['suf', 'declara', 'analytic'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.18935073100146838,
+            "num_unique_values": 3242,
+            "num_values_explored": 22354,
+            "solution": "Substitute(Lower(var_0), var_0, Upper(var_0))",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['lowercase', 'UPPERCASE', 'swap', 'CASE']},\n    outputs=['LOWERCASE', 'uppercase', 'SWAP', 'case'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.40608758799499,
+            "num_unique_values": 421739,
+            "num_values_explored": 3332676,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['short text', 'max length text', 'extremely lengthy text', 'this text should be truncated']},\n    outputs=['short text', 'max length text', 'extremely lengt...', 'this text shoul...'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.498629098990932,
+            "num_unique_values": 464450,
+            "num_values_explored": 4702527,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['Product Area', 'Vice President']},\n    outputs=['PA', 'VP'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.52271115302574,
+            "num_unique_values": 511678,
+            "num_values_explored": 4675422,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['product area', 'Vice president']},\n    outputs=['PA', 'VP'],\n    solution=None\n)"
+        }
+    ],
+    "success_rate": 0.5263157894736842
+}

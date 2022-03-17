@@ -1,0 +1,808 @@
+{
+    "num_tasks": 89,
+    "num_tasks_solved": 54,
+    "results": [
+        {
+            "elapsed_time": 0.6317715079931077,
+            "num_unique_values": 10964,
+            "num_values_explored": 68306,
+            "solution": "Left(var_0, Minus(Len(var_0), 3))",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Ducati100', 'Honda125', 'Ducati250', 'Honda250', 'Honda550', 'Ducati125']},\n    outputs=['Ducati', 'Honda', 'Ducati', 'Honda', 'Honda', 'Ducati'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 10.862818708992563,
+            "num_unique_values": 105836,
+            "num_values_explored": 1073100,
+            "solution": "Concatenate('Dr. ', Trim(Left(var_0, Find(' ', var_0))))",
+            "solution_weight": 8,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Nancy FreeHafer', 'Andrew Cencici', 'Jan Kotas', 'Mariya Sergienko']},\n    outputs=['Dr. Nancy', 'Dr. Andrew', 'Dr. Jan', 'Dr. Mariya'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.43489794398192316,
+            "num_unique_values": 6314,
+            "num_values_explored": 49560,
+            "solution": "Trim(Left(var_0, Find(' ', var_0)))",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Nancy FreeHafer', 'Andrew Cencici', 'Jan Kotas', 'Mariya Sergienko']},\n    outputs=['Nancy', 'Andrew', 'Jan', 'Mariya'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.259463901020354,
+            "num_unique_values": 246538,
+            "num_values_explored": 3116293,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['Nancy FreeHafer', 'Andrew Cencici', 'Jan Kotas', 'Mariya Sergienko']},\n    outputs=['N.F.', 'A.C.', 'J.K.', 'M.S.'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 1.838806497020414,
+            "num_unique_values": 27055,
+            "num_values_explored": 224745,
+            "solution": "Replace(var_0, 1, Find(' ', var_0), '')",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Nancy FreeHafer', 'Andrew Cencici', 'Jan Kotas', 'Mariya Sergienko']},\n    outputs=['FreeHafer', 'Cencici', 'Kotas', 'Sergienko'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.043465533992276,
+            "num_unique_values": 283572,
+            "num_values_explored": 3161723,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['Nancy', 'Andrew', 'Jan', 'Mariya'], 'var_1': ['FreeHafer', 'Cencici', 'Kotas', 'Sergienko']},\n    outputs=['Nancy F.', 'Andrew C.', 'Jan K.', 'Mariya S.'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 6.82957564498065,
+            "num_unique_values": 104218,
+            "num_values_explored": 531083,
+            "solution": "Concatenate(Left(var_0, 1), Concatenate('. ', var_1))",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Launa', 'Lakenya', 'Brendan', 'Bradford', 'Rudolf', 'Lara'], 'var_1': ['Withers', 'Edison', 'Hage', 'Lango', 'Akiyama', 'Constable']},\n    outputs=['L. Withers', 'L. Edison', 'B. Hage', 'B. Lango', 'R. Akiyama', 'L. Constable'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 31.36626291598077,
+            "num_unique_values": 447862,
+            "num_values_explored": 2577739,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['Launa', 'Lakenya', 'Brendan', 'Bradford', 'Rudolf'], 'var_1': ['Withers', 'Edison', 'Hage', 'Lango', 'Akiyama']},\n    outputs=['Withers, L.', 'Edison, L.', 'Hage, B.', 'Lango, B.', 'Akiyama, R.'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.2174406530102715,
+            "num_unique_values": 1708,
+            "num_values_explored": 5856,
+            "solution": "Concatenate(var_0, Concatenate(' ', var_1))",
+            "solution_weight": 5,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Launa', 'Lakenya', 'Brendan', 'Bradford', 'Rudolf', 'Lara'], 'var_1': ['Withers', 'Edison', 'Hage', 'Lango', 'Akiyama', 'Constable']},\n    outputs=['Launa Withers', 'Lakenya Edison', 'Brendan Hage', 'Bradford Lango', 'Rudolf Akiyama', 'Lara Constable'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.3495022239803802,
+            "num_unique_values": 4302,
+            "num_values_explored": 37988,
+            "solution": "Mid(var_0, Add(2, 3), 3)",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['938-242-504', '308-916-545', '623-599-749', '981-424-843', '118-980-214', '244-655-094']},\n    outputs=['242', '916', '599', '424', '980', '655'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.03558286797488,
+            "num_unique_values": 104276,
+            "num_values_explored": 2277312,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['+106 769-858-438', '+83 973-757-831', '+62 647-787-775', '+172 027-507-632', '+72 001-050-856', '+95 310-537-401', '+6 775-969-238']},\n    outputs=['+106 (769) 858-438', '+83 (973) 757-831', '+62 (647) 787-775', '+172 (027) 507-632', '+72 (001) 050-856', '+95 (310) 537-401', '+6 (775) 969-238'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.044066311995266005,
+            "num_unique_values": 106,
+            "num_values_explored": 355,
+            "solution": "Right(var_0, 3)",
+            "solution_weight": 3,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['938-242-504', '308-916-545', '623-599-749', '981-424-843', '118-980-214', '244-655-094']},\n    outputs=['504', '545', '749', '843', '214', '094'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 20.75545739600784,
+            "num_unique_values": 264797,
+            "num_values_explored": 1454272,
+            "solution": "Concatenate('(', Substitute(var_0, '-', ') ', 1))",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['938-242-504', '308-916-545', '623-599-749', '981-424-843', '118-980-214', '244-655-094', '830-941-991']},\n    outputs=['(938) 242-504', '(308) 916-545', '(623) 599-749', '(981) 424-843', '(118) 980-214', '(244) 655-094', '(830) 941-991'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.1448590920190327,
+            "num_unique_values": 464,
+            "num_values_explored": 5407,
+            "solution": "Substitute(var_0, '-', '.')",
+            "solution_weight": 4,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['938-242-504', '308-916-545', '623-599-749', '981-424-843', '118-980-214', '244-655-094']},\n    outputs=['938.242.504', '308.916.545', '623.599.749', '981.424.843', '118.980.214', '244.655.094'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.221778753999388,
+            "num_unique_values": 265030,
+            "num_values_explored": 2596272,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['+106 769-858-438', '+83 973-757-831', '+62 647-787-775', '+172 027-507-632', '+72 001-050-856', '+95 310-537-401', '+6 775-969-238']},\n    outputs=['106', '83', '62', '172', '72', '95', '6'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 32.24653647400555,
+            "num_unique_values": 241297,
+            "num_values_explored": 2632754,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['+106 769-858-438', '+83 973-757-831', '+62 647-787-775', '+172 027-507-632', '+72 001-050-856', '+95 310-537-401', '+6 775-969-238']},\n    outputs=['769', '973', '647', '027', '001', '310', '775'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 33.441853295022156,
+            "num_unique_values": 282014,
+            "num_values_explored": 2847552,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['+106 769-858-438', '+83 973-757-831', '+62 647-787-775', '+172 027-507-632', '+72 001-050-856', '+95 310-537-401', '+6 775-969-238']},\n    outputs=['858', '757', '787', '507', '050', '537', '969'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.11896397601231001,
+            "num_unique_values": 378,
+            "num_values_explored": 1065,
+            "solution": "Right(var_0, 3)",
+            "solution_weight": 3,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['+106 769-858-438', '+83 973-757-831', '+62 647-787-775', '+172 027-507-632', '+72 001-050-856', '+95 310-537-401', '+6 775-969-238']},\n    outputs=['438', '831', '775', '632', '856', '401', '238'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 39.71625176499947,
+            "num_unique_values": 109213,
+            "num_values_explored": 3039537,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['+106 769-858-438', '+83 973-757-831', '+62 647-787-775', '+172 027-507-632', '+72 001-050-856', '+95 310-537-401', '+6 775-969-238']},\n    outputs=['106.769.858.438', '83.973.757.831', '62.647.787.775', '172.027.507.632', '72.001.050.856', '95.310.537.401', '6.775.969.238'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.0405765600153245,
+            "num_unique_values": 90,
+            "num_values_explored": 281,
+            "solution": "Left(var_0, 3)",
+            "solution_weight": 3,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['938-242-504', '308-916-545', '623-599-749', '981-424-843', '118-980-214', '244-655-094']},\n    outputs=['938', '308', '623', '981', '118', '244'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.12050199002260342,
+            "num_unique_values": 3363,
+            "num_values_explored": 10352,
+            "solution": "Concatenate(var_1, Concatenate(' ', var_0))",
+            "solution_weight": 5,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Launa', 'Lakenya', 'Brendan', 'Bradford', 'Rudolf', 'Lara'], 'var_1': ['Withers', 'Edison', 'Hage', 'Lango', 'Akiyama', 'Constable']},\n    outputs=['Withers Launa', 'Edison Lakenya', 'Hage Brendan', 'Lango Bradford', 'Akiyama Rudolf', 'Constable Lara'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.23254923499189317,
+            "num_unique_values": 6486,
+            "num_values_explored": 18201,
+            "solution": "Concatenate(var_0, Concatenate(', ', var_1))",
+            "solution_weight": 5,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['University of Pennsylvania', 'Cornell University', 'University of Maryland College Park', 'University of Michigan', 'Yale University', 'Columbia University'], 'var_1': ['Phialdelphia, PA, USA', 'Ithaca, New York, USA', 'College Park, MD', 'Ann Arbor, MI, USA', 'New Haven, CT, USA', 'New York, NY, USA']},\n    outputs=['University of Pennsylvania, Phialdelphia, PA, USA', 'Cornell University, Ithaca, New York, USA', 'University of Maryland College Park, College Park, MD', 'University of Michigan, Ann Arbor, MI, USA', 'Yale University, New Haven, CT, USA', 'Columbia University, New York, NY, USA'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.77996163201169,
+            "num_unique_values": 598620,
+            "num_values_explored": 2178938,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['University of Pennsylvania', 'UCLA', 'Cornell University', 'Penn', 'University of Maryland College Park', 'University of Michigan'], 'var_1': ['Phialdelphia, PA, USA', 'Los Angeles, CA', 'Ithaca, New York, USA', 'Philadelphia, PA, USA', 'College Park, MD', 'Ann Arbor, MI, USA']},\n    outputs=['University of Pennsylvania, Phialdelphia, PA, USA', 'UCLA, Los Angeles, CA, USA', 'Cornell University, Ithaca, New York, USA', 'Penn, Philadelphia, PA, USA', 'University of Maryland College Park, College Park, MD, USA', 'University of Michigan, Ann Arbor, MI, USA'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 4.823110183002427,
+            "num_unique_values": 101804,
+            "num_values_explored": 294212,
+            "solution": "Concatenate(Substitute(var_1, ', USA', ''), ', USA')",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['University of Pennsylvania', 'UCLA', 'Cornell University', 'Penn', 'University of Maryland College Park', 'University of Michigan'], 'var_1': ['Phialdelphia, PA, USA', 'Los Angeles, CA', 'Ithaca, New York, USA', 'Philadelphia, PA, USA', 'College Park, MD', 'Ann Arbor, MI, USA']},\n    outputs=['Phialdelphia, PA, USA', 'Los Angeles, CA, USA', 'Ithaca, New York, USA', 'Philadelphia, PA, USA', 'College Park, MD, USA', 'Ann Arbor, MI, USA'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 34.34276209300151,
+            "num_unique_values": 387104,
+            "num_values_explored": 2466295,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['University of Pennsylvania', 'UCLA', 'Cornell University', 'Penn', 'University of Maryland College Park', 'University of Michigan', 'Columbia University', 'NYU'], 'var_1': ['Phialdelphia, PA, USA', 'Los Angeles, CA', 'Ithaca, New York, USA', 'Philadelphia, PA, USA', 'College Park, MD', 'Ann Arbor, MI, USA', 'New York, NY, USA', 'New York, New York, USA']},\n    outputs=['Phialdelphia, PA, USA', 'Los Angeles, CA, USA', 'Ithaca, NY, USA', 'Philadelphia, PA, USA', 'College Park, MD, USA', 'Ann Arbor, MI, USA', 'New York, NY, USA', 'New York, NY, USA'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 34.13643323801807,
+            "num_unique_values": 387104,
+            "num_values_explored": 2466295,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['University of Pennsylvania', 'UCLA', 'Cornell University', 'Penn', 'University of Maryland College Park', 'University of Michigan', 'Columbia University', 'NYU'], 'var_1': ['Phialdelphia, PA, USA', 'Los Angeles, CA', 'Ithaca, New York, USA', 'Philadelphia, PA, USA', 'College Park, MD', 'Ann Arbor, MI, USA', 'New York, NY, USA', 'New York, New York, USA']},\n    outputs=['Phialdelphia, PA, USA', 'Los Angeles, CA, USA', 'Ithaca, NY, USA', 'Philadelphia, PA, USA', 'College Park, MD, USA', 'Ann Arbor, MI, USA', 'New York, NY, USA', 'New York, NY, USA'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 34.57862492301501,
+            "num_unique_values": 387104,
+            "num_values_explored": 2466295,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['University of Pennsylvania', 'UCLA', 'Cornell University', 'Penn', 'University of Maryland College Park', 'University of Michigan', 'Columbia University', 'NYU'], 'var_1': ['Phialdelphia, PA, USA', 'Los Angeles, CA', 'Ithaca, New York, USA', 'Philadelphia, PA, USA', 'College Park, MD', 'Ann Arbor, MI, USA', 'New York, NY, USA', 'New York, New York, USA']},\n    outputs=['Phialdelphia, PA, USA', 'Los Angeles, CA, USA', 'Ithaca, NY, USA', 'Philadelphia, PA, USA', 'College Park, MD, USA', 'Ann Arbor, MI, USA', 'New York, NY, USA', 'New York, NY, USA'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.534773054008838,
+            "num_unique_values": 360085,
+            "num_values_explored": 2860556,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['AIX 5.1', 'VMware ESX Server 3.5.0 build-110268', 'Linux Linux 2.6 Linux', 'Red Hat Enterprise AS 4 <2.6-78.0.13.ELlargesmp>', 'Microsoft <R> Windows <R> 2000 Advanced Server 1.0', 'Microsoft Windows XP Win2008R2 6.1.7601']},\n    outputs=['5.1', '3.5', '2.6', '2.6', '1.0', '6.1'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.17109221301507205,
+            "num_unique_values": 571,
+            "num_values_explored": 4559,
+            "solution": "Replace(var_0, 3, 3, '')",
+            "solution_weight": 5,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['01/15/2013', '03/07/2011', '05/09/2009']},\n    outputs=['01/2013', '03/2011', '05/2009'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 1.0966166220023297,
+            "num_unique_values": 13835,
+            "num_values_explored": 152330,
+            "solution": "Trim(Replace(var_0, 2, Add(1, 3), ' '))",
+            "solution_weight": 8,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['John Doe', 'Mayur Naik', 'Nimit Singh']},\n    outputs=['J Doe', 'M Naik', 'N Singh'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.040371389011852,
+            "num_unique_values": 367032,
+            "num_values_explored": 3574856,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['Adf_ROCLeader_BAN_728x90_CPM_STD _BRD _NRT_DCK', 'MMC_ContextualLarRec_BAN_336x280_CPM_STD _LDS _RTG_DCK', 'Adf_ROC_DLBD_728x90_CPM_STD_DRS_NRT_NOR_DCK']},\n    outputs=['Adf_ROCLeader_BAN_728x90_CPM_STD _Branding _NRT_DCK', 'MMC_ContextualLarRec_BAN_336x280_CPM_STD _Leads _RTG_DCK', 'Adf_ROC_DLBD_728x90_CPM_STD_Direct Response_NRT_NOR_DCK'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 2.1627980880148243,
+            "num_unique_values": 48930,
+            "num_values_explored": 331837,
+            "solution": "Left(var_0, Add(2, Find(' PM - +91 90000 80000= loren', var_0)))",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Dec 2, 2014, 11=23 PM - +91 90000 80000= loren ipsum', 'Dec 2, 2014, 11=24 PM - +91 90000 80000= loren']},\n    outputs=['Dec 2, 2014, 11=23 PM', 'Dec 2, 2014, 11=24 PM'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 32.31941205801559,
+            "num_unique_values": 566544,
+            "num_values_explored": 3046370,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['TL-18273982| 10MM', 'TL-288762| 76DK', 'CT-576', 'N/A']},\n    outputs=['TL-18273982', 'TL-288762', 'CT-576', 'N/A'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.843137695017504,
+            "num_unique_values": 286359,
+            "num_values_explored": 3499731,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['Tire Pressure ABC123873 Monitor', 'Oil Life ABC849999999021 gauge', 'Air conditioner GHF211 maintenance']},\n    outputs=['ABC123873', 'ABC849999999021', 'GHF211'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 32.27183397000772,
+            "num_unique_values": 318592,
+            "num_values_explored": 2549282,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['General Electric', 'General Electric Inc', 'General Electric Company', 'Microsoft', 'Microsoft Corporation', 'Nintendo', 'Nintendo Enterprises']},\n    outputs=['General Electric', 'General Electric', 'General Electric', 'Microsoft', 'Microsoft', 'Nintendo', 'Nintendo'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.8911871199961752,
+            "num_unique_values": 15375,
+            "num_values_explored": 123273,
+            "solution": "Replace(var_0, 1, Find(' ', var_0), '')",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Name= ABC Retailers', 'ame= XYZ Suppliers']},\n    outputs=['ABC Retailers', 'XYZ Suppliers'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.1718236079905182,
+            "num_unique_values": 2803,
+            "num_values_explored": 19538,
+            "solution": "Substitute(var_0, Lower(var_0), var_1)",
+            "solution_weight": 5,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['C0abc', 'aabc', 'C0dd', 'dd'], 'var_1': ['def', 'def', 'qwe', 'qwe']},\n    outputs=['C0abc', 'def', 'C0dd', 'qwe'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.21492800701526,
+            "num_unique_values": 580580,
+            "num_values_explored": 3189862,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['http=//www.apple.com/uk/mac', 'https=//www.microsoft.com/en-gb/windows', 'https=//www.microsoft.com/']},\n    outputs=['mac', 'windows', 'microsoft'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 12.192401539010461,
+            "num_unique_values": 207476,
+            "num_values_explored": 1798634,
+            "solution": "Right(Mid(var_0, Len('ABCDE/FGHI/JKL'), 99), Add(3, 3))",
+            "solution_weight": 9,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['ABCDE/FGHI/JKL/MNOPQR', 'A/ABCDE/FGHI/JKL']},\n    outputs=['MNOPQR', 'JKL'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 1.9153609969944227,
+            "num_unique_values": 36664,
+            "num_values_explored": 283634,
+            "solution": "Substitute('I love apples', Substitute('I love apples', var_2, ''), 'I hate bananas')",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['I love apples', 'I love apples'], 'var_1': ['I hate bananas', 'I hate bananas'], 'var_2': ['banana', 'apple']},\n    outputs=['I hate bananas', 'I love apples'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 3.380976644984912,
+            "num_unique_values": 40765,
+            "num_values_explored": 299431,
+            "solution": "Substitute(var_0, Substitute('that', var_0, ''), '')",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['thatensures', 'thatwill', 'thathave', 'knowthat', 'that', 'mouse', 'knowthat']},\n    outputs=['ensures', 'will', 'have', 'know', 'that', 'mouse', 'know'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 11.19294822201482,
+            "num_unique_values": 155352,
+            "num_values_explored": 1684620,
+            "solution": "Trim(Substitute(Substitute(var_0, '>', ''), '<', ''))",
+            "solution_weight": 8,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['This is a <string>, It should be <changed> to <a> number.', 'a < 4 and a > 0']},\n    outputs=['This is a string, It should be changed to a number.', 'a 4 and a 0'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.0491885970113799,
+            "num_unique_values": 289,
+            "num_values_explored": 1596,
+            "solution": "Substitute(var_0, '/delete words in the area /', '')",
+            "solution_weight": 4,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['This is a line. /delete words in the area /keep this part', '/delete words in the area /']},\n    outputs=['This is a line. keep this part', ''],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 31.58764797699405,
+            "num_unique_values": 399067,
+            "num_values_explored": 3056670,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['Polygonum amphibium', 'Hippuris vulgaris', 'Lysimachia vulgaris', 'Juncus bulbosus ssp. bulbosus', 'Lycopus europaeus ssp. europaeus', 'Nymphaea alba']},\n    outputs=['Polygonum', 'Hippuris', 'Lysimachia', 'Juncus bulbosus', 'Lycopus europaeus', 'Nymphaea'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.16746538100415,
+            "num_unique_values": 264689,
+            "num_values_explored": 3256777,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['one, 1', 'two, 2', 'three, 3', 'four, 4']},\n    outputs=['one apple', 'two bananas', 'three strawberries', 'four oranges'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.7330367130052764,
+            "num_unique_values": 12501,
+            "num_values_explored": 80991,
+            "solution": "Right(Substitute(var_0, '>', ''), 3)",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['USD.EUR<IDEALPRO,CASH,EUR>', 'USD.EUR<IDEALPRO,CASH,USD>', 'KOR.JPN<IDEALPRO,CASH,WON>', 'KOR.JPN<IDEALPRO,CASH,YEN>']},\n    outputs=['EUR', 'USD', 'WON', 'YEN'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 32.80226455000229,
+            "num_unique_values": 604169,
+            "num_values_explored": 3504250,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['Traci Brown', 'Mary Hannan', 'Linda Thomas'], 'var_1': ['1301 Robinson Court', '1195 Amethyst Drive', '2479 North Bend Road'], 'var_2': ['Saginaw, MI 48607', 'Lansing, MI 48933', 'Allen, KY 41601']},\n    outputs=['Traci Brown/n1301 Robinson Court/nSaginaw, MI 48607', 'Mary Hannan/n1195 Amethyst Drive/nLansing, MI 48933', 'Linda Thomas/n2479 North Bend Road/nAllen, KY 41601'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.17462369799613953,
+            "num_unique_values": 195,
+            "num_values_explored": 2005,
+            "solution": "Substitute(var_0, '-%', '%')",
+            "solution_weight": 4,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['-%134', '500', '5.125', '-%43.00']},\n    outputs=['%134', '500', '5.125', '%43.00'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.901664147007978,
+            "num_unique_values": 314880,
+            "num_values_explored": 3879282,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['801-456-8765', '<978> 654-0299', '978.654.0299']},\n    outputs=['8014568765', '9786540299', '9786540299'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.9690085219917819,
+            "num_unique_values": 20304,
+            "num_values_explored": 104990,
+            "solution": "Concatenate(Left(var_1, 1), Concatenate(var_0, '_acme.com'))",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['brown', 'thomas', 'ward'], 'var_1': ['traci', 'linda', 'jack']},\n    outputs=['tbrown_acme.com', 'lthomas_acme.com', 'jward_acme.com'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 31.840442759013968,
+            "num_unique_values": 506124,
+            "num_values_explored": 3572778,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['ayako', 'amy', 'tom'], 'var_1': ['ogawa', 'johnson', 'chang'], 'var_2': ['acme.com', 'google.com', 'upenn.edu']},\n    outputs=['aogawa_acme.com', 'ajohnson_google.com', 'tchang_upenn.edu'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 3.1737928469956387,
+            "num_unique_values": 57092,
+            "num_values_explored": 436367,
+            "solution": "Replace(var_1, 1, Find('_', var_1), '')",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['ann chang', 'bobby smith', 'art lennox'], 'var_1': ['achang_maaker.com', 'bobt_sphynx.uk.co', 'art.lennox_svxn.com']},\n    outputs=['maaker.com', 'sphynx.uk.co', 'svxn.com'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.4202821319922805,
+            "num_unique_values": 6706,
+            "num_values_explored": 50675,
+            "solution": "Substitute(Right(var_0, 3), '.', '')",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['www.domain.com', 'mail.net', 'www.amaon.co.uk']},\n    outputs=['com', 'net', 'uk'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 17.941515418002382,
+            "num_unique_values": 264411,
+            "num_values_explored": 2229842,
+            "solution": "Mid(var_0, Add(2, Find('= ', var_0)), 99)",
+            "solution_weight": 8,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['year= 2016', 'make= subaru', 'model= outback wagon', 'fuel economy= 25/33']},\n    outputs=['2016', 'subaru', 'outback wagon', '25/33'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 25.640831989992876,
+            "num_unique_values": 425095,
+            "num_values_explored": 3091968,
+            "solution": "Mid(var_0, Add(2, Find('/', var_0)), 99)",
+            "solution_weight": 8,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['https=//exceljet.net/catalog', 'https=//microsoft.com', 'ftp=//someserver.com', 'sftp=//127.0.0.1']},\n    outputs=['exceljet.net/catalog', 'microsoft.com', 'someserver.com', '127.0.0.1'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.21239819499897,
+            "num_unique_values": 364381,
+            "num_values_explored": 4266419,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['send email to json_acme.com', 'contact help_robot.com for all support requests']},\n    outputs=['json_acme.com', 'help_robot.com'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 31.14155660200049,
+            "num_unique_values": 569961,
+            "num_values_explored": 3347987,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['this is a _username in the middle', 'twitter names look like= _name', 'with two _name1 and _name2']},\n    outputs=['_username', '_name', '_name1'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 3.0619139509799425,
+            "num_unique_values": 52519,
+            "num_values_explored": 356357,
+            "solution": "Left(var_1, Minus(Find('_', var_1), 1))",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['ann chang', 'bobby smith', 'art lennox'], 'var_1': ['achang_maaker.com', 'bobt_sphynx.uk.co', 'art.lennox_svxn.com']},\n    outputs=['achang', 'bobt', 'art.lennox'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 31.493144125997787,
+            "num_unique_values": 502860,
+            "num_values_explored": 3783628,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['https=//abc.com/def', 'http=//www.abc.com/def/cef', 'http=//chandoo.org/wp/def-def']},\n    outputs=['https=//abc.com/', 'http=//www.abc.com', 'http=//chandoo.org/'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.16399435498169623,
+            "num_unique_values": 714,
+            "num_values_explored": 4083,
+            "solution": "Left(var_0, Add(2, 3))",
+            "solution_weight": 5,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Susan Ann Chang', 'Ayako Tanaka', 'Bobby T. smth']},\n    outputs=['Susan', 'Ayako', 'Bobby'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.088561284996103,
+            "num_unique_values": 608902,
+            "num_values_explored": 3972681,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['The quick brown fox.', 'quick brown fox.', 'fox']},\n    outputs=['The', 'quick', ''],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.767078369972296,
+            "num_unique_values": 464792,
+            "num_values_explored": 3957674,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['11/1/2015 - First call/n12/3/2015-order placed/n11/15/2015-follow-up,interested', '11/1/2015 - First call/n12/3/2015-order placed', '11/1/2015 - First call']},\n    outputs=['11/15/2015-follow-up,interested', '12/3/2015-order placed', '11/1/2015 - First call'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.78845842499868,
+            "num_unique_values": 391134,
+            "num_values_explored": 3638372,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['chang,amy', 'smith,bobby', 'lennox,aaron']},\n    outputs=['amy,chang', 'bobby,smith', 'aaron,lennox'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.1121093510009814,
+            "num_unique_values": 79,
+            "num_values_explored": 229,
+            "solution": "Right(var_0, 3)",
+            "solution_weight": 3,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Park Kim', 'Lee Kim', 'Kim Lee']},\n    outputs=['Kim', 'Kim', 'Lee'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.010584589006612077,
+            "num_unique_values": 279,
+            "num_values_explored": 1286,
+            "solution": "Right(var_0, Len(' is '))",
+            "solution_weight": 4,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['focus on one thing at a time', 'premature opt is the root of all evil', 'where is life']},\n    outputs=['time', 'evil', 'life'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 31.035481869999785,
+            "num_unique_values": 537660,
+            "num_values_explored": 2920911,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['susan ann chang', 'ayako tanaka', 'bobby t. smith', 'anthory r. tom brown']},\n    outputs=['ann', '', 't.', 'r. tom'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.215104684000835,
+            "num_unique_values": 296730,
+            "num_values_explored": 4093376,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['figs', 'mangos'], 'var_1': ['', 'kiwis'], 'var_2': ['apples', 'grapes']},\n    outputs=['figs, apples', 'mangos, kiwis, grapes'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.0799327399872709,
+            "num_unique_values": 354,
+            "num_values_explored": 1741,
+            "solution": "Concatenate(var_0, Concatenate(' ', var_1))",
+            "solution_weight": 5,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['susan', 'aaron'], 'var_1': ['chang', 'kim']},\n    outputs=['susan chang', 'aaron kim'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.014189264999004081,
+            "num_unique_values": 373,
+            "num_values_explored": 1501,
+            "solution": "Substitute(var_2, 'soft', var_0)",
+            "solution_weight": 4,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['cat', 'blue', 'firm', 'soft'], 'var_1': ['dog', 'red', 'firm', 'soft'], 'var_2': ['cat', 'red', 'soft', 'soft']},\n    outputs=['cat', 'red', 'firm', 'soft'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 1.611853706999682,
+            "num_unique_values": 30377,
+            "num_values_explored": 218026,
+            "solution": "Left(var_0, Minus(Find('.', var_0), 1))",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['happy.jpg', 'pivot table.xls', 'sales data.csv', 'invoice3001.xls.pdf']},\n    outputs=['happy', 'pivot table', 'sales data', 'invoice3001'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.007947348000016063,
+            "num_unique_values": 9,
+            "num_values_explored": 0,
+            "solution": "var_0",
+            "solution_weight": 1,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['The shawshank', 'The godfather', 'pulp fiction']},\n    outputs=['The shawshank', 'The godfather', 'pulp fiction'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.005715209001209587,
+            "num_unique_values": 115,
+            "num_values_explored": 752,
+            "solution": "Substitute(var_0, '-', '')",
+            "solution_weight": 4,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['801-345-1987', '612-554-2000']},\n    outputs=['8013451987', '6125542000'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.0170914730115328,
+            "num_unique_values": 370,
+            "num_values_explored": 2072,
+            "solution": "Substitute(var_0, 'c=/users/dave/', '')",
+            "solution_weight": 4,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['c=/users/dave/shotcut.xls', 'c=/users/dave/formulas.xls', 'c=/users/dave/pivot table.xls']},\n    outputs=['shotcut.xls', 'formulas.xls', 'pivot table.xls'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.039320495998254046,
+            "num_unique_values": 691,
+            "num_values_explored": 4063,
+            "solution": "Substitute('zx66448', var_1, '')",
+            "solution_weight": 4,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['zx66448', 'zx66448', 'zx66448', 'zx66448', 'zx66448'], 'var_1': ['z', 'x', '6', '4', '8']},\n    outputs=['x66448', 'z66448', 'zx448', 'zx668', 'zx6644'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.012451069982489571,
+            "num_unique_values": 219,
+            "num_values_explored": 1726,
+            "solution": "Substitute(var_0, ' 456 8756', '-456-8756')",
+            "solution_weight": 4,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['801 456 8756', '978 456 8756']},\n    outputs=['801-456-8756', '978-456-8756'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 28.495153010007925,
+            "num_unique_values": 477628,
+            "num_values_explored": 3609097,
+            "solution": "Trim(Left(var_0, Find(' ', var_0, Len('Trucking'))))",
+            "solution_weight": 8,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Trucking Inc.', 'New Truck Inc', 'ABV Trucking Inc, LLC']},\n    outputs=['Trucking', 'New Truck', 'ABV Trucking'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 39.53810336400056,
+            "num_unique_values": 392192,
+            "num_values_explored": 1503738,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['April 1 1799', 'April 11 1867', 'February 12 1806', 'February 21 1798', 'February 28 1844 as Delaware Township', 'February 5 1798', 'February 7 1892 Verona Township', 'February 9 1797', 'January 19 1748', 'July 10 1721 as Upper Penns Neck Township', 'March 15 1860', 'March 17 1870 <as Raritan Township>', 'March 17 1874', 'March 23 1864', 'March 5 1867', 'April 28th 1828']},\n    outputs=['1799', '1867', '1806', '1798', '1844', '1798', '1892', '1797', '1748', '1721', '1860', '1870', '1874', '1864', '1867', '1828'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 24.58530816299026,
+            "num_unique_values": 397349,
+            "num_values_explored": 3149232,
+            "solution": "Mid(var_0, Add(2, Find('_', var_0)), 99)",
+            "solution_weight": 8,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['2283-332-44543 CAP DDT PPL445_ HEEN PAX 77820', '44372-33-3223 TYYTE CAP BOX 1550 244 BOX PPSSA223_ PAX', 'PRECISE 77 CLEAR BLUE 99WIE_ BOX 4403 PAX SSKA']},\n    outputs=['HEEN PAX 77820', 'PAX', 'BOX 4403 PAX SSKA'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 1.214452613989124,
+            "num_unique_values": 21873,
+            "num_values_explored": 184501,
+            "solution": "Left(var_0, Minus(Len(var_0), Add(3, 3)))",
+            "solution_weight": 8,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['india china japan', 'indonesia korea']},\n    outputs=['india china', 'indonesia'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 1.180504927993752,
+            "num_unique_values": 17806,
+            "num_values_explored": 137694,
+            "solution": "If(Exact('geb. 14 oct 1956', var_0), '', 'Westerkerk HRL')",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['geb. 14 oct 1956 Westerkerk HRL', 'geb. 14 oct 1956', 'geb. 15 feb 1987 Westerkerk HRL']},\n    outputs=['Westerkerk HRL', '', 'Westerkerk HRL'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.037450941978022,
+            "num_unique_values": 461354,
+            "num_values_explored": 3336579,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['R/V<208,0,32>', 'R/S<184,28,16>', 'R/B<255,88,80>']},\n    outputs=['R/V 208 0 32', 'R/S 184 28 16', 'R/B 255 88 80'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 1.2011542780091986,
+            "num_unique_values": 24056,
+            "num_values_explored": 179597,
+            "solution": "Left(var_0, Minus(Find('=191', var_0), 1))",
+            "solution_weight": 7,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['valentine day=1915=50==7.1=45', 'movie blah=2blahblah, The=1914=54==7.9=17']},\n    outputs=['valentine day', 'movie blah=2blahblah, The'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.39650183499907143,
+            "num_unique_values": 8970,
+            "num_values_explored": 63826,
+            "solution": "Mid(var_0, Find('loren', var_0), 99)",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Dec 2, 2014, 11=23 PM - +91 90000 80000= loren ipsum', 'Dec 2, 2014, 11=24 PM - +91 90000 80000= loren']},\n    outputs=['loren ipsum', 'loren'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.07967777698650025,
+            "num_unique_values": 1814,
+            "num_values_explored": 11641,
+            "solution": "Trim(Substitute(var_0, var_1, ''))",
+            "solution_weight": 5,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Item 1 AQ-S810W-2AVDF', 'Item 2 AQ-230A-1DUQ'], 'var_1': ['AQ-S810W-2AVDF', 'AQ-230A']},\n    outputs=['Item 1', 'Item 2 -1DUQ'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.0019984350074082613,
+            "num_unique_values": 11,
+            "num_values_explored": 0,
+            "solution": "'Sheet1.xls'",
+            "solution_weight": 1,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['home/Excel/Sheet1.xls', 'home/user/Sheet1.xls']},\n    outputs=['Sheet1.xls', 'Sheet1.xls'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 9.026509821007494,
+            "num_unique_values": 170210,
+            "num_values_explored": 1423784,
+            "solution": "Mid(var_0, Add(Len(' Jane '), Find(' ', var_0)), 99)",
+            "solution_weight": 9,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['Sarah Jane Jones', 'Bob Jane Smithfield']},\n    outputs=['Jones', 'Smithfield'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 0.6056946540193167,
+            "num_unique_values": 5294,
+            "num_values_explored": 53214,
+            "solution": "Substitute(var_0, Left('<b>0.', 3), '')",
+            "solution_weight": 6,
+            "success": true,
+            "task": "Task(\n    inputs_dict={'var_0': ['<b>0.66<b>', '<b>0.409<b>', '<b>0.7268<b>']},\n    outputs=['0.66', '0.409', '0.7268'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.088337849010713,
+            "num_unique_values": 504401,
+            "num_values_explored": 3866015,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['100 apples', 'the price is %500 dollars', 'serial number %003399']},\n    outputs=['100', '500', '003399'],\n    solution=None\n)"
+        },
+        {
+            "elapsed_time": 30.145698874024674,
+            "num_unique_values": 500328,
+            "num_values_explored": 3735100,
+            "solution": null,
+            "solution_weight": null,
+            "success": false,
+            "task": "Task(\n    inputs_dict={'var_0': ['34653 jim mcdonald', 'price is 500', '100 apples']},\n    outputs=[' jim mcdonald', ' price is', ' apples'],\n    solution=None\n)"
+        }
+    ],
+    "success_rate": 0.6067415730337079
+}
