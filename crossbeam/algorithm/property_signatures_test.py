@@ -24,7 +24,7 @@ from crossbeam.dsl import value as value_module
 class PropertySignaturesTest(absltest.TestCase):
 
   def test_compute_example_signature(self):
-    inputs = [value_module.InputVariable(['butter', 'abc', 'xyz'], 'input_1')]
+    inputs = [value_module.InputValue(['butter', 'abc', 'xyz'], 'input_1')]
     output = value_module.OutputValue(['butterfly', 'abc_', 'XYZ_'])
 
     signature = property_signatures.compute_example_signature(inputs, output)
@@ -102,7 +102,7 @@ class PropertySignaturesTest(absltest.TestCase):
         property_signatures.NUM_COMPARISON_PROPERTIES)
 
   def test_compute_value_signature_test(self):
-    value = value_module.InputVariable(['butter', 'abc', 'xyz'], 'input_1')
+    value = value_module.InputValue(['butter', 'abc', 'xyz'], 'input_1')
     output = value_module.OutputValue(['butterfly', 'abc_', 'XYZ_'])
 
     value_signature = property_signatures.compute_value_signature(value, output)

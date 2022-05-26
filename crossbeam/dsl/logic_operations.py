@@ -54,8 +54,7 @@ class RecursiveClause(operation_base.OperationBase):
 
         return truth_values
 
-    def tokenized_expression(self, arguments, arg_variables, free_variables):
-        del arg_variables, free_variables
+    def tokenized_expression(self, arguments):
         return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression()  + [' '] + arguments[2].tokenized_expression() + [')']
 
 
@@ -72,8 +71,7 @@ class TransposeClause(operation_base.OperationBase):
         p = force_dyadic(raw_arguments[0])
         return p.T
 
-    def tokenized_expression(self, arguments, arg_variables, free_variables):
-        del arg_variables, free_variables
+    def tokenized_expression(self, arguments):
         return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [')']
 
 
@@ -94,8 +92,7 @@ class DisjunctionClause(operation_base.OperationBase):
             q = force_dyadic(q)
             
         return (p + q) > 0
-    def tokenized_expression(self, arguments, arg_variables, free_variables):
-        del arg_variables, free_variables
+    def tokenized_expression(self, arguments):
         return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + [')']
 
 
@@ -114,8 +111,7 @@ class ChainClause(operation_base.OperationBase):
         t = force_dyadic(t)
 
         return r@t > 0
-    def tokenized_expression(self, arguments, arg_variables, free_variables):
-        del arg_variables, free_variables
+    def tokenized_expression(self, arguments):
         return [self.__class__.TOKEN] + arguments[0].tokenized_expression() + [' '] + arguments[1].tokenized_expression() + [')']
     
 def force_dyadic(maybe_monadic):

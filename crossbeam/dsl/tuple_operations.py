@@ -28,9 +28,8 @@ class PairOperation(operation_base.OperationBase):
     left, right = raw_args
     return (left, right)
 
-  def tokenized_expression(self, arg_values, arg_variables, free_variables):
+  def tokenized_expression(self, arg_values):
     """See base class."""
-    del arg_variables, free_variables
     left, right = arg_values
     return (['('] + left.tokenized_expression() + [', ']
             + right.tokenized_expression() + [')'])
@@ -47,9 +46,8 @@ class TripleOperation(operation_base.OperationBase):
     left, mid, right = raw_args
     return (left, mid, right)
 
-  def tokenized_expression(self, arg_values, arg_variables, free_variables):
+  def tokenized_expression(self, arg_values):
     """See base class."""
-    del arg_variables, free_variables
     left, mid, right = arg_values
     return (['('] + left.tokenized_expression() + [', ']
             + mid.tokenized_expression() + [', ']

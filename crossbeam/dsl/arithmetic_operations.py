@@ -28,9 +28,8 @@ class AddOperation(operation_base.OperationBase):
     left, right = raw_args
     return left + right
 
-  def tokenized_expression(self, arg_values, arg_variables, free_variables):
+  def tokenized_expression(self, arg_values):
     """See base class."""
-    del arg_variables, free_variables
     left, right = arg_values
     return (['('] + left.tokenized_expression() + [' + ']
             + right.tokenized_expression() + [')'])
@@ -47,9 +46,8 @@ class SubtractOperation(operation_base.OperationBase):
     left, right = raw_args
     return left - right
 
-  def tokenized_expression(self, arg_values, arg_variables, free_variables):
+  def tokenized_expression(self, arg_values):
     """See base class."""
-    del arg_variables, free_variables
     left, right = arg_values
     return (['('] + left.tokenized_expression() + [' - ']
             + right.tokenized_expression() + [')'])
@@ -66,9 +64,8 @@ class MultiplyOperation(operation_base.OperationBase):
     left, right = raw_args
     return left * right
 
-  def tokenized_expression(self, arg_values, arg_variables, free_variables):
+  def tokenized_expression(self, arg_values):
     """See base class."""
-    del arg_variables, free_variables
     left, right = arg_values
     return (['('] + left.tokenized_expression() + [' * ']
             + right.tokenized_expression() + [')'])
@@ -85,9 +82,8 @@ class IntDivideOperation(operation_base.OperationBase):
     left, right = raw_args
     return left // right
 
-  def tokenized_expression(self, arg_values, arg_variables, free_variables):
+  def tokenized_expression(self, arg_values):
     """See base class."""
-    del arg_variables, free_variables
     left, right = arg_values
     return (['('] + left.tokenized_expression() + [' // ']
             + right.tokenized_expression() + [')'])

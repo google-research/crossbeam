@@ -96,7 +96,7 @@ def main(argv):
     from crossbeam.datasets.logic_data import all_manual_logic_tasks
     operations = domain.operations
     eval_tasks = all_manual_logic_tasks(operations)
-
+    
     #eval_tasks.extend([make_connected_task(operations,p=p) for p in [0.05,0.4]])
 
   with open(FLAGS.output_file, 'wb') as f:

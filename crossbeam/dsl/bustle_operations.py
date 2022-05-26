@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Operations for the BUSTLE string manipulation domain."""
+"""Operations for the integer arithmetic DSL."""
 
 import re
 
@@ -22,8 +22,7 @@ from crossbeam.dsl import operation_base
 class BustleOperation(operation_base.OperationBase):
   """All Bustle operations have the same form of tokenized expression."""
 
-  def tokenized_expression(self, arg_values, arg_variables, free_variables):
-    del arg_variables, free_variables
+  def tokenized_expression(self, arg_values):
     tokens = [self.name, '(']
     for i, arg in enumerate(arg_values):
       if i > 0:

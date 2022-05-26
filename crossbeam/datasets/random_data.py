@@ -138,11 +138,12 @@ def generate_value_with_index(inputs_dict, constants, num_examples,
 
   if weight == 1:  # Base case - not using an operation.
     if value_index < len(constants):
-      return value_module.ConstantValue(constants[value_index])
+      return value_module.ConstantValue(constants[value_index],
+                                        num_examples=num_examples)
     else:
       value_index -= len(constants)
       name = list(inputs_dict)[value_index]
-      return value_module.InputVariable(inputs_dict[name], name)
+      return value_module.InputValue(inputs_dict[name], name)
 
   value_index -= cumulative_expressions[weight - 1]
   op_index = bisect.bisect(op_table[weight], value_index)
@@ -229,18 +230,9 @@ def robust_equality(x, y):
 
 def generate_good_random_task(**kwargs):
   """Generates a task that passes simple quality checks."""
-  num_examples = kwargs['num_examples']
-
   while True:
     task = generate_random_task(**kwargs)
     if task is None:
-      continue
-
-    # The output can't be a constant across all examples.
-    if num_examples > 1 and task.num_examples == 1:
-      continue
-    if (num_examples > 1 and
-        all(x == y for x, y in itertools.combinations(task.outputs, 2))):
       continue
 
     # For any input or output, it cannot be identical to another input or a
@@ -274,6 +266,12 @@ def generate_good_random_task(**kwargs):
         good = False
         break
     if not good:
+      continue
+
+    # The output can't be a constant across all examples.
+    num_examples = kwargs['num_examples']
+    if (num_examples > 1 and
+        all(x == y for x, y in itertools.combinations(task.outputs, 2))):
       continue
 
     # A node in the AST can't have descendants that are equal to it, or else the
