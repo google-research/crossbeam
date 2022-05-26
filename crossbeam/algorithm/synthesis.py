@@ -30,10 +30,9 @@ def init_values(task, domain, all_values):
   if constants_extractor is None:
     constants_extractor = lambda unused_inputs_dict: constants
   for constant in constants_extractor(task):
-    all_values.append(value_module.ConstantValue(constant,
-                                                 num_examples=task.num_examples))
+    all_values.append(value_module.ConstantValue(constant))
   for input_name, input_value in task.inputs_dict.items():
-    all_values.append(value_module.InputValue(input_value, name=input_name))
+    all_values.append(value_module.InputVariable(input_value, name=input_name))
   output_value = value_module.OutputValue(task.outputs)
   return output_value
 
