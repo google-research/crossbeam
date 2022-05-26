@@ -222,7 +222,7 @@ def logic_leaves():
           "bot": bottom}
 
 def logic_input_values():
-  return {k: value_module.InputValue([v], k) for k, v in logic_leaves().items()}
+  return {k: value_module.InputVariable([v], k) for k, v in logic_leaves().items()}
   
 def logic_inputs_dict_generator(num_inputs, num_examples):
   ll = logic_leaves()

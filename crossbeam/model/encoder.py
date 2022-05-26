@@ -140,7 +140,7 @@ class BustlePropSigIOEncoder(nn.Module):
     for inputs_dict, outputs in zip(list_inputs_dict, list_outputs):
       cur_input = []
       for input_name, input_value in inputs_dict.items():
-        cur_input.append(value_module.InputValue(input_value, name=input_name))
+        cur_input.append(value_module.InputVariable(input_value, name=input_name))
       signature = property_signatures.compute_example_signature(cur_input, value_module.OutputValue(outputs))
       cur_feats = [int(sig) for sig in signature]
       feature_list.append(cur_feats)
@@ -172,7 +172,7 @@ class PropSigIOEncoder(nn.Module):
     for sample_idx, (inputs_dict, outputs) in enumerate(zip(list_inputs_dict, list_outputs)):
       cur_input = []
       for input_name, input_value in inputs_dict.items():
-        cur_input.append(value_module.InputValue(input_value, name=input_name))
+        cur_input.append(value_module.InputVariable(input_value, name=input_name))
       signature = property_signatures.compute_example_signature(cur_input, value_module.OutputValue(outputs))
       for i, sig in enumerate(signature):
         feat_mat[sample_idx, i * 5 + int(sig)] = 1.0

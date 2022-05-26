@@ -19,8 +19,9 @@ from crossbeam.datasets import bustle_data
 from crossbeam.datasets import logic_data
 from crossbeam.datasets import random_data
 from crossbeam.dsl import arithmetic_operations
-from crossbeam.dsl import checker
 from crossbeam.dsl import bustle_operations
+from crossbeam.dsl import checker
+from crossbeam.dsl import deepcoder_operations
 from crossbeam.dsl import logic_operations
 from crossbeam.dsl import tuple_operations
 
@@ -116,6 +117,23 @@ LOGIC_DOMAIN = Domain(
     small_value_filter=None,
     checker_function=None)
 
+DEEPCODER_DOMAIN = Domain(
+    name='deepcoder',
+    operations=deepcoder_operations.get_operations(),
+    constants=[-1, 0, 1, 2, 3, 4],
+    constants_extractor=None,
+    inputs_dict_generator=None,
+    input_charset=None,  # TODO(kshi)
+    input_max_len=None,  # TODO(kshi)
+    output_charset=None,  # TODO(kshi)
+    output_max_len=None,  # TODO(kshi)
+    value_charset=None,  # TODO(kshi)
+    value_max_len=None,  # TODO(kshi)
+    program_tokens=None,  # TODO(kshi)
+    output_type=None,
+    small_value_filter=None,
+    checker_function=checker.check_solution)
+
 
 def get_domain(domain_str):
   if domain_str == 'tuple':
@@ -126,5 +144,7 @@ def get_domain(domain_str):
     return BUSTLE_DOMAIN
   elif domain_str == 'logic':
     return LOGIC_DOMAIN
+  elif domain_str == 'deepcoder':
+    return DEEPCODER_DOMAIN
   else:
     raise ValueError('Unknown domain: {}'.format(domain_str))

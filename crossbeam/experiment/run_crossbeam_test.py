@@ -30,9 +30,9 @@ from crossbeam.experiment import train_eval
 FLAGS = flags.FLAGS
 
 
-class MainTupleTest(parameterized.TestCase):
+class RunCrossBeamTest(parameterized.TestCase):
 
-  # This test is flaky.
+  # This test is flaky and long-running.
   @parameterized.named_parameters(
       ('tuple', 'tuple', 'char', 5),
       ('arithmetic_char', 'arithmetic', 'char', 5),
@@ -52,7 +52,7 @@ class MainTupleTest(parameterized.TestCase):
     FLAGS.decoder_rnn_layers = 1
     FLAGS.max_search_weight = max_search_weight
     FLAGS.beam_size = 4
-    FLAGS.grad_accumulate = 3    
+    FLAGS.grad_accumulate = 3
 
     domain = domains.get_domain(domain_str)
     model = run_crossbeam.init_model(FLAGS, domain, model_type)
