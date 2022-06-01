@@ -22,20 +22,33 @@ import timeit
 from crossbeam.dsl import value as value_module
 
 
+MAX_NUM_FREE_VARS = 2
+MAX_NUM_BOUND_VARS = 2
+
+ALL_FREE_VARS = [value_module.get_free_variable(i)
+                 for i in range(MAX_NUM_FREE_VARS)]
+ALL_BOUND_VARS = [value_module.get_bound_variable(i)
+                  for i in range(MAX_NUM_BOUND_VARS)]
+
+
 def _add_value_by_weight(values_by_weight, value):
   if value.get_weight() < len(values_by_weight):
     values_by_weight[value.get_weight()][value] = value
 
 
-def _gather_values_with_weight_and_type(values_by_weight, arg_weight, arg_type,
-                                        cache):
-  key = (arg_weight, arg_type)
+def _gather_values(values_by_weight, arg_weight, arg_type, max_num_free_vars,
+                   cache):
+  """Gathers values meeting certain criteria."""
+  key = (arg_weight, arg_type, max_num_free_vars)
   if key in cache:
     return cache[key]
   if arg_type is None:
-    values = list(values_by_weight[arg_weight])
+    values = [v for v in values_by_weight[arg_weight]
+              if v.num_free_variables <= max_num_free_vars]
   else:
-    values = [v for v in values_by_weight[arg_weight] if v.type == arg_type]
+    values = [v for v in values_by_weight[arg_weight]
+              if (v.type == arg_type and
+                  v.num_free_variables <= max_num_free_vars)]
   cache[key] = values
   return values
 
@@ -77,12 +90,32 @@ def generate_partitions(num_elements, num_parts):
   return results
 
 
+@functools.cache
+def first_free_vars(n):
+  return ALL_FREE_VARS[:n]
+
+
+@functools.cache
+def first_bound_vars(n):
+  return ALL_BOUND_VARS[:n]
+
+
+@functools.cache
+def available_variables(num_free_vars, num_bound_vars):
+  return first_free_vars(num_free_vars) + first_bound_vars(num_bound_vars)
+
+
+@functools.cache
+def arg_vars_options(num_arg_vars, num_free_vars, num_bound_vars):
+  return list(itertools.permutations(
+      available_variables(num_free_vars, num_bound_vars), num_arg_vars))
+
+
 def synthesize_baseline(task, domain, max_weight=10, timeout=5,
                         max_values_explored=None):
   """Synthesizes a solution using normal bottom-up enumerative search."""
   start_time = timeit.default_timer()
   end_time = start_time + timeout if timeout else None
-  num_examples = task.num_examples
   stats = {'num_values_explored': 0}
 
   # A list of OrderedDicts mapping Value objects to themselves. The i-th
@@ -97,17 +130,18 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
   if constants_extractor is None:
     constants_extractor = lambda unused_inputs_dict: constants
   for constant in constants_extractor(task):
-    _add_value_by_weight(values_by_weight,
-                         value_module.ConstantValue(constant,
-                                                    num_examples=num_examples))
+    _add_value_by_weight(values_by_weight, value_module.ConstantValue(constant))
 
   for input_name, input_value in task.inputs_dict.items():
     _add_value_by_weight(values_by_weight,
-                         value_module.InputValue(input_value, name=input_name))
+                         value_module.InputVariable(input_value,
+                                                    name=input_name))
+  for v in first_free_vars(MAX_NUM_FREE_VARS):
+    _add_value_by_weight(values_by_weight, v)
 
   # A set storing all values found so far.
   value_set = set().union(*values_by_weight)
-  typechecking_cache = {}
+  gather_values_cache = {}
 
   output_value = value_module.OutputValue(task.outputs)
   if output_value in value_set:
@@ -121,49 +155,72 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
     return match, value_set, values_by_weight, stats
 
   for target_weight in range(2, max_weight + 1):
-    for op in domain.operations:
-
+    for num_free_vars, op in itertools.product(range(0, MAX_NUM_FREE_VARS + 1),
+                                               domain.operations):
       arity = op.arity
       arg_types = op.arg_types()
       if arg_types is None:
         arg_types = [None] * op.arity
+      free_vars = first_free_vars(num_free_vars)
+      free_vars_names = set(v.name for v in free_vars)
 
-      if target_weight - op.weight - arity < 0:
+      remaining_weight = target_weight - op.weight - num_free_vars
+      if remaining_weight - arity < 0:
         continue  # Not enough weight to use this op.
 
-      # Enumerate ways of partitioning (target_weight - self.weight) into
-      # (arity) positive pieces.
-      # Equivalently, partition (target_weight - op.weight - arity) into
-      # (arity) nonnegative pieces.
-      for arg_weights_minus_1 in generate_partitions(
-          target_weight - op.weight - arity, arity):
+      # Enumerate ways of partitioning `remaining_weight` into `arity` positive
+      # pieces.
+      # Equivalently, partition `remaining_weight - arity` into `arity`
+      # nonnegative pieces.
+      for arg_weights_minus_1 in generate_partitions(remaining_weight - arity,
+                                                     arity):
 
         if (end_time is not None and timeit.default_timer() > end_time) or (
-            max_values_explored is not None and stats['num_values_explored'] >= max_values_explored):
+            max_values_explored is not None and
+            stats['num_values_explored'] >= max_values_explored):
           return None, value_set, values_by_weight, stats
 
         arg_options_list = []
         arg_weights = [w + 1 for w in arg_weights_minus_1]
-        for arg_weight, arg_type in zip(arg_weights, arg_types):
-          arg_options_list.append(_gather_values_with_weight_and_type(
-              values_by_weight, arg_weight, arg_type, typechecking_cache))
+        for arg_weight, arg_type, num_bound_variables in zip(
+            arg_weights, arg_types, op.num_bound_variables):
+          arg_options_list.append(_gather_values(
+              values_by_weight, arg_weight, arg_type,
+              num_free_vars + num_bound_variables, gather_values_cache))
 
         for arg_list in itertools.product(*arg_options_list):
-          value = op.apply(arg_list)
-          stats['num_values_explored'] += 1
 
-          if value is None or value in value_set:
-            continue
-          if (domain.small_value_filter and
-              not all(domain.small_value_filter(v) for v in value.values)):
-            continue
+          arg_vars_options_list = []
+          for arg_index, arg in enumerate(arg_list):
+            num_arg_vars = (0 if isinstance(arg, value_module.FreeVariable)
+                            else arg.num_free_variables)
+            arg_vars_options_list.append(
+                arg_vars_options(num_arg_vars, num_free_vars,
+                                 op.num_bound_variables[arg_index]))
+          for arg_vars in itertools.product(*arg_vars_options_list):
+            found_free_vars = set(v.name for v in sum(arg_vars, tuple(arg_list))
+                                  if isinstance(v, value_module.FreeVariable))
+            if found_free_vars != free_vars_names:
+              continue
 
-          if value == output_value:
-            # Found solution!
-            return value, value_set, values_by_weight, stats
+            value = op.apply(arg_list, arg_vars, free_vars)
+            stats['num_values_explored'] += 1
 
-          values_by_weight[target_weight][value] = value
-          value_set.add(value)
+            if value is None:
+              continue
+            if value.num_free_variables == 0:
+              if value in value_set:
+                continue
+              if (domain.small_value_filter and
+                  not all(domain.small_value_filter(v) for v in value.values)):
+                continue
+              if value == output_value:
+                # Found solution!
+                return value, value_set, values_by_weight, stats
+
+            values_by_weight[target_weight][value] = value
+            value_set.add(value)
+            assert value.get_weight() == target_weight
 
     print('Bottom-up enumeration found {} distinct tasks of weight {}, or {} '
           'distinct tasks total, in {:.2f} seconds total'.format(

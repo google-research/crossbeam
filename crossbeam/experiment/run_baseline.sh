@@ -15,9 +15,8 @@
 # limitations under the License.
 
 python3 -m crossbeam.experiment.run_baseline_synthesizer \
-  --eval_set_pkl=~/data/crossbeam/logic_synthesis_manual/test-tasks.pkl \
-  --domain=logic \
-  --timeout=30 \
-  --json_results_file=results/baseline.logic-handcrafted.30s.json \
+  --eval_set_pkl=deepcoder_tasks.pkl \
+  --domain=deepcoder \
+  --timeout=300 \
+  --verbose
   $@
-  #--max_values_explored=None \
