@@ -15,7 +15,7 @@
 # limitations under the License.
 
 python3 -m crossbeam.experiment.run_baseline_synthesizer \
-  --eval_set_pkl=deepcoder_task.pkl \
+  --eval_set_pkl=deepcoder_tasks.pkl \
   --domain=deepcoder \
   --timeout=300 \
   --verbose
