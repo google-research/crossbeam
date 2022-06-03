@@ -16,6 +16,7 @@
 import collections
 
 from crossbeam.datasets import bustle_data
+from crossbeam.datasets import deepcoder_data
 from crossbeam.datasets import logic_data
 from crossbeam.datasets import random_data
 from crossbeam.dsl import arithmetic_operations
@@ -117,12 +118,21 @@ LOGIC_DOMAIN = Domain(
     small_value_filter=None,
     checker_function=None)
 
+
+def _deepcoder_small_value_filter(x):
+  if isinstance(x, int):
+    return abs(x) <= 256
+  if isinstance(x, list):
+    return len(x) <= 20 and all(_deepcoder_small_value_filter(e) for e in x)
+  return True
+
+
 DEEPCODER_DOMAIN = Domain(
     name='deepcoder',
     operations=deepcoder_operations.get_operations(),
     constants=[-1, 0, 1, 2, 3, 4],
     constants_extractor=None,
-    inputs_dict_generator=None,
+    inputs_dict_generator=deepcoder_data.deepcoder_inputs_dict_generator,
     input_charset=None,  # TODO(kshi)
     input_max_len=None,  # TODO(kshi)
     output_charset=None,  # TODO(kshi)
@@ -131,7 +141,7 @@ DEEPCODER_DOMAIN = Domain(
     value_max_len=None,  # TODO(kshi)
     program_tokens=None,  # TODO(kshi)
     output_type=None,
-    small_value_filter=None,
+    small_value_filter=_deepcoder_small_value_filter,
     checker_function=checker.check_solution)
 
 

@@ -17,6 +17,7 @@
 import collections
 import functools
 import itertools
+import random
 import timeit
 
 from crossbeam.dsl import value as value_module
@@ -112,7 +113,7 @@ def arg_vars_options(num_arg_vars, num_free_vars, num_bound_vars):
 
 
 def synthesize_baseline(task, domain, max_weight=10, timeout=5,
-                        max_values_explored=None):
+                        max_values_explored=None, skip_probability=0):
   """Synthesizes a solution using normal bottom-up enumerative search."""
   start_time = timeit.default_timer()
   end_time = start_time + timeout if timeout else None
@@ -198,6 +199,9 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
                 arg_vars_options(num_arg_vars, num_free_vars,
                                  op.num_bound_variables[arg_index]))
           for arg_vars in itertools.product(*arg_vars_options_list):
+            if skip_probability > 0 and random.random() < skip_probability:
+              continue
+
             found_free_vars = set(v.name for v in sum(arg_vars, tuple(arg_list))
                                   if isinstance(v, value_module.FreeVariable))
             if found_free_vars != free_vars_names:

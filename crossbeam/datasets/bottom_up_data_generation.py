@@ -32,7 +32,7 @@ FLAGS = flags.FLAGS
 
 
 def perform_search(domain, min_weight, max_weight, num_examples, num_inputs,
-                   timeout, num_tasks):
+                   timeout, num_tasks, skip_probability=0):
   """Generates training data by running bottom-up synthesizer."""
 
   inputs_dict = domain.inputs_dict_generator(num_inputs=num_inputs,
@@ -40,12 +40,13 @@ def perform_search(domain, min_weight, max_weight, num_examples, num_inputs,
   # Make some dummy outputs. Note that they shouldn't have overlaps with the
   # inputs, or with each other, so that we don't extract unwanted constants.
   assert num_examples <= 4
-  dummy_outputs = ['~', '&', '=', '^'][:num_examples]
+  dummy_outputs = ['~', '&', '=', '^', '*'][:num_examples]
   task = task_module.Task(inputs_dict, dummy_outputs)
 
   start_time = timeit.default_timer()
   _, value_set, values_by_weight, _ = baseline_enumeration.synthesize_baseline(
-      task, domain, max_weight=max_weight, timeout=timeout)
+      task, domain, max_weight=max_weight, timeout=timeout,
+      skip_probability=skip_probability)
   elapsed_time = timeit.default_timer() - start_time
 
   if elapsed_time > timeout:
@@ -91,7 +92,8 @@ def perform_search(domain, min_weight, max_weight, num_examples, num_inputs,
 def generate_data(domain, min_weight, max_weight,
                   min_num_examples, max_num_examples,
                   min_num_inputs, max_num_inputs,
-                  timeout, num_searches, num_tasks_per_search):
+                  timeout, num_searches, num_tasks_per_search,
+                  skip_probability=0):
   """Generates and writes data by running multiple searches."""
   tasks = []
   for i in range(num_searches):
@@ -99,7 +101,7 @@ def generate_data(domain, min_weight, max_weight,
     num_inputs = random.randint(min_num_inputs, max_num_inputs)
     tasks.extend(perform_search(
         domain, min_weight, max_weight, num_examples, num_inputs, timeout,
-        num_tasks=num_tasks_per_search))
+        num_tasks=num_tasks_per_search, skip_probability=skip_probability))
     print('Completed search {} of {}. {} tasks total.'.format(i+1, num_searches, len(tasks)))
   return tasks
 
@@ -108,13 +110,13 @@ def datagen_worker(seed,
                    domain, min_weight, max_weight,
                    min_num_examples, max_num_examples,
                    min_num_inputs, max_num_inputs,
-                   timeout, num_tasks):
+                   timeout, num_tasks, skip_probability=0):
   exp_common.set_global_seed(seed)
   num_examples = random.randint(min_num_examples, max_num_examples)
   num_inputs = random.randint(min_num_inputs, max_num_inputs)
   tasks = perform_search(
-    domain, min_weight, max_weight, num_examples, num_inputs, timeout,
-    num_tasks=num_tasks)
+      domain, min_weight, max_weight, num_examples, num_inputs, timeout,
+      num_tasks=num_tasks, skip_probability=skip_probability)
   return tasks
 
 
@@ -134,7 +136,8 @@ def main(argv):
         max_num_inputs=FLAGS.max_num_inputs,
         timeout=FLAGS.data_gen_timeout,
         num_searches=FLAGS.num_searches,
-        num_tasks_per_search=FLAGS.num_tasks)
+        num_tasks_per_search=FLAGS.num_tasks,
+        skip_probability=FLAGS.skip_probability)
 
     if FLAGS.verbose:
       for i, task in enumerate(tasks):
@@ -153,7 +156,8 @@ def main(argv):
       with open(save_prefix + '-%05d.pkl' % n_shards, 'wb') as f:
         cp.dump(t_list, f, cp.HIGHEST_PROTOCOL)
       return n_shards + 1
-    worker_fun = functools.partial(datagen_worker, domain=domain, 
+    worker_fun = functools.partial(
+        datagen_worker, domain=domain,
         min_weight=FLAGS.min_task_weight,
         max_weight=FLAGS.max_task_weight,
         min_num_examples=FLAGS.min_num_examples,
@@ -161,7 +165,8 @@ def main(argv):
         min_num_inputs=FLAGS.min_num_inputs,
         max_num_inputs=FLAGS.max_num_inputs,
         timeout=FLAGS.data_gen_timeout,
-        num_tasks=FLAGS.num_tasks)
+        num_tasks=FLAGS.num_tasks,
+        skip_probability=FLAGS.skip_probability)
     for local_tasks in tqdm(pool.imap_unordered(worker_fun, seeds), total=len(seeds)):
       total_num_tasks += len(local_tasks)
       all_tasks.extend(local_tasks)

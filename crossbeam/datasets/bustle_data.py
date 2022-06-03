@@ -15,8 +15,6 @@
 import itertools
 import random
 
-from crossbeam.datasets import random_data
-
 CHARSETS = [
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ',  # Uppercase letters
     'abcdefghijklmnopqrstuvwxyz',  # Lowercase letters
