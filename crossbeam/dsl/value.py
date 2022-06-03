@@ -43,7 +43,7 @@ class Value(abc.ABC):
     If there are free variables, use the code expression.
     """
     if self._repr_cache is None:
-      if isinstance(self, Variable) or self.free_variables:
+      if isinstance(self, (FreeVariable, BoundVariable)) or self.free_variables:
         self._repr_cache = self.expression()
       else:
         self._repr_cache = '[' + ', '.join('{}:{!r}'.format(type(v).__name__, v)
@@ -119,7 +119,7 @@ class FreeVariable(Variable):
     super(FreeVariable, self).__init__(name, is_free=True)
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def get_free_variable(i):
   return FreeVariable(f'v{i + 1}')
 
@@ -131,7 +131,7 @@ class BoundVariable(Variable):
     super(BoundVariable, self).__init__(name)
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def get_bound_variable(i):
   return BoundVariable(f'u{i + 1}')
 

@@ -123,7 +123,9 @@ def _deepcoder_small_value_filter(x):
   if isinstance(x, int):
     return abs(x) <= 256
   if isinstance(x, list):
-    return len(x) <= 20 and all(_deepcoder_small_value_filter(e) for e in x)
+    return (len(x) <= 20 and
+            all(isinstance(e, int) and _deepcoder_small_value_filter(e)
+                for e in x))
   return True
 
 
@@ -140,7 +142,7 @@ DEEPCODER_DOMAIN = Domain(
     value_charset=None,  # TODO(kshi)
     value_max_len=None,  # TODO(kshi)
     program_tokens=None,  # TODO(kshi)
-    output_type=None,
+    output_type=(int, list),
     small_value_filter=_deepcoder_small_value_filter,
     checker_function=checker.check_solution)
 

@@ -91,22 +91,22 @@ def generate_partitions(num_elements, num_parts):
   return results
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def first_free_vars(n):
   return ALL_FREE_VARS[:n]
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def first_bound_vars(n):
   return ALL_BOUND_VARS[:n]
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def available_variables(num_free_vars, num_bound_vars):
   return first_free_vars(num_free_vars) + first_bound_vars(num_bound_vars)
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def arg_vars_options(num_arg_vars, num_free_vars, num_bound_vars):
   return list(itertools.permutations(
       available_variables(num_free_vars, num_bound_vars), num_arg_vars))
@@ -115,6 +115,7 @@ def arg_vars_options(num_arg_vars, num_free_vars, num_bound_vars):
 def synthesize_baseline(task, domain, max_weight=10, timeout=5,
                         max_values_explored=None, skip_probability=0):
   """Synthesizes a solution using normal bottom-up enumerative search."""
+  print('synthesize_baseline for task: {}'.format(task))
   start_time = timeit.default_timer()
   end_time = start_time + timeout if timeout else None
   stats = {'num_values_explored': 0}

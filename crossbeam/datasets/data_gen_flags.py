@@ -34,7 +34,7 @@ flags.DEFINE_integer('min_num_inputs', 1, '')
 flags.DEFINE_integer('max_num_inputs', 3, '')
 flags.DEFINE_integer('min_task_weight', 3, '')
 flags.DEFINE_integer('max_task_weight', 10, '')
-flags.DEFINE_float('skip_probabililty', 0,
+flags.DEFINE_float('skip_probability', 0,
                    'Probability of skipping a program during bottom-up '
                    'enumeration to enable seeing larger programs')
 flags.DEFINE_boolean('verbose', False, 'whether to print generated tasks')
