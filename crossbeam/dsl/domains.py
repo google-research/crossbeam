@@ -124,7 +124,9 @@ def _deepcoder_small_value_filter(x):
     return abs(x) <= 256
   if isinstance(x, list):
     return (len(x) <= 20 and
-            all(isinstance(e, int) and _deepcoder_small_value_filter(e)
+            # isinstance(False, int) is True. We don't want booleans in lists.
+            all(type(e) is int  # pylint: disable=unidiomatic-typecheck
+                and _deepcoder_small_value_filter(e)
                 for e in x))
   return True
 

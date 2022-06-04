@@ -16,15 +16,14 @@
 
 data_dir=$HOME/xlambda-data/deepcoder
 
-# TODO(kshi): I changed this script for easier testing. When everything works,
-# we should revisit all the parameters.
-tout=600
-maxw=10
+tout=1800
+maxw=100  # Run until timeout.
 maxne=5
 maxni=3
-skipprob=0.75
-num_proc=1
-out_dir=$data_dir/t-${tout}-maxw-${maxw}-maxne-${maxne}-maxni-${maxni}-skipprob-${skipprob}
+skip=0.75
+lambdaskip=0.5
+num_proc=1  # TODO(hadai): change to whatever is reasonable
+out_dir=$data_dir/t-${tout}-maxne-${maxne}-maxni-${maxni}-skip-${skip}-lambdaskip-${lambdaskip}
 
 if [ ! -e $out_dir ];
 then
@@ -39,19 +38,20 @@ python3 -m crossbeam.datasets.bottom_up_data_generation \
     --output_file=$valid_file \
     --data_gen_seed=1 \
     --data_gen_timeout=$tout \
-    --num_tasks=100 \
-    --num_searches=1 \
+    --num_tasks=1000 \
+    --num_searches=1000 \
     --min_task_weight=3 \
     --max_task_weight=$maxw \
     --min_num_examples=2 \
     --max_num_examples=$maxne \
     --min_num_inputs=1 \
     --max_num_inputs=$maxni \
-    --skip_probability=$skipprob \
+    --skip_probability=$skip \
+    --lambda_skip_probability=$lambdaskip \
+    --choose_half_with_lambdas=True \
     --num_datagen_proc=$num_proc \
     --verbose=False
 
-exit  # TODO(kshi): temporary
 echo 'Generating training'
 
 training_file=$out_dir/train-tasks.pkl
@@ -69,6 +69,8 @@ python3 -m crossbeam.datasets.bottom_up_data_generation \
     --max_num_examples=$maxne \
     --min_num_inputs=1 \
     --max_num_inputs=$maxni \
-    --skip_probability=$skipprob \
+    --skip_probability=$skip \
+    --lambda_skip_probability=$lambdaskip \
+    --choose_half_with_lambdas=True \
     --num_datagen_proc=$num_proc \
     --verbose=False
