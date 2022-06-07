@@ -21,8 +21,8 @@ class Add(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     left, right = raw_args
-    if isinstance(left, (list, tuple)):
-      return None  # Don't add lists. Allow adding strings.
+    if type(left) not in (int, str) or type(right) not in (int, str):  # pylint: disable=unidiomatic-typecheck
+      return None
     return left + right
 
 
@@ -33,6 +33,8 @@ class Subtract(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     left, right = raw_args
+    if type(left) is not int or type(right) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return left - right
 
 
@@ -43,8 +45,8 @@ class Multiply(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     left, right = raw_args
-    if not isinstance(left, int) or not isinstance(right, int):
-      return None  # Don't multiply lists with ints.
+    if type(left) is not int or type(right) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return left * right
 
 
@@ -55,6 +57,8 @@ class IntDivide(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     left, right = raw_args
+    if type(left) is not int or type(right) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return left // right
 
 
@@ -65,6 +69,8 @@ class Square(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     x = raw_args[0]
+    if type(x) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return x ** 2
 
 
@@ -75,6 +81,8 @@ class Min(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     left, right = raw_args
+    if type(left) is not int or type(right) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return min(left, right)
 
 
@@ -85,6 +93,8 @@ class Max(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     left, right = raw_args
+    if type(left) is not int or type(right) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return max(left, right)
 
 
@@ -100,6 +110,8 @@ class Greater(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     left, right = raw_args
+    if type(left) is not int or type(right) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return left > right
 
 
@@ -110,6 +122,8 @@ class Less(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     left, right = raw_args
+    if type(left) is not int or type(right) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return left < right
 
 
@@ -120,6 +134,8 @@ class IsEven(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     x = raw_args[0]
+    if type(x) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return x % 2 == 0
 
 
@@ -130,6 +146,8 @@ class IsOdd(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     x = raw_args[0]
+    if type(x) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return x % 2 == 1
 
 
@@ -165,6 +183,8 @@ class Take(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     xs, n = raw_args
+    if type(n) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return xs[:n]
 
 
@@ -175,6 +195,8 @@ class Drop(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     xs, n = raw_args
+    if type(n) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return xs[n:]
 
 
@@ -187,6 +209,8 @@ class Access(DeepCoderOperation):
     xs, n = raw_args
     # DeepCoder chooses to error if n is negative; we use Python's negative
     # indexing convention (our DSL is a superset of DeepCoder's anyway).
+    if type(n) is not int:  # pylint: disable=unidiomatic-typecheck
+      return None
     return xs[n]
 
 

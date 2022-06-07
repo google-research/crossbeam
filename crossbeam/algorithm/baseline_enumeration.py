@@ -17,6 +17,7 @@
 import collections
 import functools
 import itertools
+import random
 import timeit
 
 from crossbeam.dsl import value as value_module
@@ -90,30 +91,32 @@ def generate_partitions(num_elements, num_parts):
   return results
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def first_free_vars(n):
   return ALL_FREE_VARS[:n]
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def first_bound_vars(n):
   return ALL_BOUND_VARS[:n]
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def available_variables(num_free_vars, num_bound_vars):
   return first_free_vars(num_free_vars) + first_bound_vars(num_bound_vars)
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def arg_vars_options(num_arg_vars, num_free_vars, num_bound_vars):
   return list(itertools.permutations(
       available_variables(num_free_vars, num_bound_vars), num_arg_vars))
 
 
 def synthesize_baseline(task, domain, max_weight=10, timeout=5,
-                        max_values_explored=None):
+                        max_values_explored=None,
+                        skip_probability=0, lambda_skip_probability=0):
   """Synthesizes a solution using normal bottom-up enumerative search."""
+  print('synthesize_baseline for task: {}'.format(task))
   start_time = timeit.default_timer()
   end_time = start_time + timeout if timeout else None
   stats = {'num_values_explored': 0}
@@ -157,6 +160,9 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
   for target_weight in range(2, max_weight + 1):
     for num_free_vars, op in itertools.product(range(0, MAX_NUM_FREE_VARS + 1),
                                                domain.operations):
+      if target_weight >= max_weight and num_free_vars > 0:
+        break
+
       arity = op.arity
       arg_types = op.arg_types()
       if arg_types is None:
@@ -198,6 +204,13 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
                 arg_vars_options(num_arg_vars, num_free_vars,
                                  op.num_bound_variables[arg_index]))
           for arg_vars in itertools.product(*arg_vars_options_list):
+            if (num_free_vars == 0 and skip_probability > 0
+                and random.random() < skip_probability):
+              continue
+            if (num_free_vars > 0 and lambda_skip_probability > 0
+                and random.random() < lambda_skip_probability):
+              continue
+
             found_free_vars = set(v.name for v in sum(arg_vars, tuple(arg_list))
                                   if isinstance(v, value_module.FreeVariable))
             if found_free_vars != free_vars_names:

@@ -16,7 +16,8 @@
 
 import abc
 import functools
-import itertools
+
+_FUNCTION_TYPE = type(lambda x: x)
 
 
 class Value(abc.ABC):
@@ -31,6 +32,7 @@ class Value(abc.ABC):
     self.num_examples = len(values)
     self.free_variables = [] if free_variables is None else free_variables
     self.num_free_variables = len(free_variables) if free_variables else 0
+    self.contains_lambda = False  # Will be updated in OperationValue.
     self._repr_cache = None
 
   def __repr__(self):
@@ -43,7 +45,7 @@ class Value(abc.ABC):
     If there are free variables, use the code expression.
     """
     if self._repr_cache is None:
-      if isinstance(self, Variable) or self.free_variables:
+      if isinstance(self, (FreeVariable, BoundVariable)) or self.free_variables:
         self._repr_cache = self.expression()
       else:
         self._repr_cache = '[' + ', '.join('{}:{!r}'.format(type(v).__name__, v)
@@ -93,6 +95,14 @@ class Value(abc.ABC):
   def get_weight(self):
     """Returns this expression's weight, computed recursively."""
 
+  def __getstate__(self):
+    state = self.__dict__.copy()
+    if self.type == _FUNCTION_TYPE:
+      # We cannot pickle lambdas or the function type. Skip them.
+      state['values'] = []
+      state['type'] = 'FUNCTION'
+    return state
+
 
 class Variable(Value):
   """A variable name."""
@@ -119,7 +129,7 @@ class FreeVariable(Variable):
     super(FreeVariable, self).__init__(name, is_free=True)
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def get_free_variable(i):
   return FreeVariable(f'v{i + 1}')
 
@@ -131,7 +141,7 @@ class BoundVariable(Variable):
     super(BoundVariable, self).__init__(name)
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def get_bound_variable(i):
   return BoundVariable(f'u{i + 1}')
 
@@ -153,6 +163,8 @@ class OperationValue(Value):
     self.arg_values = arg_values
     self.arg_variables = ([()] * operation.arity if arg_variables is None
                           else arg_variables)
+    self.contains_lambda = (bool(free_variables) or
+                            any(v.contains_lambda for v in arg_values))
 
   def tokenized_expression(self):
     return self.operation.tokenized_expression(
