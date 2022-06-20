@@ -5,7 +5,6 @@ from xmanager import xm
 from xmanager import xm_abc
 from xmanager.contrib import framework_defaults
 from xmanager.contrib import gcs
-from xmanager import hyper
 
 
 _EXP_NAME = flags.DEFINE_string(
@@ -81,7 +80,7 @@ def main(argv) -> None:
   job = xm.Job(executable, executor)
   nshard_per_job = num_searches * FLAGS.num_tasks / FLAGS.num_workers  / FLAGS.shard_size + 1
   nshard_per_job = max(nshard_per_job, num_searches)
-  job_configs = hyper.sweep('data_gen_seed', [x * num_searches for x in range(num_searches)])
+  job_configs = list([{'data_gen_seed': x * num_searches} for x in range(num_searches)])
 
   for job_args in job_configs:
     experiment.add(job, args={'args': job_args})
