@@ -42,8 +42,6 @@ def main(argv) -> None:
     FLAGS.tout, FLAGS.maxne, FLAGS.maxni, FLAGS.skip, FLAGS.lambdaskip
   )
   save_dir = '/gcs/xcloud-shared/hadai/data/xlambda/%s' % data_folder
-  if not os.path.exists(save_dir):
-    os.makedirs(save_dir)
   num_searches = FLAGS.num_searches / FLAGS.num_workers
   if FLAGS.num_searches % FLAGS.num_workers > 0:
     num_searches += 1

@@ -19,6 +19,7 @@ import itertools
 import pickle as cp
 import random
 import timeit
+import os
 from absl import app
 from absl import flags
 import multiprocessing
@@ -159,6 +160,9 @@ def datagen_worker(seed,
 def main(argv):
   del argv
   exp_common.set_global_seed(FLAGS.data_gen_seed)
+  outfolder = os.path.dirname(FLAGS.output_file)
+  if not os.path.exists(outfolder):
+    os.makedirs(outfolder)
 
   domain = domains.get_domain(FLAGS.domain)
   if FLAGS.num_datagen_proc == 1:
