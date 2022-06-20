@@ -187,7 +187,7 @@ def main(argv):
     pool = multiprocessing.Pool(FLAGS.num_datagen_proc)
     seeds = list(range(FLAGS.data_gen_seed, FLAGS.data_gen_seed + FLAGS.num_searches))
     total_num_tasks = 0
-    n_shards = 0
+    n_shards = FLAGS.data_gen_seed
     save_prefix = '.'.join(FLAGS.output_file.split('.')[:-1])
     all_tasks = []
     def save_shard(t_list, n_shards):
