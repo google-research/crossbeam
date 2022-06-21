@@ -38,50 +38,50 @@ def main(argv) -> None:
     job_requirements = xm.JobRequirements(ram=50 * xm.GiB)
     executor = xm_abc.executors.Gcp(requirements=job_requirements)
 
-  data_folder = 't-%d-maxne-%d-maxni-%d-skip-%.2f-lambdaskip-%.2f' % (
-    FLAGS.tout, FLAGS.maxne, FLAGS.maxni, FLAGS.skip, FLAGS.lambdaskip
-  )
-  save_dir = '/gcs/xcloud-shared/hadai/data/xlambda/%s' % data_folder
-  num_searches = FLAGS.num_searches // FLAGS.num_workers
-  if FLAGS.num_searches % FLAGS.num_workers > 0:
-    num_searches += 1
-  executable_args = {
-    'domain': _EXP_NAME.value,
-    'output_file': '%s/valid-tasks.pkl' % save_dir,
-    'data_gen_timeout': FLAGS.tout,
-    'num_tasks': FLAGS.num_tasks,
-    'num_searches': num_searches,
-    'min_task_weight': FLAGS.min_task_weight,
-    'max_task_weight': FLAGS.maxw,
-    'min_num_examples': FLAGS.min_num_examples,
-    'max_num_examples': FLAGS.maxne,
-    'min_num_inputs': FLAGS.min_num_inputs,
-    'max_num_inputs': FLAGS.maxni,
-    'skip_probability': FLAGS.skip,
-    'lambda_skip_probability': FLAGS.lambdaskip,
-    'choose_half_with_lambdas': True,
-    'num_datagen_proc': FLAGS.num_proc,
-    'shard_size': FLAGS.shard_size,
-    'verbose': False
-  }
-  module = 'crossbeam.datasets.bottom_up_data_generation'
-  executable, = experiment.package([
-    xm.python_container(
-      path='.',
-      base_image=framework_defaults.base_image(
-        'pytorch', job_requirements.accelerator),
-      entrypoint=xm.ModuleName(module),
-      use_deep_module=True,
-      executor_spec=executor.Spec(),
-      args=executable_args)
-      ])
-  job = xm.Job(executable, executor)
-  nshard_per_job = num_searches * FLAGS.num_tasks // (FLAGS.num_workers * FLAGS.shard_size) + 1
-  nshard_per_job = max(nshard_per_job, num_searches)
-  job_configs = list([{'data_gen_seed': x * num_searches} for x in range(num_searches)])
+    data_folder = 't-%d-maxne-%d-maxni-%d-skip-%.2f-lambdaskip-%.2f' % (
+      FLAGS.tout, FLAGS.maxne, FLAGS.maxni, FLAGS.skip, FLAGS.lambdaskip
+    )
+    save_dir = '/gcs/xcloud-shared/hadai/data/xlambda/%s' % data_folder
+    num_searches = FLAGS.num_searches // FLAGS.num_workers
+    if FLAGS.num_searches % FLAGS.num_workers > 0:
+      num_searches += 1
+    executable_args = {
+      'domain': _EXP_NAME.value,
+      'output_file': '%s/valid-tasks.pkl' % save_dir,
+      'data_gen_timeout': FLAGS.tout,
+      'num_tasks': FLAGS.num_tasks,
+      'num_searches': num_searches,
+      'min_task_weight': FLAGS.min_task_weight,
+      'max_task_weight': FLAGS.maxw,
+      'min_num_examples': FLAGS.min_num_examples,
+      'max_num_examples': FLAGS.maxne,
+      'min_num_inputs': FLAGS.min_num_inputs,
+      'max_num_inputs': FLAGS.maxni,
+      'skip_probability': FLAGS.skip,
+      'lambda_skip_probability': FLAGS.lambdaskip,
+      'choose_half_with_lambdas': True,
+      'num_datagen_proc': FLAGS.num_proc,
+      'shard_size': FLAGS.shard_size,
+      'verbose': False
+    }
+    module = 'crossbeam.datasets.bottom_up_data_generation'
+    executable, = experiment.package([
+      xm.python_container(
+        path='.',
+        base_image=framework_defaults.base_image(
+          'pytorch', job_requirements.accelerator),
+        entrypoint=xm.ModuleName(module),
+        use_deep_module=True,
+        executor_spec=executor.Spec(),
+        args=executable_args)
+        ])
+    job = xm.Job(executable, executor)
+    nshard_per_job = num_searches * FLAGS.num_tasks // (FLAGS.num_workers * FLAGS.shard_size) + 1
+    nshard_per_job = max(nshard_per_job, num_searches)
+    job_configs = list([{'data_gen_seed': x * num_searches} for x in range(num_searches)])
 
-  for job_args in job_configs:
-    experiment.add(job, args={'args': job_args})
+    for job_args in job_configs:
+      experiment.add(job, args={'args': job_args})
 
 
 if __name__ == '__main__':
