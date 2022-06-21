@@ -35,14 +35,14 @@ def main(argv) -> None:
     raise app.UsageError('Too many command-line arguments.')
 
   with xm_abc.create_experiment(experiment_title=_EXP_NAME.value) as experiment:
-    job_requirements = xm.JobRequirements(ram=100 * xm.GiB)
+    job_requirements = xm.JobRequirements(ram=50 * xm.GiB)
     executor = xm_abc.executors.Gcp(requirements=job_requirements)
 
   data_folder = 't-%d-maxne-%d-maxni-%d-skip-%.2f-lambdaskip-%.2f' % (
     FLAGS.tout, FLAGS.maxne, FLAGS.maxni, FLAGS.skip, FLAGS.lambdaskip
   )
   save_dir = '/gcs/xcloud-shared/hadai/data/xlambda/%s' % data_folder
-  num_searches = FLAGS.num_searches / FLAGS.num_workers
+  num_searches = FLAGS.num_searches // FLAGS.num_workers
   if FLAGS.num_searches % FLAGS.num_workers > 0:
     num_searches += 1
   executable_args = {
@@ -76,12 +76,13 @@ def main(argv) -> None:
       args=executable_args)
       ])
   job = xm.Job(executable, executor)
-  nshard_per_job = num_searches * FLAGS.num_tasks / FLAGS.num_workers  / FLAGS.shard_size + 1
+  nshard_per_job = num_searches * FLAGS.num_tasks // (FLAGS.num_workers * FLAGS.shard_size) + 1
   nshard_per_job = max(nshard_per_job, num_searches)
   job_configs = list([{'data_gen_seed': x * num_searches} for x in range(num_searches)])
 
   for job_args in job_configs:
     experiment.add(job, args={'args': job_args})
+
 
 if __name__ == '__main__':
   app.run(main)
