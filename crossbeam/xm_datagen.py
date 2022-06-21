@@ -17,13 +17,13 @@ flags.DEFINE_integer('maxni', 3, 'max num input')
 flags.DEFINE_float('skip', 0.75, 'skip')
 flags.DEFINE_float('lambdaskip', 0.5, 'lambdaskip')
 flags.DEFINE_integer('num_proc', 1, 'num processes')
-
+flags.DEFINE_string('name_prefix', 'valid', 'name prefix')
 flags.DEFINE_integer('num_searches', 1000, 'num searches')
 flags.DEFINE_integer('num_tasks', 1000, 'num tasks per search')
 flags.DEFINE_integer('min_task_weight', 3, 'min task weight')
 flags.DEFINE_integer('min_num_inputs', 1, 'min num inputs')
 flags.DEFINE_integer('min_num_examples', 2, 'min num ex')
-flags.DEFINE_integer('shard_size', 10000, 'shard size')
+flags.DEFINE_integer('shard_size', 100000, 'shard size')
 
 flags.DEFINE_integer('num_workers', 10, 'num jobs')
 
@@ -35,7 +35,7 @@ def main(argv) -> None:
     raise app.UsageError('Too many command-line arguments.')
 
   with xm_abc.create_experiment(experiment_title=_EXP_NAME.value) as experiment:
-    job_requirements = xm.JobRequirements(ram=50 * xm.GiB)
+    job_requirements = xm.JobRequirements(ram=50 * xm.GiB, cpu=FLAGS.num_proc)
     executor = xm_abc.executors.Gcp(requirements=job_requirements)
 
     data_folder = 't-%d-maxne-%d-maxni-%d-skip-%.2f-lambdaskip-%.2f' % (
@@ -47,7 +47,7 @@ def main(argv) -> None:
       num_searches += 1
     executable_args = {
       'domain': _EXP_NAME.value,
-      'output_file': '%s/valid-tasks.pkl' % save_dir,
+      'output_file': '%s/%s-tasks.pkl' % (save_dir, FLAGS.name_prefix),
       'data_gen_timeout': FLAGS.tout,
       'num_tasks': FLAGS.num_tasks,
       'num_searches': num_searches,
@@ -78,7 +78,7 @@ def main(argv) -> None:
     job = xm.Job(executable, executor)
     nshard_per_job = num_searches * FLAGS.num_tasks // (FLAGS.num_workers * FLAGS.shard_size) + 1
     nshard_per_job = max(nshard_per_job, num_searches)
-    job_configs = list([{'data_gen_seed': x * num_searches} for x in range(num_searches)])
+    job_configs = list([{'data_gen_seed': x * nshard_per_job} for x in range(FLAGS.num_workers)])
 
     for job_args in job_configs:
       experiment.add(job, args={'args': job_args})
