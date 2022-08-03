@@ -14,8 +14,6 @@
 
 """Tests for crossbeam.datasets.bottom_up_data_generation."""
 
-import random
-
 from absl.testing import absltest
 from absl.testing import parameterized
 
@@ -31,7 +29,6 @@ class BottomUpDataGenerationTest(parameterized.TestCase):
       ('bustle',))
   def test_runs(self, domain_str):
     domain = domains.get_domain(domain_str)
-    random.seed(9)
     tasks = bottom_up_data_generation.generate_data(
         domain,
         min_weight=4,
