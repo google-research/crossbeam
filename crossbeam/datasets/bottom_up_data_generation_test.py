@@ -45,7 +45,6 @@ class BottomUpDataGenerationTest(parameterized.TestCase):
     self.assertTrue(all(4 <= t.solution.get_weight() <= 6 for t in tasks))
     if domain.output_type:
       self.assertTrue(all(t.solution.type == domain.output_type for t in tasks))
-    # TODO(kshi): can fail for BUSTLE, finding 0 valid options for one search
 
 if __name__ == '__main__':
   absltest.main()
