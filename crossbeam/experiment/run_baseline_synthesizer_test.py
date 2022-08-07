@@ -36,7 +36,7 @@ class BustleOperationsTest(parameterized.TestCase):
         min_num_examples=2, max_num_examples=3,
         min_num_inputs=1, max_num_inputs=2, verbose=False)
     json_dict = run_baseline_synthesizer.run_synthesis(
-        domain, tasks, timeout=1, verbose=False)
+        domain, tasks, timeout=5, verbose=True)
     self.assertEqual(sum(d['success'] for d in json_dict['results']), num_tasks)
 
 
