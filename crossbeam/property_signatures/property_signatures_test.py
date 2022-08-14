@@ -29,6 +29,7 @@ class CheckerTest(parameterized.TestCase):
   def test_property_signature_value_same_length(self):
     # Construct a variety of Value objects.
     ten = value_module.ConstantValue(10)
+    true = value_module.ConstantValue(True)
     x1 = value_module.InputVariable([1, 2, 3], name='x1')
     v1 = value_module.get_free_variable(0)
     v2 = value_module.get_free_variable(1)
@@ -44,6 +45,9 @@ class CheckerTest(parameterized.TestCase):
     lambda_2 = add_op.apply([v2, v1], free_variables=[v1, v2])
     self.assertEqual(lambda_2.expression(), 'lambda v1, v2: Add(v2, v1)')
 
+    bad_lambda = add_op.apply([v1, true], free_variables=[v1])  # Always fails.
+    self.assertEqual(bad_lambda.expression(), 'lambda v1: Add(v1, True)')
+
     # Try a lot of combinations comparing a Value and OutputValue.
     values = [
         ten,
@@ -51,6 +55,7 @@ class CheckerTest(parameterized.TestCase):
         concrete_1,
         lambda_1,
         lambda_2,
+        bad_lambda,
         value_module.InputVariable([[1], [2], [3]], 'list_input'),
         value_module.ConstantValue(True),
         # Many examples.
@@ -111,3 +116,4 @@ class CheckerTest(parameterized.TestCase):
 
 if __name__ == '__main__':
   absltest.main()
+

@@ -347,6 +347,10 @@ def _property_signature_lambda(
     fixed_length: bool = True) -> List[Tuple[float, bool, bool, float]]:
   """Returns a property signature for a lambda value."""
   io_pairs_per_example = _run_lambda(value)
+  if all(not pairs_for_example for pairs_for_example in io_pairs_per_example):
+    # The lambda never ran successfully for any attempted input list for any I/O
+    # example. Let's just return all padding.
+    return [_REDUCED_PADDING] * _SIGNATURE_LENGTH_LAMBDA_VALUE
   signatures_to_reduce = []
   for example_index, pairs in enumerate(io_pairs_per_example):
     for inputs, output in pairs:
@@ -472,3 +476,4 @@ def test():
 
 if __name__ == '__main__':
   test()
+
