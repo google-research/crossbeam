@@ -79,12 +79,12 @@ class OperationBase(abc.ABC):
                    for i in range(num_examples)]
       except Exception:  # pylint: disable=broad-except
         return None
-
+      if any([x is None for x in results]):  #TODO: please check if it is Ok
+        return None
     else:
       code_parts = []
       if free_variables:  # The final result is a lambda.
         code_parts.append(f'lambda {",".join(v.name for v in free_variables)}:')
-
       code_parts.append('apply([')
       locals_dicts = [{'__builtins__': {}, 'apply': self.apply_single}
                       for _ in range(num_examples)]
