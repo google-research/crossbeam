@@ -269,6 +269,10 @@ class Sum(DeepCoderOperation):
 ################################################################################
 
 
+def _is_nested_list(x):
+  return isinstance(x, list) and len(x) and isinstance(x[0], list)
+
+
 class Map(DeepCoderOperation):
 
   def __init__(self):
@@ -276,7 +280,10 @@ class Map(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     f, xs = raw_args
-    return list(map(f, xs))
+    result = list(map(f, xs))
+    if _is_nested_list(result):
+      return None
+    return result
 
 
 class Filter(DeepCoderOperation):
@@ -286,7 +293,10 @@ class Filter(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     f, xs = raw_args
-    return list(filter(f, xs))
+    result = list(filter(f, xs))
+    if _is_nested_list(result):
+      return None
+    return result
 
 
 class Count(DeepCoderOperation):
@@ -306,7 +316,10 @@ class ZipWith(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     f, xs, ys = raw_args
-    return [f(x, y) for x, y in zip(xs, ys)]
+    result = [f(x, y) for x, y in zip(xs, ys)]
+    if _is_nested_list(result):
+      return None
+    return result
 
 
 class Scanl1(DeepCoderOperation):
@@ -319,6 +332,8 @@ class Scanl1(DeepCoderOperation):
     ys = [xs[0]]
     for n in range(1, len(xs)):
       ys.append(f(ys[n-1], xs[n]))
+    if _is_nested_list(ys):
+      return None
     return ys
 
 
