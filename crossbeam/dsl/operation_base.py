@@ -125,6 +125,9 @@ class OperationBase(abc.ABC):
         # this value.
         return None
 
+    if any([x is None for x in results]):
+      return None
+
     value = value_module.OperationValue(results, self, arg_values,
                                         arg_variables, free_variables)
     if self.return_type() is not None:
