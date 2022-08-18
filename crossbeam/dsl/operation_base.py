@@ -15,8 +15,6 @@
 """Defines the Operations used in search."""
 
 import abc
-from operator import contains
-
 from crossbeam.dsl import value as value_module
 
 
