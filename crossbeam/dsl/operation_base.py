@@ -15,7 +15,6 @@
 """Defines the Operations used in search."""
 
 import abc
-
 from crossbeam.dsl import value as value_module
 
 
@@ -23,6 +22,16 @@ def comma_variable_list(variables):
   tokens = [', '] * (2 * len(variables) - 1)
   tokens[0::2] = [v.name for v in variables]
   return tokens
+
+
+def contains_none(result):
+  if result is None:
+    return True
+  if isinstance(result, list):
+    for x in result:
+      if contains_none(x):
+        return True
+  return False
 
 
 class OperationBase(abc.ABC):
@@ -124,6 +133,9 @@ class OperationBase(abc.ABC):
         # Some exception occured in apply_single. This is ok, just throw out
         # this value.
         return None
+
+    if contains_none(results):
+      return None
 
     value = value_module.OperationValue(results, self, arg_values,
                                         arg_variables, free_variables)
