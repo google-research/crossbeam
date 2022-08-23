@@ -79,8 +79,11 @@ def task_loss(task, device, training_samples, all_values, model, score_normed=Tr
     cur_vals = val_embed[:num_vals]
     cur_vals = model.encode_weight(cur_vals, aux_info)
     op_state = model.init(io_embed, cur_vals, op)
-    scores = model.arg(op_state, cur_vals, arg_options)
-    scores = torch.sum(scores, dim=-1)
+    # arg selection
+    arg_scores = model.arg(op_state, cur_vals, arg_options[:, :op.arity].contiguous())
+    # binding options
+    # TODO(hadai)
+    scores = torch.sum(arg_scores, dim=-1)
     if score_normed:
       nll = -scores[true_arg_pos]
     else:

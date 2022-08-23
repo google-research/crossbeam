@@ -80,6 +80,10 @@ class LSTMArgSelector(nn.Module):
     assert axis == 1
     return (state[0][:, indices, :], state[1][:, indices, :])
 
+  def state_concat(self, states):
+    c, h = zip(*states)
+    return (torch.cat(c, dim=1), torch.cat(h, dim=1))
+
   def get_batch_init_state(self, init_state):
     h0 = init_state.unsqueeze(0).repeat(self.n_lstm_layers, 1, 1)
     return (h0, h0)

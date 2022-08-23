@@ -27,6 +27,7 @@ from crossbeam.experiment.exp_common import set_global_seed
 from crossbeam.experiment.train_eval import main_train_eval
 from crossbeam.model.joint_model import JointModel, IntJointModel
 from crossbeam.model.logic_model import LogicModel
+from crossbeam.model.deepcoder_model import DeepCoderModel
 from crossbeam.model.util import CharacterTable
 
 FLAGS = flags.FLAGS
@@ -55,6 +56,8 @@ def init_model(args, domain, model_type):
                          operations=domain.operations)
   elif model_type.startswith('logic'):
     return LogicModel(args, operations=domain.operations)
+  elif model_type == 'deepcoder':
+    return DeepCoderModel(args, operations=domain.operations)
   else:
     raise ValueError('unknown model type %s' % model_type)
 
