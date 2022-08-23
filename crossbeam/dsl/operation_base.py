@@ -24,16 +24,6 @@ def comma_variable_list(variables):
   return tokens
 
 
-def contains_none(result):
-  if result is None:
-    return True
-  if isinstance(result, list):
-    for x in result:
-      if contains_none(x):
-        return True
-  return False
-
-
 class OperationBase(abc.ABC):
   """An operation used in synthesis."""
 
@@ -133,9 +123,6 @@ class OperationBase(abc.ABC):
         # Some exception occured in apply_single. This is ok, just throw out
         # this value.
         return None
-
-    if contains_none(results):
-      return None
 
     value = value_module.OperationValue(results, self, arg_values,
                                         arg_variables, free_variables)

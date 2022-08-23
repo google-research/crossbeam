@@ -3,11 +3,34 @@
 from crossbeam.dsl import operation_base
 
 
+def check_values(xs):
+  """Checks that all values are acceptable."""
+  return all(check_single_value(e) for e in xs)
+
+
+def check_single_value(x):
+  """Checks that x is not None, does not contain None, and is not nested."""
+  if x is None:
+    return False
+  if isinstance(x, list) and len(x):
+    if None in x or any(isinstance(e, list) for e in x):
+      return False
+  return True
+
+
 class DeepCoderOperation(operation_base.OperationBase):
+  """A base class for DeepCoder operations."""
 
   def __init__(self, *args, **kwargs):
     super(DeepCoderOperation, self).__init__(self.__class__.__name__,
                                              *args, **kwargs)
+
+  def apply(self, *args, **kwargs):
+    value = super(DeepCoderOperation, self).apply(*args, **kwargs)
+    if value is None or not check_values(value.values):
+      return None
+    return value
+
 
 ################################################################################
 # First-order functions returning int.
@@ -201,6 +224,7 @@ class Drop(DeepCoderOperation):
 
 
 class Access(DeepCoderOperation):
+  """DeepCoder's Access operation."""
 
   def __init__(self):
     super(Access, self).__init__(2)
@@ -269,10 +293,6 @@ class Sum(DeepCoderOperation):
 ################################################################################
 
 
-def _is_nested_list(x):
-  return isinstance(x, list) and len(x) and isinstance(x[0], list)
-
-
 class Map(DeepCoderOperation):
 
   def __init__(self):
@@ -280,10 +300,7 @@ class Map(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     f, xs = raw_args
-    result = list(map(f, xs))
-    if _is_nested_list(result):
-      return None
-    return result
+    return list(map(f, xs))
 
 
 class Filter(DeepCoderOperation):
@@ -293,10 +310,7 @@ class Filter(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     f, xs = raw_args
-    result = list(filter(f, xs))
-    if _is_nested_list(result):
-      return None
-    return result
+    return list(filter(f, xs))
 
 
 class Count(DeepCoderOperation):
@@ -316,13 +330,11 @@ class ZipWith(DeepCoderOperation):
 
   def apply_single(self, raw_args):
     f, xs, ys = raw_args
-    result = [f(x, y) for x, y in zip(xs, ys)]
-    if _is_nested_list(result):
-      return None
-    return result
+    return [f(x, y) for x, y in zip(xs, ys)]
 
 
 class Scanl1(DeepCoderOperation):
+  """DeepCoder's Scanl1 operation."""
 
   def __init__(self):
     super(Scanl1, self).__init__(2, num_bound_variables=[2, 0])
@@ -332,8 +344,6 @@ class Scanl1(DeepCoderOperation):
     ys = [xs[0]]
     for n in range(1, len(xs)):
       ys.append(f(ys[n-1], xs[n]))
-    if _is_nested_list(ys):
-      return None
     return ys
 
 

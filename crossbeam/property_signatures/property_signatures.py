@@ -334,7 +334,7 @@ def _run_lambda(value: value_module.Value) -> List[List[Tuple[List[Any], Any]]]:
     for lambda_fn, io_pairs in zip(value.values, io_pairs_per_example):
       try:
         result = lambda_fn(*inputs_list)
-        if result is not None:
+        if deepcoder_operations.check_single_value(result):
           io_pairs.append((inputs_list, result))
       except:  # pylint: disable=bare-except
         pass
