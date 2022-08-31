@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ast import arg
-from unittest import result
 import numpy as np
 import random
 import timeit
@@ -23,7 +21,7 @@ from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
 from crossbeam.unique_randomizer import unique_randomizer as ur
 
-from crossbeam.algorithm.baseline_enumeration import MAX_NUM_FREE_VARS, MAX_NUM_BOUND_VARS, first_free_vars
+from crossbeam.algorithm.baseline_enumeration import MAX_NUM_FREE_VARS, MAX_NUM_ARGVS
 from crossbeam.algorithm.baseline_enumeration import ALL_BOUND_VARS, ALL_FREE_VARS
 
 
@@ -38,8 +36,7 @@ def init_values(task, domain, all_values):
     all_values.append(value_module.ConstantValue(constant))
   for input_name, input_value in task.inputs_dict.items():
     all_values.append(value_module.InputVariable(input_value, name=input_name))
-  for v in first_free_vars(MAX_NUM_FREE_VARS):
-    all_values.append(v)
+  all_values.extend(ALL_FREE_VARS)
   output_value = value_module.OutputValue(task.outputs)
   return output_value
 
@@ -104,8 +101,9 @@ def decode_args(operation, args, all_values):
         free_vars.add(v)
       cur_arg_vars.append(v)
     arg_var_list.append(cur_arg_vars)
-    offset += MAX_NUM_BOUND_VARS + MAX_NUM_FREE_VARS
+    offset += MAX_NUM_ARGVS
   assert offset == len(args)
+  free_vars = sorted(list(free_vars))
   return arg_list, arg_var_list, free_vars
 
 
@@ -243,7 +241,7 @@ def synthesize(task, domain, model, device,
         args = args.data.cpu().numpy().astype(np.int32)
 
       trace_in_beam = -1
-      for i, args_and_vars in enumerate(args):
+      for beam_pos, args_and_vars in enumerate(args):
         arg_list, arg_vars, free_vars = decode_args(operation, args_and_vars, all_values)
         result_value = operation.apply(arg_list, arg_vars, free_vars)
         stats['num_values_explored'] += 1
@@ -264,7 +262,7 @@ def synthesize(task, domain, model, device,
         # TODO: allow multi-choice when options in trace have the same priority
         # one easy fix would to include this into trace_generation stage (add stochasticity)
         if len(trace) and result_value == trace[0] and trace_in_beam < 0:
-          trace_in_beam = i
+          trace_in_beam = beam_pos
       if is_training and len(trace) and trace[0].operation == operation:
         if include_as_train(trace_in_beam):  # construct training example
           if trace_in_beam < 0:  # true arg not found
@@ -274,13 +272,13 @@ def synthesize(task, domain, model, device,
               all_value_dict[true_val] = len(all_values)
               all_values.append(true_val)
             true_arg_vals = true_val.arg_values
-            for i in range(operation.arity):
-              assert true_arg_vals[i] in all_value_dict
-              true_args.append(all_value_dict[true_arg_vals[i]])
-            for i in range(operation.arity):  #TODO(hadai): needs a new model to handle argv per each arg
-              for argv in true_val.arg_variables[i]:
+            for arg_pos in range(operation.arity):
+              assert true_arg_vals[arg_pos] in all_value_dict
+              true_args.append(all_value_dict[true_arg_vals[arg_pos]])
+            for arg_pos in range(operation.arity):  #TODO(hadai): needs a new model to handle argv per each arg
+              for argv in true_val.arg_variables[arg_pos]:
                 assert False
-              true_args += [-1] * (MAX_NUM_BOUND_VARS + MAX_NUM_FREE_VARS - len(true_val.arg_variables[i]))
+              true_args += [-1] * (MAX_NUM_ARGVS - len(true_val.arg_variables[arg_pos]))
             true_args = np.array(true_args, dtype=np.int32)
             args = np.concatenate((args, np.expand_dims(true_args, 0)), axis=0)
             trace_in_beam = args.shape[0] - 1

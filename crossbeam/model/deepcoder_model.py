@@ -28,13 +28,11 @@ class DeepCoderModel(nn.Module):
     super(DeepCoderModel, self).__init__()
     if args.io_encoder == 'lambda_signature':
       self.io = LambdaSigIOEncoder(args.max_num_inputs, hidden_size=args.embed_dim)
-      print('io encoder: bustle signature')
     else:
       raise ValueError('unknown io encoder %s' % args.io_encoder)
 
     if args.value_encoder == 'lambda_signature':
       val = LambdaSigValueEncoder(hidden_size=args.embed_dim)
-      print('value encoder: bustle signature')
     else:
       raise ValueError('unknown value encoder %s' % args.value_encoder)
     if args.encode_weight:

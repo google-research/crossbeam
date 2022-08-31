@@ -26,6 +26,8 @@ from crossbeam.dsl import value as value_module
 MAX_NUM_FREE_VARS = 2
 MAX_NUM_BOUND_VARS = 2
 
+MAX_NUM_ARGVS = max(MAX_NUM_FREE_VARS, MAX_NUM_BOUND_VARS)
+
 ALL_FREE_VARS = [value_module.get_free_variable(i)
                  for i in range(MAX_NUM_FREE_VARS)]
 ALL_BOUND_VARS = [value_module.get_bound_variable(i)

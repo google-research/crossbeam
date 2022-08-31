@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sys import prefix
 import torch
 import functools
 import math
 from torch.nn.utils.rnn import pad_sequence
 import numpy as np
-from crossbeam.algorithm.baseline_enumeration import MAX_NUM_FREE_VARS, MAX_NUM_BOUND_VARS
+from crossbeam.algorithm.baseline_enumeration import MAX_NUM_ARGVS
 from crossbeam.dsl import value as value_module
 
 N_INF = -1e10
@@ -91,7 +90,7 @@ def beam_search(arity, k, values, value_embed, special_var_embed, init_embed, sc
 
   # bind free_var/bond_var for each arg
   for step in range(arity):
-    for inner_step in range(MAX_NUM_BOUND_VARS + MAX_NUM_FREE_VARS):
+    for inner_step in range(MAX_NUM_ARGVS):
       cur_args = arg_choices[:, step].detach().cpu().numpy()
       num_arg_vars = []
       for i in cur_args:
@@ -102,7 +101,7 @@ def beam_search(arity, k, values, value_embed, special_var_embed, init_embed, sc
       cur_beam_size = k - stop_indices.shape[0]
 
       if cur_beam_size == 0:
-        invalid_args = torch.zeros(arg_choices.shape[0], special_var_embed.shape[0] - inner_step).to(arg_choices) - 1
+        invalid_args = torch.zeros(arg_choices.shape[0], MAX_NUM_ARGVS - inner_step).to(arg_choices) - 1
         arg_choices = torch.cat((arg_choices, invalid_args), dim=1)
         break
 
@@ -121,7 +120,7 @@ def beam_search(arity, k, values, value_embed, special_var_embed, init_embed, sc
       step_argvars = torch.cat([sub_op_choices.view(-1, 1), invalid_args], dim=0)
       arg_choices = torch.cat([arg_choices, step_argvars], dim=1)
 
-  assert arg_choices.shape[1] == arity + special_var_embed.shape[0] * arity
+  assert arg_choices.shape[1] == arity + MAX_NUM_ARGVS * arity
   return arg_choices
 
 

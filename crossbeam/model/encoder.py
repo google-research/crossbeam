@@ -158,11 +158,16 @@ class BustlePropSigIOEncoder(nn.Module):
 class LambdaSignature(nn.Module):
   def __init__(self, len_signature):
     super(LambdaSignature, self).__init__()
-    self.frac_applicable_embed = nn.Embedding(11, 2)
+    self.frac_applicable_embed = nn.Embedding(12, 2)
     self.bool_true_embed = nn.Embedding(2, 2)
     self.bool_false_embed = nn.Embedding(2, 2)
-    self.frac_tf_embed = nn.Embedding(11, 2)
+    self.frac_tf_embed = nn.Embedding(12, 2)
     self.len_signature = len_signature
+
+  def quantize(self, sig):
+    if sig == 0:
+      return 0
+    return int(sig * 10) + 1
 
   def forward(self, list_signatures, device):
     list_frac_app = []
@@ -171,10 +176,10 @@ class LambdaSignature(nn.Module):
     list_frac_tf = []
     for signature in list_signatures:
       frac_app, all_true, all_false, frac_tf = zip(*signature)
-      list_frac_app.append([int(sig * 10) for sig in frac_app])
+      list_frac_app.append([self.quantize(sig) for sig in frac_app])
       list_all_true.append([int(sig) for sig in all_true])
       list_all_false.append([int(sig) for sig in all_false])
-      list_frac_tf.append([int(sig * 10) for sig in frac_tf])
+      list_frac_tf.append([self.quantize(sig) for sig in frac_tf])
     list_embed = []
     for raw_feat, mod in zip([list_frac_app, list_all_true, list_all_false, list_frac_tf],
                              [self.frac_applicable_embed, self.bool_true_embed, self.bool_false_embed, self.frac_tf_embed]):
@@ -187,10 +192,7 @@ class LambdaSignature(nn.Module):
 
 class LambdaSigIOEncoder(LambdaSignature):
   def __init__(self, max_num_inputs, hidden_size):
-    dummy_input = [value_module.InputVariable([1], name='x1')]
-    dummy_output = value_module.OutputValue([10])
-    dummy_signature = deepcoder_propsig.property_signature_io_examples(dummy_input, dummy_output, fixed_length=True)
-    super(LambdaSigIOEncoder, self).__init__(len(dummy_signature))
+    super(LambdaSigIOEncoder, self).__init__(deepcoder_propsig.IO_EXAMPLES_SIGNATURE_LENGTH)
     self.max_num_inputs = max_num_inputs
     self.mlp = nn.Sequential(
       nn.Linear(self.len_signature * 4 * 2, hidden_size * 2),
@@ -377,10 +379,7 @@ class BustlePropSigValueEncoder(nn.Module):
 
 class LambdaSigValueEncoder(LambdaSignature):
   def __init__(self, hidden_size):
-    dummy_value = value_module.ConstantValue(10)
-    dummy_output = value_module.OutputValue([7, 8, 9])
-    dummy_signature = deepcoder_propsig.property_signature_value(dummy_value, dummy_output, fixed_length=True)
-    super(LambdaSigValueEncoder, self).__init__(len(dummy_signature))
+    super(LambdaSigValueEncoder, self).__init__(deepcoder_propsig.VALUE_SIGNATURE_LENGTH)
     self.freevar_embed = nn.Parameter(torch.zeros(MAX_NUM_FREE_VARS, hidden_size))
     nn.init.xavier_uniform_(self.freevar_embed)
     self.mlp = nn.Sequential(
@@ -391,7 +390,6 @@ class LambdaSigValueEncoder(LambdaSignature):
 
   def forward(self, all_values, device, output_values):
     list_special_vars = []
-
     feat_special_vars = []
     list_normal_signatures = []
     for vidx, v in enumerate(all_values):
@@ -411,7 +409,7 @@ class LambdaSigValueEncoder(LambdaSignature):
       # assume the free vars appear in a contiguous fashion, so that concatenation is easier
       first_free_var = min(list_special_vars)
       assert len(list_special_vars) == max(list_special_vars) - first_free_var + 1
-      part1, part2 = torch.split(normal_sig_embed, [first_free_var, normal_sig_embed.shape[0] - min(list_special_vars)])
+      part1, part2 = torch.split(normal_sig_embed, [first_free_var, normal_sig_embed.shape[0] - first_free_var])
       all_embed = torch.cat([part1, special_embed, part2], dim=0)
     assert all_embed.shape[0] == len(all_values)
     return all_embed
