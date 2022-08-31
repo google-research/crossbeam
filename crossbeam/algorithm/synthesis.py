@@ -77,7 +77,7 @@ def copy_operation_value(operation, value, all_values, all_value_dict):
   assert isinstance(value, value_module.OperationValue)
   arg_values = [all_values[all_value_dict[v]] for v in value.arg_values]
   if not value.values:
-    return operation.apply(arg_values, value.arg_variables, value.free_variables)
+    return operation.apply(arg_values, deepcopy(value.arg_variables), deepcopy(value.free_variables))
   else:
     return value_module.OperationValue(value.values, value.operation, arg_values)
 
@@ -103,7 +103,7 @@ def decode_args(operation, args, all_values):
     arg_var_list.append(cur_arg_vars)
     offset += MAX_NUM_ARGVS
   assert offset == len(args)
-  free_vars = sorted(list(free_vars))
+  free_vars = sorted(list(free_vars), key=lambda x: x.name)
   return arg_list, arg_var_list, free_vars
 
 
