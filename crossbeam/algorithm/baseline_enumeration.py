@@ -33,6 +33,10 @@ ALL_FREE_VARS = [value_module.get_free_variable(i)
 ALL_BOUND_VARS = [value_module.get_bound_variable(i)
                   for i in range(MAX_NUM_BOUND_VARS)]
 
+ARGV_MAP = {}
+for i, argv in enumerate(ALL_FREE_VARS + ALL_BOUND_VARS):
+  ARGV_MAP[argv] = i
+
 
 def _add_value_by_weight(values_by_weight, value):
   if value.get_weight() < len(values_by_weight):

@@ -22,7 +22,7 @@ from crossbeam.dsl import value as value_module
 from crossbeam.unique_randomizer import unique_randomizer as ur
 
 from crossbeam.algorithm.baseline_enumeration import MAX_NUM_FREE_VARS, MAX_NUM_ARGVS
-from crossbeam.algorithm.baseline_enumeration import ALL_BOUND_VARS, ALL_FREE_VARS
+from crossbeam.algorithm.baseline_enumeration import ALL_BOUND_VARS, ALL_FREE_VARS, ARGV_MAP
 
 
 def init_values(task, domain, all_values):
@@ -77,9 +77,11 @@ def copy_operation_value(operation, value, all_values, all_value_dict):
   assert isinstance(value, value_module.OperationValue)
   arg_values = [all_values[all_value_dict[v]] for v in value.arg_values]
   if not value.values:
-    return operation.apply(arg_values, deepcopy(value.arg_variables), deepcopy(value.free_variables))
+    return operation.apply(arg_values, value.arg_variables, value.free_variables)
   else:
-    return value_module.OperationValue(value.values, value.operation, arg_values)
+    return value_module.OperationValue(value.values, value.operation, arg_values,
+                                       arg_variables=deepcopy(value.arg_variables),
+                                       free_variables=deepcopy(value.free_variables))
 
 
 def decode_args(operation, args, all_values):
@@ -275,9 +277,8 @@ def synthesize(task, domain, model, device,
             for arg_pos in range(operation.arity):
               assert true_arg_vals[arg_pos] in all_value_dict
               true_args.append(all_value_dict[true_arg_vals[arg_pos]])
-            for arg_pos in range(operation.arity):  #TODO(hadai): needs a new model to handle argv per each arg
-              for argv in true_val.arg_variables[arg_pos]:
-                assert False
+            for arg_pos in range(operation.arity):
+              true_args += [ARGV_MAP[argv] for argv in true_val.arg_variables[arg_pos]]
               true_args += [-1] * (MAX_NUM_ARGVS - len(true_val.arg_variables[arg_pos]))
             true_args = np.array(true_args, dtype=np.int32)
             args = np.concatenate((args, np.expand_dims(true_args, 0)), axis=0)

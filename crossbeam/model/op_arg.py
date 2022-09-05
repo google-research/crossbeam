@@ -107,13 +107,13 @@ class LSTMArgSelector(nn.Module):
         new_state = self.lstm(x, state)[1]
     return new_state
 
-  def get_step_scores(self, h0, c0, choice_embed, arg_seq, masks=None):
+  def get_step_scores(self, h0, c0, choice_embed, arg_seq, masks=None, need_last_state=False):
     arg_seq_embed = choice_embed[arg_seq]
     if h0.device == torch.device('cpu'):
-      output, _ = self.lstm(arg_seq_embed, (h0, c0))
+      output, last_state = self.lstm(arg_seq_embed, (h0, c0))
     else:
       with torch.cuda.device(h0.device):
-        output, _ = self.lstm(arg_seq_embed, (h0, c0))
+        output, last_state = self.lstm(arg_seq_embed, (h0, c0))
     state = torch.cat((h0[-1].unsqueeze(1), output[:, :-1, :]), dim=1)
     if masks is not None:
       masks = masks.unsqueeze(1).repeat(1, state.shape[1], 1).view(-1, masks.shape[-1])
@@ -125,11 +125,16 @@ class LSTMArgSelector(nn.Module):
     else:
       step_scores = self.step_func_mod(state, arg_seq_embed.view(state.shape), is_outer=False)
     step_scores = step_scores.view(-1, arg_seq.shape[1])
+    if need_last_state:
+      return step_scores, last_state
     return step_scores
 
-  def forward(self, init_state, choice_embed, arg_seq, masks=None):
-    h0, c0 = self.get_init_state(init_state, batch_size=arg_seq.shape[0])
-    return self.get_step_scores(h0, c0, choice_embed, arg_seq)
+  def forward(self, init_state, choice_embed, arg_seq, masks=None, need_last_state=False):
+    if not isinstance(init_state, tuple):
+      h0, c0 = self.get_init_state(init_state, batch_size=arg_seq.shape[0])
+    else:
+      h0, c0 = init_state
+    return self.get_step_scores(h0, c0, choice_embed, arg_seq, masks=masks, need_last_state=need_last_state)
 
   def batch_forward(self, init_state, choice_embed, arg_seq, masks=None):
     h0, c0 = self.get_batch_init_state(init_state)
