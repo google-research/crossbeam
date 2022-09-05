@@ -73,9 +73,14 @@ def update_with_better_value(result_value, all_value_dict, all_values, model,
           old_value, old_value.expression(), old_value.get_weight()))
 
 
-def copy_operation_value(operation, value, all_values, all_value_dict):
+def copy_operation_value(operation, value, all_values, all_value_dict, trace_values):
   assert isinstance(value, value_module.OperationValue)
-  arg_values = [all_values[all_value_dict[v]] for v in value.arg_values]
+  arg_values = []
+  for v in value.arg_values:
+    if v in all_value_dict:
+      arg_values.append(all_values[all_value_dict[v]])
+    else:
+      arg_values.append(trace_values.index(v))
   if not value.values:
     return operation.apply(arg_values, value.arg_variables, value.free_variables)
   else:
@@ -119,6 +124,7 @@ def synthesize(task, domain, model, device,
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
   if trace is None:
     trace = []
+  trace_values = []
   if include_as_train is None:
     include_as_train = lambda trace_in_beam: True
 
@@ -266,10 +272,10 @@ def synthesize(task, domain, model, device,
         if len(trace) and result_value == trace[0] and trace_in_beam < 0:
           trace_in_beam = beam_pos
       if is_training and len(trace) and trace[0].operation == operation:
+        true_val = copy_operation_value(operation, trace[0], all_values, all_value_dict, trace_values)
         if include_as_train(trace_in_beam):  # construct training example
           if trace_in_beam < 0:  # true arg not found
             true_args = []
-            true_val = copy_operation_value(operation, trace[0], all_values, all_value_dict)
             if not true_val in all_value_dict:
               all_value_dict[true_val] = len(all_values)
               all_values.append(true_val)
@@ -284,6 +290,7 @@ def synthesize(task, domain, model, device,
             args = np.concatenate((args, np.expand_dims(true_args, 0)), axis=0)
             trace_in_beam = args.shape[0] - 1
           training_samples.append((args, weight_snapshot, trace_in_beam, num_values_before_op, operation))
+        trace_values.append(true_val)
         trace.pop(0)
         if len(trace) == 0:
           return training_samples, all_values, stats
