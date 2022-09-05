@@ -80,7 +80,7 @@ def copy_operation_value(operation, value, all_values, all_value_dict, trace_val
     if v in all_value_dict:
       arg_values.append(all_values[all_value_dict[v]])
     else:
-      arg_values.append(trace_values.index(v))
+      arg_values.append(trace_values[v])
   if not value.values:
     return operation.apply(arg_values, value.arg_variables, value.free_variables)
   else:
@@ -124,7 +124,6 @@ def synthesize(task, domain, model, device,
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
   if trace is None:
     trace = []
-  trace_values = []
   if include_as_train is None:
     include_as_train = lambda trace_in_beam: True
 
@@ -145,6 +144,7 @@ def synthesize(task, domain, model, device,
       update_masks(type_masks, operation, all_values, device)
     mask_dict[operation] = type_masks
 
+  trace_values = {}
   while True:
     cur_num_values = len(all_values)
     for operation in domain.operations:
@@ -290,7 +290,7 @@ def synthesize(task, domain, model, device,
             args = np.concatenate((args, np.expand_dims(true_args, 0)), axis=0)
             trace_in_beam = args.shape[0] - 1
           training_samples.append((args, weight_snapshot, trace_in_beam, num_values_before_op, operation))
-        trace_values.append(true_val)
+        trace_values[trace[0]] = true_val
         trace.pop(0)
         if len(trace) == 0:
           return training_samples, all_values, stats
