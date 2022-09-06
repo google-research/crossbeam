@@ -90,7 +90,7 @@ def task_loss(task, device, training_samples, all_values, model, score_normed=Tr
     if argv_options.shape[0]:
       init_argv_state = model.arg.state_select(last_state, [true_arg_pos])
       argv_score = model.arg(init_argv_state, model.special_var_embed, argv_options.unsqueeze(0))
-      nll = nll - argv_score[0]
+      nll = nll - torch.sum(argv_score)
     # TODO(hadai): if we want to allow contrastive learning then we also need argv_scores for negative samples.
     assert score_normed
     loss = loss + nll
