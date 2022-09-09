@@ -1,3 +1,4 @@
+from unittest import result
 from crossbeam.property_signatures import property_signatures as deepcoder_propsig
 from crossbeam.dsl import value as value_module
 from crossbeam.dsl import deepcoder_operations
@@ -40,8 +41,17 @@ def case2_1():
   result = map_op.apply([s1, x3], [[v1], []], free_variables=[v1])
   deepcoder_propsig.property_signature_value(result, output_value, fixed_length=True)
 
+def case3():
+  output_value = value_module.OutputValue([-18, -50])
+  even_op = deepcoder_operations.IsEven()
+  l1 = even_op.apply([v2], free_variables=[v2])
+  zip_op = deepcoder_operations.ZipWith()
+  result = zip_op.apply([l1, v1, v1], [[u1], [], []], free_variables=[v1])
+  deepcoder_propsig.property_signature_value(result, output_value, fixed_length=True)
+
 
 if __name__ == '__main__':
   case1()
   case2()
   case2_1()
+  case3()
