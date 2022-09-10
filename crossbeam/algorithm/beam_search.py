@@ -17,7 +17,7 @@ import functools
 import math
 from torch.nn.utils.rnn import pad_sequence
 import numpy as np
-from crossbeam.algorithm.baseline_enumeration import MAX_NUM_ARGVS
+from crossbeam.algorithm.variables import MAX_NUM_ARGVS
 from crossbeam.dsl import value as value_module
 
 N_INF = -1e10

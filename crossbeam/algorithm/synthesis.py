@@ -21,8 +21,7 @@ from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
 from crossbeam.unique_randomizer import unique_randomizer as ur
 
-from crossbeam.algorithm.baseline_enumeration import MAX_NUM_FREE_VARS, MAX_NUM_ARGVS
-from crossbeam.algorithm.baseline_enumeration import ALL_BOUND_VARS, ALL_FREE_VARS, ARGV_MAP
+from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS, MAX_NUM_ARGVS, ALL_BOUND_VARS, ALL_FREE_VARS, ARGV_MAP
 
 
 def init_values(task, domain, all_values):

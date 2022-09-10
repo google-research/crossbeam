@@ -21,7 +21,7 @@ from crossbeam.model.op_init import PoolingState, OpPoolingState
 from crossbeam.model.encoder import LambdaSigIOEncoder
 from crossbeam.model.encoder import LambdaSigValueEncoder
 from crossbeam.model.encoder import ValueWeightEncoder, DummyWeightEncoder
-from crossbeam.algorithm.baseline_enumeration import MAX_NUM_FREE_VARS, MAX_NUM_BOUND_VARS
+from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS, MAX_NUM_BOUND_VARS
 
 class DeepCoderModel(nn.Module):
   def __init__(self, args, operations):
