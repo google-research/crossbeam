@@ -13,7 +13,8 @@ def check_single_value(x):
   if x is None:
     return False
   if isinstance(x, list) and len(x):
-    if None in x or any(isinstance(e, list) for e in x):
+    # All list elements must be int.
+    if not all(type(e) == int for e in x):  # pylint: disable=unidiomatic-typecheck
       return False
   return True
 
