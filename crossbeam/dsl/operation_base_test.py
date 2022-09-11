@@ -9,6 +9,15 @@ from crossbeam.dsl import value as value_module
 class OperationBaseTest(absltest.TestCase):
 
   def test_apply(self):
+    add_op = deepcoder_operations.Add()
+    map_op = deepcoder_operations.Map()
+
+    # Temporarily bypass DeepCoderOperation's typechecking.
+    original_add_apply = add_op.apply
+    add_op.apply = super(deepcoder_operations.DeepCoderOperation, add_op).apply
+    original_map_apply = map_op.apply
+    map_op.apply = super(deepcoder_operations.DeepCoderOperation, map_op).apply
+
     colon = value_module.ConstantValue(':')
     x1 = value_module.InputVariable(['cat', 'dog'], name='x1')
     x2 = value_module.InputVariable(['12', '34'], name='x2')
@@ -16,9 +25,6 @@ class OperationBaseTest(absltest.TestCase):
     v1 = value_module.get_free_variable(0)
     v2 = value_module.get_free_variable(1)
     u1 = value_module.get_bound_variable(0)
-
-    add_op = deepcoder_operations.Add()
-    map_op = deepcoder_operations.Map()
 
     # Apply operation to two concrete values.
     result_1 = add_op.apply([colon, x1])
@@ -45,10 +51,8 @@ class OperationBaseTest(absltest.TestCase):
     result_4 = add_op.apply([result_2, colon],
                             arg_variables=[[x2], []],
                             free_variables=[])
-    self.assertEqual(result_4.expression(),
-                     "Add((lambda v1: Add(x1, v1))(x2), ':')")
-    self.assertEqual(result_4.values, ['cat12:', 'dog34:'])
-    self.assertEqual(result_4.get_weight(), 6)
+    # Calling a lambda on an input variable is not allowed.
+    self.assertIsNone(result_4)
 
     # Apply operation to a lambda, giving it a free variable.
     result_5 = add_op.apply([result_2, colon],
@@ -65,10 +69,8 @@ class OperationBaseTest(absltest.TestCase):
     result_6 = map_op.apply([result_2, x3],
                             arg_variables=[[x2], []],
                             free_variables=[])
-    self.assertEqual(result_6.expression(),
-                     'Map(lambda u1: (lambda v1: Add(x1, v1))(x2), x3)')
-    self.assertEqual(result_6.values, [['cat12', 'cat12'], ['dog34', 'dog34']])
-    self.assertEqual(result_6.get_weight(), 6)
+    # Calling a lambda on an input variable is not allowed.
+    self.assertIsNone(result_6)
 
     # Apply operation with a required lambda, giving it a bound variable.
     result_7 = map_op.apply([result_2, x3],
@@ -106,6 +108,10 @@ class OperationBaseTest(absltest.TestCase):
     self.assertEqual(result_10.expression(), "Map(lambda u1: ':', x3)")
     self.assertEqual(result_10.values, [[':', ':'], [':', ':']])
     self.assertEqual(result_10.get_weight(), 3)
+
+    # Restore DeepCoderOperation's typechecking.
+    add_op.apply = original_add_apply
+    map_op.apply = original_map_apply
 
 
 if __name__ == '__main__':

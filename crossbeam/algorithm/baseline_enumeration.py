@@ -20,22 +20,8 @@ import itertools
 import random
 import timeit
 
+from crossbeam.algorithm import variables
 from crossbeam.dsl import value as value_module
-
-
-MAX_NUM_FREE_VARS = 2
-MAX_NUM_BOUND_VARS = 2
-
-MAX_NUM_ARGVS = max(MAX_NUM_FREE_VARS, MAX_NUM_BOUND_VARS)
-
-ALL_FREE_VARS = [value_module.get_free_variable(i)
-                 for i in range(MAX_NUM_FREE_VARS)]
-ALL_BOUND_VARS = [value_module.get_bound_variable(i)
-                  for i in range(MAX_NUM_BOUND_VARS)]
-
-ARGV_MAP = {}
-for i, argv in enumerate(ALL_FREE_VARS + ALL_BOUND_VARS):
-  ARGV_MAP[argv] = i
 
 
 def _add_value_by_weight(values_by_weight, value):
@@ -98,18 +84,9 @@ def generate_partitions(num_elements, num_parts):
 
 
 @functools.lru_cache(maxsize=None)
-def first_free_vars(n):
-  return ALL_FREE_VARS[:n]
-
-
-@functools.lru_cache(maxsize=None)
-def first_bound_vars(n):
-  return ALL_BOUND_VARS[:n]
-
-
-@functools.lru_cache(maxsize=None)
 def available_variables(num_free_vars, num_bound_vars):
-  return first_free_vars(num_free_vars) + first_bound_vars(num_bound_vars)
+  return (variables.first_free_vars(num_free_vars) +
+          variables.first_bound_vars(num_bound_vars))
 
 
 @functools.lru_cache(maxsize=None)
@@ -145,7 +122,7 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
     _add_value_by_weight(values_by_weight,
                          value_module.InputVariable(input_value,
                                                     name=input_name))
-  for v in first_free_vars(MAX_NUM_FREE_VARS):
+  for v in variables.first_free_vars(variables.MAX_NUM_FREE_VARS):
     _add_value_by_weight(values_by_weight, v)
 
   # A set storing all values found so far.
@@ -164,8 +141,8 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
     return match, value_set, values_by_weight, stats
 
   for target_weight in range(2, max_weight + 1):
-    for num_free_vars, op in itertools.product(range(0, MAX_NUM_FREE_VARS + 1),
-                                               domain.operations):
+    for num_free_vars, op in itertools.product(
+        range(0, variables.MAX_NUM_FREE_VARS + 1), domain.operations):
       if target_weight >= max_weight and num_free_vars > 0:
         break
 
@@ -173,7 +150,7 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
       arg_types = op.arg_types()
       if arg_types is None:
         arg_types = [None] * op.arity
-      free_vars = first_free_vars(num_free_vars)
+      free_vars = variables.first_free_vars(num_free_vars)
       free_vars_names = set(v.name for v in free_vars)
 
       remaining_weight = target_weight - op.weight - num_free_vars

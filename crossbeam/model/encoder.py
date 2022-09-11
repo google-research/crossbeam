@@ -28,7 +28,7 @@ from crossbeam.model.base import CharSeqEncoder, pad_sequence, _param_init
 from crossbeam.model.util import CharacterTable
 from crossbeam.algorithm import property_signatures
 from crossbeam.property_signatures import property_signatures as deepcoder_propsig
-from crossbeam.algorithm.baseline_enumeration import MAX_NUM_FREE_VARS
+from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS
 
 def pad_int_seq(int_seqs, device):
   int_seqs = [torch.LongTensor(x) for x in int_seqs]

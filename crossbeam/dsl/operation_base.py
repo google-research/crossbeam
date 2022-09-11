@@ -15,6 +15,8 @@
 """Defines the Operations used in search."""
 
 import abc
+
+from crossbeam.algorithm import variables as variables_module
 from crossbeam.dsl import value as value_module
 
 
@@ -82,6 +84,12 @@ class OperationBase(abc.ABC):
     else:
       code_parts = []
       if free_variables:  # The final result is a lambda.
+        # Make sure the free_variables are in canonical order. That is,
+        # `lambda v2, v1: Op(v2, v1)` is disallowed because it's equivalent to
+        # `lambda v1, v2: Op(v1, v2)`.
+        if free_variables != variables_module.first_free_vars(
+            len(free_variables)):
+          return None
         code_parts.append(f'lambda {",".join(v.name for v in free_variables)}:')
 
       code_parts.append('apply([')
@@ -90,6 +98,13 @@ class OperationBase(abc.ABC):
 
       for i, (arg_value, variables, bound_variables) in enumerate(zip(
           arg_values, arg_variables, self.bound_variables)):
+
+        # Make sure arg variables are only free or bound variables, and not
+        # input variables. That is, `(lambda v1: Op(v1))(x1)` is disallowed
+        # because it's equivalent to `Op(x1)`.
+        if not set(variables).issubset(variables_module.ARGV_SET):
+          return None
+
         if i > 0:
           code_parts.append(',')
 
