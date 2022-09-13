@@ -111,10 +111,9 @@ def _basic_properties(x) -> List[bool]:
         x < 0,
         abs_x < 5,
         abs_x < 10,
-        abs_x < 30,
+        abs_x < 20,
+        abs_x < 50,
         abs_x < 100,
-        abs_x < 300,
-        abs_x >= 300,
     ]
   elif type_x is list:
     sorted_x = sorted(x)

@@ -27,7 +27,8 @@ from crossbeam.dsl import value as value_module
 from crossbeam.model.base import CharSeqEncoder, pad_sequence, _param_init
 from crossbeam.model.util import CharacterTable
 from crossbeam.algorithm import property_signatures
-
+from crossbeam.property_signatures import property_signatures as deepcoder_propsig
+from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS
 
 def pad_int_seq(int_seqs, device):
   int_seqs = [torch.LongTensor(x) for x in int_seqs]
@@ -146,6 +147,70 @@ class BustlePropSigIOEncoder(nn.Module):
       feature_list.append(cur_feats)
     feat_mat = torch.LongTensor(feature_list).to(device)
     feat_embed = self.summary_embed(feat_mat).view(-1, self.feat_dim * 2)
+    io_embed = self.mlp(feat_embed)
+    if needs_scatter_idx:
+      sample_scatter_idx = torch.arange(num_tasks).to(device)
+      return io_embed, sample_scatter_idx
+    else:
+      return io_embed
+
+
+class LambdaSignature(nn.Module):
+  def __init__(self, len_signature):
+    super(LambdaSignature, self).__init__()
+    self.frac_applicable_embed = nn.Embedding(12, 2)
+    self.bool_true_embed = nn.Embedding(2, 2)
+    self.bool_false_embed = nn.Embedding(2, 2)
+    self.frac_tf_embed = nn.Embedding(12, 2)
+    self.len_signature = len_signature
+
+  def quantize(self, sig):
+    if sig == 0:
+      return 0
+    return int(sig * 10) + 1
+
+  def forward(self, list_signatures, device):
+    list_frac_app = []
+    list_all_true = []
+    list_all_false = []
+    list_frac_tf = []
+    for signature in list_signatures:
+      frac_app, all_true, all_false, frac_tf = zip(*signature)
+      list_frac_app.append([self.quantize(sig) for sig in frac_app])
+      list_all_true.append([int(sig) for sig in all_true])
+      list_all_false.append([int(sig) for sig in all_false])
+      list_frac_tf.append([self.quantize(sig) for sig in frac_tf])
+    list_embed = []
+    for raw_feat, mod in zip([list_frac_app, list_all_true, list_all_false, list_frac_tf],
+                             [self.frac_applicable_embed, self.bool_true_embed, self.bool_false_embed, self.frac_tf_embed]):
+      feat_mat = torch.LongTensor(raw_feat).to(device)
+      embed = mod(feat_mat).view(-1, self.len_signature * 2)
+      list_embed.append(embed)
+    feat_embed = torch.cat(list_embed, dim=-1)
+    return feat_embed
+
+
+class LambdaSigIOEncoder(LambdaSignature):
+  def __init__(self, max_num_inputs, hidden_size):
+    super(LambdaSigIOEncoder, self).__init__(deepcoder_propsig.IO_EXAMPLES_SIGNATURE_LENGTH)
+    self.max_num_inputs = max_num_inputs
+    self.mlp = nn.Sequential(
+      nn.Linear(self.len_signature * 4 * 2, hidden_size * 2),
+      nn.ReLU(),
+      nn.Linear(hidden_size * 2, hidden_size * 2)
+    )
+
+  def forward(self, list_inputs_dict, list_outputs, device, needs_scatter_idx=False):
+    num_tasks = len(list_outputs)
+    list_signatures = []
+    for inputs_dict, outputs in zip(list_inputs_dict, list_outputs):
+      cur_input = []
+      for input_name, input_value in inputs_dict.items():
+        cur_input.append(value_module.InputVariable(input_value, name=input_name))
+      signature = deepcoder_propsig.property_signature_io_examples(cur_input, value_module.OutputValue(outputs), fixed_length=True)
+      list_signatures.append(signature)
+
+    feat_embed = super(LambdaSigIOEncoder, self).forward(list_signatures, device)
     io_embed = self.mlp(feat_embed)
     if needs_scatter_idx:
       sample_scatter_idx = torch.arange(num_tasks).to(device)
@@ -310,6 +375,44 @@ class BustlePropSigValueEncoder(nn.Module):
     feat_embed = self.summary_embed(feat_list).view(-1, self.num_sigs * self.embed_dim)
     val_embed = self.mlp(feat_embed)
     return val_embed
+
+
+class LambdaSigValueEncoder(LambdaSignature):
+  def __init__(self, hidden_size):
+    super(LambdaSigValueEncoder, self).__init__(deepcoder_propsig.VALUE_SIGNATURE_LENGTH)
+    self.freevar_embed = nn.Parameter(torch.zeros(MAX_NUM_FREE_VARS, hidden_size))
+    nn.init.xavier_uniform_(self.freevar_embed)
+    self.mlp = nn.Sequential(
+      nn.Linear(self.len_signature * 4 * 2, hidden_size * 2),
+      nn.ReLU(),
+      nn.Linear(hidden_size * 2, hidden_size)
+    )
+
+  def forward(self, all_values, device, output_values):
+    list_special_vars = []
+    feat_special_vars = []
+    list_normal_signatures = []
+    for vidx, v in enumerate(all_values):
+      if isinstance(v, value_module.FreeVariable):
+        list_special_vars.append(vidx)
+        feat_special_vars.append(self.freevar_embed[int(v.name[1:]) - 1].view(1, -1))
+      else:
+        signature = deepcoder_propsig.property_signature_value(v, output_values, fixed_length=True)
+        list_normal_signatures.append(signature)
+
+    normal_sig_embed = super(LambdaSigValueEncoder, self).forward(list_normal_signatures, device)
+    normal_sig_embed = self.mlp(normal_sig_embed)
+    if len(list_special_vars) == 0:
+      all_embed = normal_sig_embed
+    else:
+      special_embed = torch.cat(feat_special_vars, dim=0)
+      # assume the free vars appear in a contiguous fashion, so that concatenation is easier
+      first_free_var = min(list_special_vars)
+      assert len(list_special_vars) == max(list_special_vars) - first_free_var + 1
+      part1, part2 = torch.split(normal_sig_embed, [first_free_var, normal_sig_embed.shape[0] - first_free_var])
+      all_embed = torch.cat([part1, special_embed, part2], dim=0)
+    assert all_embed.shape[0] == len(all_values)
+    return all_embed
 
 
 class CharAndPropSigValueEncoder(nn.Module):

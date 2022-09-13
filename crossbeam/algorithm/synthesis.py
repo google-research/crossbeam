@@ -21,6 +21,8 @@ from crossbeam.algorithm.beam_search import beam_search
 from crossbeam.dsl import value as value_module
 from crossbeam.unique_randomizer import unique_randomizer as ur
 
+from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS, MAX_NUM_ARGVS, ALL_BOUND_VARS, ALL_FREE_VARS, ARGV_MAP
+
 
 def init_values(task, domain, all_values):
   constants = domain.constants
@@ -33,6 +35,7 @@ def init_values(task, domain, all_values):
     all_values.append(value_module.ConstantValue(constant))
   for input_name, input_value in task.inputs_dict.items():
     all_values.append(value_module.InputVariable(input_value, name=input_name))
+  all_values.extend(ALL_FREE_VARS)
   output_value = value_module.OutputValue(task.outputs)
   return output_value
 
@@ -41,7 +44,7 @@ def update_masks(type_masks, operation, all_values, device, vidx_start=0):
   feasible = True
   for arg_index in range(operation.arity):
     arg_type = operation.arg_types()[arg_index]
-    bool_mask = [all_values[v].type == arg_type for v in range(vidx_start, len(all_values))]
+    bool_mask = [arg_type is None or all_values[v].type == arg_type for v in range(vidx_start, len(all_values))]
     cur_feasible = any(bool_mask)
     step_type_mask = torch.BoolTensor(bool_mask).to(device)
     if len(type_masks) <= arg_index:
@@ -69,10 +72,45 @@ def update_with_better_value(result_value, all_value_dict, all_values, model,
           old_value, old_value.expression(), old_value.get_weight()))
 
 
-def copy_operation_value(value, all_values, all_value_dict):
+def copy_operation_value(operation, value, all_values, all_value_dict, trace_values):
   assert isinstance(value, value_module.OperationValue)
-  arg_values = [all_values[all_value_dict[v]] for v in value.arg_values]
-  return value_module.OperationValue(value.values, value.operation, arg_values)
+  arg_values = []
+  for v in value.arg_values:
+    if v in all_value_dict:
+      arg_values.append(all_values[all_value_dict[v]])
+    else:
+      arg_values.append(trace_values[v])
+  if not value.values:
+    return operation.apply(arg_values, value.arg_variables, value.free_variables)
+  else:
+    return value_module.OperationValue(value.values, value.operation, arg_values,
+                                       arg_variables=deepcopy(value.arg_variables),
+                                       free_variables=deepcopy(value.free_variables))
+
+
+def decode_args(operation, args, all_values):
+  arg_list = args[:operation.arity]
+  arg_list = [all_values[x] for x in arg_list]
+  offset = operation.arity
+  free_vars = set([v for v in arg_list if isinstance(v, value_module.FreeVariable)])
+  arg_var_list = []
+  for arg in arg_list:
+    num_required = (0 if isinstance(arg, value_module.FreeVariable)
+                    else arg.num_free_variables)
+    cur_arg_vars = []
+    for i in range(offset, offset + num_required):
+      var_idx = args[i]
+      if var_idx >= MAX_NUM_FREE_VARS:  # then it is a bound var
+        v = ALL_BOUND_VARS[var_idx - MAX_NUM_FREE_VARS]
+      else:
+        v = ALL_FREE_VARS[var_idx]
+        free_vars.add(v)
+      cur_arg_vars.append(v)
+    arg_var_list.append(cur_arg_vars)
+    offset += MAX_NUM_ARGVS
+  assert offset == len(args)
+  free_vars = sorted(list(free_vars), key=lambda x: x.name)
+  return arg_list, arg_var_list, free_vars
 
 
 def synthesize(task, domain, model, device,
@@ -105,6 +143,7 @@ def synthesize(task, domain, model, device,
       update_masks(type_masks, operation, all_values, device)
     mask_dict[operation] = type_masks
 
+  trace_values = {}
   while True:
     cur_num_values = len(all_values)
     for operation in domain.operations:
@@ -187,6 +226,7 @@ def synthesize(task, domain, model, device,
       
       weight_snapshot = [v.get_weight() for v in all_values]
       if random_beam:
+        raise NotImplementedError  #TODO(hadai): enable random beam during training
         args = [[] for _ in range(k)]
         for b in range(k):
           args[b] += [np.random.randint(0, len(all_values)) for _ in range(operation.arity)]
@@ -196,21 +236,21 @@ def synthesize(task, domain, model, device,
           val_base_embed = torch.cat((val_base_embed, more_val_embed), dim=0)
         value_embed = model.encode_weight(val_base_embed, weight_snapshot)
         op_state = model.init(io_embed, value_embed, operation)
-        args, _ = beam_search(operation.arity, k,
-                              value_embed,
-                              op_state,
-                              model.arg,
-                              device=device,
-                              choice_masks=type_masks,
-                              is_stochastic=is_stochastic)
+        args = beam_search(operation.arity, k,
+                           all_values,
+                           value_embed,
+                           model.special_var_embed,
+                           op_state,
+                           model.arg,
+                           device=device,
+                           choice_masks=type_masks,
+                           is_stochastic=is_stochastic)
         args = args.data.cpu().numpy().astype(np.int32)
-      if k > (len(all_values) ** operation.arity):
-        args = args[:len(all_values) ** operation.arity]
-      beam = [[all_values[i] for i in arg_list] for arg_list in args]
 
       trace_in_beam = -1
-      for i, arg_list in enumerate(beam):
-        result_value = operation.apply(arg_list)
+      for beam_pos, args_and_vars in enumerate(args):
+        arg_list, arg_vars, free_vars = decode_args(operation, args_and_vars, all_values)
+        result_value = operation.apply(arg_list, arg_vars, free_vars)
         stats['num_values_explored'] += 1
         if result_value is None or result_value.get_weight() > max_weight:
           continue
@@ -229,23 +269,27 @@ def synthesize(task, domain, model, device,
         # TODO: allow multi-choice when options in trace have the same priority
         # one easy fix would to include this into trace_generation stage (add stochasticity)
         if len(trace) and result_value == trace[0] and trace_in_beam < 0:
-          trace_in_beam = i
+          trace_in_beam = beam_pos
       if is_training and len(trace) and trace[0].operation == operation:
+        true_val = copy_operation_value(operation, trace[0], all_values, all_value_dict, trace_values)
         if include_as_train(trace_in_beam):  # construct training example
           if trace_in_beam < 0:  # true arg not found
             true_args = []
-            true_val = copy_operation_value(trace[0], all_values, all_value_dict)
             if not true_val in all_value_dict:
               all_value_dict[true_val] = len(all_values)
               all_values.append(true_val)
             true_arg_vals = true_val.arg_values
-            for i in range(operation.arity):
-              assert true_arg_vals[i] in all_value_dict
-              true_args.append(all_value_dict[true_arg_vals[i]])
+            for arg_pos in range(operation.arity):
+              assert true_arg_vals[arg_pos] in all_value_dict
+              true_args.append(all_value_dict[true_arg_vals[arg_pos]])
+            for arg_pos in range(operation.arity):
+              true_args += [ARGV_MAP[argv] for argv in true_val.arg_variables[arg_pos]]
+              true_args += [-1] * (MAX_NUM_ARGVS - len(true_val.arg_variables[arg_pos]))
             true_args = np.array(true_args, dtype=np.int32)
             args = np.concatenate((args, np.expand_dims(true_args, 0)), axis=0)
             trace_in_beam = args.shape[0] - 1
           training_samples.append((args, weight_snapshot, trace_in_beam, num_values_before_op, operation))
+        trace_values[trace[0]] = true_val
         trace.pop(0)
         if len(trace) == 0:
           return training_samples, all_values, stats
