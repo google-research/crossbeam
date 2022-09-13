@@ -188,49 +188,13 @@ class IsOdd(DeepCoderOperation):
     return x % 2 == 1
 
 
-# class And(DeepCoderOperation):
-
-#   def __init__(self):
-#     super(And, self).__init__(2)
-
-#   def apply_single(self, raw_args):
-#     left, right = raw_args
-#     if type(left) is not bool or type(right) is not bool:
-#       return None
-#     return left and right
-
-
-# class Or(DeepCoderOperation):
-
-#   def __init__(self):
-#     super(Or, self).__init__(2)
-
-#   def apply_single(self, raw_args):
-#     left, right = raw_args
-#     if type(left) is not bool or type(right) is not bool:
-#       return None
-#     return left or right
-
-
-# class Not(DeepCoderOperation):
-
-#   def __init__(self):
-#     super(Not, self).__init__(1)
-
-#   def apply_single(self, raw_args):
-#     x = raw_args[0]
-#     if type(x) is not bool:
-#       return None
-#     return not x
-
-
 class If(DeepCoderOperation):
 
   def __init__(self):
     super(If, self).__init__(3)
 
   def apply_single(self, raw_args):
-    condition, x, y = raw_args[0]
+    condition, x, y = raw_args
     if type(condition) is not bool or type(x) is not int or type(y) is not int:
       return None
     return x if condition else y
@@ -423,9 +387,6 @@ def get_operations():
       Equal(),
       IsEven(),
       IsOdd(),
-      # And(),
-      # Or(),
-      # Not(),
       If(),
       Head(),
       Last(),
