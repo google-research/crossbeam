@@ -22,6 +22,7 @@ import timeit
 
 from crossbeam.algorithm import variables
 from crossbeam.dsl import value as value_module
+from crossbeam.property_signatures import property_signatures
 
 
 def _add_value_by_weight(values_by_weight, value):
@@ -213,6 +214,11 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
               if value == output_value:
                 # Found solution!
                 return value, value_set, values_by_weight, stats
+            else:
+              io_pairs_per_example = property_signatures.run_lambda(value)
+              if not io_pairs_per_example:
+                # The lambda never ran successfully, so let's skip it.
+                continue
 
             values_by_weight[target_weight][value] = value
             value_set.add(value)

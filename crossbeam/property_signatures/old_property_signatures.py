@@ -67,19 +67,19 @@ DEFAULT_VALUES = {
 VALUES_TO_TRY = {
     bool: [False, True],
     int: [-100, -50, -20, -10, -7] + list(range(-5, 6)) + [7, 10, 20, 50, 100],
-    # list: [
-    #     [],
-    #     [0], [-1], [1], [6],
-    #     [0, 1], [2, 2], [-2, -4], [5, -3], [-8, 1],
-    #     [1, 2, 3], [6, 2, 5], [-5, 2, -19],
-    #     [-32, 51, -45, 23],
-    #     [0, 0, 0, 0, 0],
-    #     [2, 2, 1, 3, 3, 0],
-    #     [5, -6, 9, -19, 43, 22, -1],
-    #     [6, 21, 23, 45, 55, 67, 72, 75],
-    #     [24, -22, 0, 1, 6, -59, 35, 1, -2],
-    #     [0, 0, 0, 1, 1, 1, 1, 2, 3, 3],
-    # ],
+    list: [
+        [],
+        [0], [-1], [1], [6],
+        [0, 1], [2, 2], [-2, -4], [5, -3], [-8, 1],
+        [1, 2, 3], [6, 2, 5], [-5, 2, -19],
+        [-32, 51, -45, 23],
+        [0, 0, 0, 0, 0],
+        [2, 2, 1, 3, 3, 0],
+        [5, -6, 9, -19, 43, 22, -1],
+        [6, 21, 23, 45, 55, 67, 72, 75],
+        [24, -22, 0, 1, 6, -59, 35, 1, -2],
+        [0, 0, 0, 1, 1, 1, 1, 2, 3, 3],
+    ],
 }
 
 # The maximum number of inputs for a lambda Value or an I/O example, if
@@ -109,21 +109,12 @@ def _basic_properties(x) -> List[bool]:
         x == 2,
         x > 0,
         x < 0,
-        x % 2 == 0,
-        x % 3 == 0,
-        x % 5 == 0,
         abs_x < 5,
         abs_x < 10,
-        abs_x < 15,
-        abs_x < 20,
         abs_x < 30,
-        abs_x < 40,
-        abs_x < 50,
-        abs_x < 75,
         abs_x < 100,
-        abs_x < 150,
-        abs_x < 200,
-        abs_x < 250,
+        abs_x < 300,
+        abs_x >= 300,
     ]
   elif type_x is list:
     sorted_x = sorted(x)
@@ -153,10 +144,7 @@ def _relevant(x) -> List[Any]:
     len_x = len(x)
     if not x:
       x = [0]
-    max_x = max(x)
-    min_x = min(x)
-    return [orig_x, len_x, len(set(x)), max_x, min_x, max_x - min_x,
-            sum(x), x[0], x[-1]]
+    return [orig_x, len_x, max(x), min(x), sum(x), x[0], x[-1]]
   else:
     raise NotImplementedError(f'x has unhandled type {type(x)}')
 
@@ -335,9 +323,7 @@ def _property_signature_concrete_value(
        for i in range(output_value.num_examples)])
 
 
-def run_lambda(
-    value: value_module.Value,
-) -> Optional[List[List[Tuple[List[Any], Any]]]]:
+def _run_lambda(value: value_module.Value) -> List[List[Tuple[List[Any], Any]]]:
   """Runs a lambda on canonical values."""
   arity = value.num_free_variables
   assert arity > 0
@@ -352,10 +338,6 @@ def run_lambda(
           io_pairs.append((inputs_list, result))
       except:  # pylint: disable=bare-except
         pass
-  if all(not pairs_for_example for pairs_for_example in io_pairs_per_example):
-    # The lambda never ran successfully for any attempted input list for any I/O
-    # example. Return None to signal this.
-    return None
   return io_pairs_per_example
 
 
@@ -364,10 +346,10 @@ def _property_signature_lambda(
     output_value: value_module.Value,
     fixed_length: bool = True) -> List[Tuple[float, bool, bool, float]]:
   """Returns a property signature for a lambda value."""
-  io_pairs_per_example = run_lambda(value)
-  if not io_pairs_per_example:
-    # The lambda never ran successfully. We return all padding here, but such a
-    # value shouldn't be kept in search.
+  io_pairs_per_example = _run_lambda(value)
+  if all(not pairs_for_example for pairs_for_example in io_pairs_per_example):
+    # The lambda never ran successfully for any attempted input list for any I/O
+    # example. Let's just return all padding.
     return [_REDUCED_PADDING] * _SIGNATURE_LENGTH_LAMBDA_VALUE
   signatures_to_reduce = []
   for example_index, pairs in enumerate(io_pairs_per_example):
