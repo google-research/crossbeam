@@ -110,6 +110,13 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
   values_by_weight = [collections.OrderedDict()
                       for _ in range(max_weight + 1)]
 
+  # Add inputs before constants. If an input is equal to a constant, use the
+  # input instead.
+  for input_name, input_value in task.inputs_dict.items():
+    _add_value_by_weight(values_by_weight,
+                         value_module.InputVariable(input_value,
+                                                    name=input_name))
+
   constants = domain.constants
   constants_extractor = domain.constants_extractor
   assert (constants is None) != (constants_extractor is None), (
@@ -119,10 +126,6 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
   for constant in constants_extractor(task):
     _add_value_by_weight(values_by_weight, value_module.ConstantValue(constant))
 
-  for input_name, input_value in task.inputs_dict.items():
-    _add_value_by_weight(values_by_weight,
-                         value_module.InputVariable(input_value,
-                                                    name=input_name))
   for v in variables.first_free_vars(variables.MAX_NUM_FREE_VARS):
     _add_value_by_weight(values_by_weight, v)
 

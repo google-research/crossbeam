@@ -26,7 +26,8 @@ class BottomUpDataGenerationTest(parameterized.TestCase):
   @parameterized.parameters(
       ('tuple',),
       ('arithmetic',),
-      ('bustle',))
+      ('bustle',),
+      ('deepcoder',))
   def test_runs(self, domain_str):
     domain = domains.get_domain(domain_str)
     tasks = bottom_up_data_generation.generate_data(
@@ -44,7 +45,11 @@ class BottomUpDataGenerationTest(parameterized.TestCase):
     self.assertLen(tasks, 20)
     self.assertTrue(all(4 <= t.solution.get_weight() <= 6 for t in tasks))
     if domain.output_type:
-      self.assertTrue(all(t.solution.type == domain.output_type for t in tasks))
+      for t in tasks:
+        if isinstance(domain.output_type, (tuple, list)):
+          self.assertIn(t.solution.type, domain.output_type)
+        else:
+          self.assertEqual(t.solution.type, domain.output_type)
 
 if __name__ == '__main__':
   absltest.main()
