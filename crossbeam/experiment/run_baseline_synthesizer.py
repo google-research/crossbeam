@@ -66,7 +66,7 @@ def run_synthesis(domain, tasks, timeout, max_values_explored=None,
       print('Solution: {}, weight {}'.format(
           result.expression() if result else None,
           result.get_weight() if result else None))
-      print('Time: {:.2f}, num values explored: {}, num distinct tasks: {}'
+      print('Time: {:.2f}, num values explored: {}, num distinct values: {}'
             .format(elapsed_time, stats['num_values_explored'], len(value_set)))
       print()
 

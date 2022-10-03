@@ -53,7 +53,7 @@ length signatures).
 # pylint: disable=unidiomatic-typecheck
 
 import itertools
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Type
 
 from crossbeam.dsl import deepcoder_operations
 from crossbeam.dsl import value as value_module
@@ -61,25 +61,16 @@ from crossbeam.dsl import value as value_module
 DEFAULT_VALUES = {
     bool: False,
     int: 0,
-    list: [],
+    list: [0],
 }
 
+# DeepCoder only uses lambdas that take int(s) as input.
 VALUES_TO_TRY = {
-    bool: [False, True],
-    int: [-100, -50, -20, -10, -7] + list(range(-5, 6)) + [7, 10, 20, 50, 100],
-    list: [
-        [],
-        [0], [-1], [1], [6],
-        [0, 1], [2, 2], [-2, -4], [5, -3], [-8, 1],
-        [1, 2, 3], [6, 2, 5], [-5, 2, -19],
-        [-32, 51, -45, 23],
-        [0, 0, 0, 0, 0],
-        [2, 2, 1, 3, 3, 0],
-        [5, -6, 9, -19, 43, 22, -1],
-        [6, 21, 23, 45, 55, 67, 72, 75],
-        [24, -22, 0, 1, 6, -59, 35, 1, -2],
-        [0, 0, 0, 1, 1, 1, 1, 2, 3, 3],
-    ],
+    int: (
+        [-176, -97, -55, -28, -13] +
+        list(range(-10, 11)) +
+        [16, 35, 66, 85, 143, 239]
+    ),
 }
 
 # The maximum number of inputs for a lambda Value or an I/O example, if
@@ -99,7 +90,7 @@ def _basic_properties(x) -> List[bool]:
   """Returns a list of basic properties for an object."""
   type_x = type(x)
   if type_x is bool:
-    return [x, not x]
+    return [x]
   elif type_x is int:
     abs_x = abs(x)
     return [
@@ -109,16 +100,22 @@ def _basic_properties(x) -> List[bool]:
         x == 2,
         x > 0,
         x < 0,
+        x % 2 == 0,
         abs_x < 5,
         abs_x < 10,
+        abs_x < 15,
         abs_x < 20,
+        abs_x < 30,
+        abs_x < 40,
         abs_x < 50,
+        abs_x < 75,
         abs_x < 100,
+        abs_x < 150,
+        abs_x < 200,
     ]
   elif type_x is list:
-    sorted_x = sorted(x)
-    reverse_sorted_x = list(sorted_x)
-    reverse_sorted_x.reverse()
+    sorted_x = list(sorted(x))
+    reverse_sorted_x = list(reversed(sorted_x))
     num_unique = len(set(x))
     return [
         x == sorted_x,
@@ -142,8 +139,11 @@ def _relevant(x) -> List[Any]:
     orig_x = x
     len_x = len(x)
     if not x:
-      x = [0]
-    return [orig_x, len_x, max(x), min(x), sum(x), x[0], x[-1]]
+      x = DEFAULT_VALUES[type_x]
+    max_x = max(x)
+    min_x = min(x)
+    return [orig_x, len_x, len(set(x)), max_x, min_x, max_x - min_x,
+            sum(x), x[0], x[-1]]
   else:
     raise NotImplementedError(f'x has unhandled type {type(x)}')
 
@@ -174,17 +174,22 @@ def _compare_same_type(x, y) -> List[bool]:
   type_x = type(x)
   assert type_x == type(y)
   if type_x is bool:
-    return [x == y, x != y, x and y, x or y]
+    return [x == y, x and y, x or y]
   elif type_x is int:
     abs_diff = abs(x - y)
     return [
         x == y,
         x < y,
         x > y,
+        x != 0 and y % x == 0,
+        y != 0 and x % y == 0,
         abs_diff < 2,
         abs_diff < 5,
         abs_diff < 10,
+        abs_diff < 20,
+        abs_diff < 50,
         abs_diff < 100,
+        abs_diff < 200,
         (x >= 0) == (y >= 0),  # Signs are the same.
     ]
   elif type_x is list:
@@ -198,7 +203,9 @@ def _compare_same_type(x, y) -> List[bool]:
         len_x > len_y,
         len_x < len_y,
         abs(len_x - len_y) < 2,
+        all(xi < yi for xi, yi in zip(x, y)),
         all(xi <= yi for xi, yi in zip(x, y)),
+        all(xi > yi for xi, yi in zip(x, y)),
         all(xi >= yi for xi, yi in zip(x, y)),
         all(xi == yi for xi, yi in zip(x, y)),  # One is prefix of the other.
         unique_x == unique_y,
@@ -209,7 +216,7 @@ def _compare_same_type(x, y) -> List[bool]:
     raise NotImplementedError(f'x has unhandled type {type(x)}')
 
 
-def _compare(x, y, fixed_length) -> List[Optional[bool]]:
+def _compare(x, y, fixed_length, x_types=None) -> List[Optional[bool]]:
   """Compares two concrete (non-lambda) objects of any type."""
   type_x = type(x)
   type_y = type(y)
@@ -217,12 +224,18 @@ def _compare(x, y, fixed_length) -> List[Optional[bool]]:
     if type_x == type_y:
       return _compare_same_type(x, y)
     return (sum((_compare_same_type(r, y)
-                 for r in _relevant(x) if type(r) == type_y), []) +
+                 for r in _relevant(x) + _basic_properties(x)
+                 if type(r) == type_y), []) +
             sum((_compare_same_type(x, r)
-                 for r in _relevant(y) if type_x == type(r)), []))
+                 for r in _relevant(y) + _basic_properties(y)
+                 if type_x == type(r)), []))
   else:
     result = []
-    for (type_1, type_2) in itertools.product(DEFAULT_VALUES, repeat=2):
+    if x_types is None:
+      type_pairs = itertools.product(DEFAULT_VALUES, repeat=2)
+    else:
+      type_pairs = itertools.product(x_types, DEFAULT_VALUES)
+    for (type_1, type_2) in type_pairs:
       result.extend(_compare(x, y, fixed_length=False)
                     if (type_x, type_y) == (type_1, type_2)
                     else [None] * _COMPARE_LENGTH_BY_TYPES[(type_1, type_2)])
@@ -239,11 +252,13 @@ _COMPARE_LENGTH_BY_TYPES = {
 def _property_signature_single_example(
     inputs: List[Any],
     output: Any,
-    fixed_length: bool = True) -> List[Optional[bool]]:
+    fixed_length: bool = True,
+    input_types: Optional[List[Type[Any]]] = None) -> List[Optional[bool]]:
   """Returns a property signature for a single I/O example."""
   if not fixed_length:
     return _basic_signature(output, fixed_length) + sum(
-        (_basic_signature(i, fixed_length) + _compare(i, output, fixed_length)
+        (_basic_signature(i, fixed_length) + _compare(i, output, fixed_length,
+                                                      x_types=input_types)
          for i in inputs), [])
   else:
     if len(inputs) > FIXED_NUM_INPUTS:
@@ -251,7 +266,8 @@ def _property_signature_single_example(
     result = _basic_signature(output, fixed_length)
     basic_sig_length = len(result)
     result.extend(sum(
-        (_basic_signature(i, fixed_length) + _compare(i, output, fixed_length)
+        (_basic_signature(i, fixed_length) + _compare(i, output, fixed_length,
+                                                      x_types=input_types)
          for i in inputs), []))
     if len(inputs) < FIXED_NUM_INPUTS:
       assert (len(result) - basic_sig_length) % len(inputs) == 0
@@ -322,7 +338,9 @@ def _property_signature_concrete_value(
        for i in range(output_value.num_examples)])
 
 
-def _run_lambda(value: value_module.Value) -> List[List[Tuple[List[Any], Any]]]:
+def run_lambda(
+    value: value_module.Value,
+) -> Optional[List[List[Tuple[List[Any], Any]]]]:
   """Runs a lambda on canonical values."""
   arity = value.num_free_variables
   assert arity > 0
@@ -337,6 +355,10 @@ def _run_lambda(value: value_module.Value) -> List[List[Tuple[List[Any], Any]]]:
           io_pairs.append((inputs_list, result))
       except:  # pylint: disable=bare-except
         pass
+  if all(not pairs_for_example for pairs_for_example in io_pairs_per_example):
+    # The lambda never ran successfully for any attempted input list for any I/O
+    # example. Return None to signal this.
+    return None
   return io_pairs_per_example
 
 
@@ -345,10 +367,10 @@ def _property_signature_lambda(
     output_value: value_module.Value,
     fixed_length: bool = True) -> List[Tuple[float, bool, bool, float]]:
   """Returns a property signature for a lambda value."""
-  io_pairs_per_example = _run_lambda(value)
-  if all(not pairs_for_example for pairs_for_example in io_pairs_per_example):
-    # The lambda never ran successfully for any attempted input list for any I/O
-    # example. Let's just return all padding.
+  io_pairs_per_example = run_lambda(value)
+  if not io_pairs_per_example:
+    # The lambda never ran successfully. We return all padding here, but such a
+    # value shouldn't be kept in search.
     return [_REDUCED_PADDING] * _SIGNATURE_LENGTH_LAMBDA_VALUE
   signatures_to_reduce = []
   for example_index, pairs in enumerate(io_pairs_per_example):
@@ -356,7 +378,8 @@ def _property_signature_lambda(
       signatures_to_reduce.append(
           _type_property(value) +
           _compare(output, output_value[example_index], fixed_length) +
-          _property_signature_single_example(inputs, output, fixed_length))
+          _property_signature_single_example(inputs, output, fixed_length,
+                                             input_types=list(VALUES_TO_TRY)))
   return _reduce_across_examples(signatures_to_reduce)
 
 
