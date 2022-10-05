@@ -71,6 +71,12 @@ def bustle_inputs_dict_generator(num_inputs, num_examples):
           symbol_map[symbol] = bustle_input_generator()
         inp += symbol_map[symbol]
       inputs_dict['in{}'.format(i + 1)].append(inp)
+
+  # If an input is duplicated, try again.
+  for name_1, name_2 in itertools.combinations(inputs_dict, 2):
+    if inputs_dict[name_1] == inputs_dict[name_2]:
+      return bustle_inputs_dict_generator(num_inputs, num_examples)
+
   return inputs_dict
 
 

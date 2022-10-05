@@ -17,7 +17,7 @@
 import abc
 import functools
 
-_FUNCTION_TYPE = type(lambda x: x)
+_FUNCTION_TYPE = type(lambda x: x)  # pylint: disable=invalid-name
 
 
 class Value(abc.ABC):

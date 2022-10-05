@@ -20,16 +20,9 @@ import itertools
 import random
 import timeit
 
+from crossbeam.algorithm import variables
 from crossbeam.dsl import value as value_module
-
-
-MAX_NUM_FREE_VARS = 2
-MAX_NUM_BOUND_VARS = 2
-
-ALL_FREE_VARS = [value_module.get_free_variable(i)
-                 for i in range(MAX_NUM_FREE_VARS)]
-ALL_BOUND_VARS = [value_module.get_bound_variable(i)
-                  for i in range(MAX_NUM_BOUND_VARS)]
+from crossbeam.property_signatures import property_signatures
 
 
 def _add_value_by_weight(values_by_weight, value):
@@ -92,18 +85,9 @@ def generate_partitions(num_elements, num_parts):
 
 
 @functools.lru_cache(maxsize=None)
-def first_free_vars(n):
-  return ALL_FREE_VARS[:n]
-
-
-@functools.lru_cache(maxsize=None)
-def first_bound_vars(n):
-  return ALL_BOUND_VARS[:n]
-
-
-@functools.lru_cache(maxsize=None)
 def available_variables(num_free_vars, num_bound_vars):
-  return first_free_vars(num_free_vars) + first_bound_vars(num_bound_vars)
+  return (variables.first_free_vars(num_free_vars) +
+          variables.first_bound_vars(num_bound_vars))
 
 
 @functools.lru_cache(maxsize=None)
@@ -126,6 +110,13 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
   values_by_weight = [collections.OrderedDict()
                       for _ in range(max_weight + 1)]
 
+  # Add inputs before constants. If an input is equal to a constant, use the
+  # input instead.
+  for input_name, input_value in task.inputs_dict.items():
+    _add_value_by_weight(values_by_weight,
+                         value_module.InputVariable(input_value,
+                                                    name=input_name))
+
   constants = domain.constants
   constants_extractor = domain.constants_extractor
   assert (constants is None) != (constants_extractor is None), (
@@ -135,11 +126,7 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
   for constant in constants_extractor(task):
     _add_value_by_weight(values_by_weight, value_module.ConstantValue(constant))
 
-  for input_name, input_value in task.inputs_dict.items():
-    _add_value_by_weight(values_by_weight,
-                         value_module.InputVariable(input_value,
-                                                    name=input_name))
-  for v in first_free_vars(MAX_NUM_FREE_VARS):
+  for v in variables.first_free_vars(variables.MAX_NUM_FREE_VARS):
     _add_value_by_weight(values_by_weight, v)
 
   # A set storing all values found so far.
@@ -158,8 +145,8 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
     return match, value_set, values_by_weight, stats
 
   for target_weight in range(2, max_weight + 1):
-    for num_free_vars, op in itertools.product(range(0, MAX_NUM_FREE_VARS + 1),
-                                               domain.operations):
+    for num_free_vars, op in itertools.product(
+        range(0, variables.MAX_NUM_FREE_VARS + 1), domain.operations):
       if target_weight >= max_weight and num_free_vars > 0:
         break
 
@@ -167,7 +154,7 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
       arg_types = op.arg_types()
       if arg_types is None:
         arg_types = [None] * op.arity
-      free_vars = first_free_vars(num_free_vars)
+      free_vars = variables.first_free_vars(num_free_vars)
       free_vars_names = set(v.name for v in free_vars)
 
       remaining_weight = target_weight - op.weight - num_free_vars
@@ -230,6 +217,11 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
               if value == output_value:
                 # Found solution!
                 return value, value_set, values_by_weight, stats
+            else:
+              io_pairs_per_example = property_signatures.run_lambda(value)
+              if not io_pairs_per_example:
+                # The lambda never ran successfully, so let's skip it.
+                continue
 
             values_by_weight[target_weight][value] = value
             value_set.add(value)

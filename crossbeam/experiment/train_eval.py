@@ -79,12 +79,20 @@ def task_loss(task, device, training_samples, all_values, model, score_normed=Tr
     cur_vals = val_embed[:num_vals]
     cur_vals = model.encode_weight(cur_vals, aux_info)
     op_state = model.init(io_embed, cur_vals, op)
-    scores = model.arg(op_state, cur_vals, arg_options)
-    scores = torch.sum(scores, dim=-1)
-    if score_normed:
-      nll = -scores[true_arg_pos]
-    else:
-      nll = -F.log_softmax(scores, dim=0)[true_arg_pos]
+    # arg selection
+    arg_scores, last_state = model.arg(op_state, cur_vals, arg_options[:, :op.arity].contiguous(), need_last_state=True)
+    arg_scores = torch.sum(arg_scores, dim=-1)
+    nll = -arg_scores[true_arg_pos]
+
+    # binding options
+    argv_options = arg_options[true_arg_pos, op.arity:]
+    argv_options = argv_options[argv_options >= 0]
+    if argv_options.shape[0]:
+      init_argv_state = model.arg.state_select(last_state, [true_arg_pos])
+      argv_score = model.arg(init_argv_state, model.special_var_embed, argv_options.unsqueeze(0))
+      nll = nll - torch.sum(argv_score)
+    # TODO(hadai): if we want to allow contrastive learning then we also need argv_scores for negative samples.
+    assert score_normed
     loss = loss + nll
   loss = loss / len(training_samples)
   return loss
