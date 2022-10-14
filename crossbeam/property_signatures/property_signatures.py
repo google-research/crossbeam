@@ -362,12 +362,24 @@ def run_lambda(
   return io_pairs_per_example
 
 
+def is_value_valid(value: value_module.Value) -> bool:
+  if value is None:
+    return False
+  if not value.num_free_variables:
+    return True
+  if not hasattr(value, 'lambda_exec_results'):
+    value.lambda_exec_results = run_lambda(value)
+  return value.lambda_exec_results != None
+
+
 def _property_signature_lambda(
     value: value_module.Value,
     output_value: value_module.Value,
     fixed_length: bool = True) -> List[Tuple[float, bool, bool, float]]:
   """Returns a property signature for a lambda value."""
-  io_pairs_per_example = run_lambda(value)
+  if not hasattr(value, 'lambda_exec_results'):
+    value.lambda_exec_results = run_lambda(value)
+  io_pairs_per_example = value.lambda_exec_results
   if not io_pairs_per_example:
     # The lambda never ran successfully. We return all padding here, but such a
     # value shouldn't be kept in search.

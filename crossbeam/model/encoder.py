@@ -388,17 +388,13 @@ class LambdaSigValueEncoder(LambdaSignature):
       nn.Linear(hidden_size * 2, hidden_size)
     )
 
-  def forward(self, all_values, device, output_values):
+  def forward_with_signatures(self, all_values, device, list_normal_signatures):
     list_special_vars = []
     feat_special_vars = []
-    list_normal_signatures = []
     for vidx, v in enumerate(all_values):
       if isinstance(v, value_module.FreeVariable):
         list_special_vars.append(vidx)
         feat_special_vars.append(self.freevar_embed[int(v.name[1:]) - 1].view(1, -1))
-      else:
-        signature = deepcoder_propsig.property_signature_value(v, output_values, fixed_length=True)
-        list_normal_signatures.append(signature)
 
     normal_sig_embed = super(LambdaSigValueEncoder, self).forward(list_normal_signatures, device)
     normal_sig_embed = self.mlp(normal_sig_embed)
@@ -413,6 +409,18 @@ class LambdaSigValueEncoder(LambdaSignature):
       all_embed = torch.cat([part1, special_embed, part2], dim=0)
     assert all_embed.shape[0] == len(all_values)
     return all_embed
+
+  def forward(self, all_values, device, output_values, need_signatures=False):
+    list_normal_signatures = []
+    for v in all_values:
+      if not isinstance(v, value_module.FreeVariable):
+        signature = deepcoder_propsig.property_signature_value(v, output_values, fixed_length=True)
+        list_normal_signatures.append(signature)
+    all_embed = self.forward_with_signatures(all_values, device, output_values, list_normal_signatures)
+    if need_signatures:
+      return all_embed, list_normal_signatures
+    else:
+      return all_embed
 
 
 class CharAndPropSigValueEncoder(nn.Module):

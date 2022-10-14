@@ -20,7 +20,7 @@ from copy import deepcopy
 from crossbeam.algorithm.beam_search import beam_search 
 from crossbeam.dsl import value as value_module
 from crossbeam.unique_randomizer import unique_randomizer as ur
-
+from crossbeam.property_signatures import property_signatures
 from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS, MAX_NUM_ARGVS, ALL_BOUND_VARS, ALL_FREE_VARS, ARGV_MAP
 
 
@@ -127,12 +127,13 @@ def synthesize(task, domain, model, device,
     include_as_train = lambda trace_in_beam: True
 
   all_values = []
+  all_signatures = []
   output_value = init_values(task, domain, all_values)
   all_value_dict = {v: i for i, v in enumerate(all_values)}
 
   if not random_beam:
     io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
-    val_base_embed = model.val(all_values, device=device, output_values=output_value)
+    val_base_embed, all_signatures = model.val(all_values, device=device, output_values=output_value, needs_signatures=True)
     value_embed = model.encode_weight(val_base_embed, [v.get_weight() for v in all_values])
 
   training_samples = []
@@ -149,7 +150,7 @@ def synthesize(task, domain, model, device,
     for operation in domain.operations:
       if (end_time is not None and timeit.default_timer() > end_time) or (
           max_values_explored is not None and stats['num_values_explored'] >= max_values_explored):
-        return None, all_values, stats
+        return None, (all_values, all_signatures), stats
       if verbose:
         print('Operation: {}'.format(operation))
       num_values_before_op = len(all_values)
@@ -220,7 +221,7 @@ def synthesize(task, domain, model, device,
           all_value_dict[new_value] = len(all_values)
           all_values.append(new_value)
           if new_value == output_value:
-            return new_value, all_values, stats
+            return new_value, (all_values, all_signatures), stats
 
         continue
       
@@ -232,7 +233,8 @@ def synthesize(task, domain, model, device,
           args[b] += [np.random.randint(0, len(all_values)) for _ in range(operation.arity)]
       else:
         if len(all_values) > val_base_embed.shape[0]:
-          more_val_embed = model.val(all_values[val_base_embed.shape[0]:], device=device, output_values=output_value)
+          more_val_embed, more_signatures = model.val(all_values[val_base_embed.shape[0]:], device=device, output_values=output_value, need_signatures=True)
+          all_signatures += more_signatures
           val_base_embed = torch.cat((val_base_embed, more_val_embed), dim=0)
         value_embed = model.encode_weight(val_base_embed, weight_snapshot)
         op_state = model.init(io_embed, value_embed, operation)
@@ -254,6 +256,8 @@ def synthesize(task, domain, model, device,
         stats['num_values_explored'] += 1
         if result_value is None or result_value.get_weight() > max_weight:
           continue
+        if not property_signatures.is_value_valid(result_value):
+          continue
         if (domain.small_value_filter and
             not all(domain.small_value_filter(v) for v in result_value.values)):
           continue
@@ -265,7 +269,7 @@ def synthesize(task, domain, model, device,
         all_value_dict[result_value] = len(all_values)
         all_values.append(result_value)
         if result_value == output_value and not is_training:
-          return result_value, all_values, stats
+          return result_value, (all_values, all_signatures), stats
         # TODO: allow multi-choice when options in trace have the same priority
         # one easy fix would to include this into trace_generation stage (add stochasticity)
         if len(trace) and result_value == trace[0] and trace_in_beam < 0:
@@ -292,8 +296,8 @@ def synthesize(task, domain, model, device,
         trace_values[trace[0]] = true_val
         trace.pop(0)
         if len(trace) == 0:
-          return training_samples, all_values, stats
+          return training_samples, (all_values, all_signatures), stats
     if len(all_values) == cur_num_values and not use_ur and not is_stochastic:
       # no improvement
       break
-  return None, all_values, stats
+  return None, (all_values, all_signatures), stats
