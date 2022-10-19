@@ -416,7 +416,7 @@ class LambdaSigValueEncoder(LambdaSignature):
       if not isinstance(v, value_module.FreeVariable):
         signature = deepcoder_propsig.property_signature_value(v, output_values, fixed_length=True)
         list_normal_signatures.append(signature)
-    all_embed = self.forward_with_signatures(all_values, device, output_values, list_normal_signatures)
+    all_embed = self.forward_with_signatures(all_values, device, list_normal_signatures)
     if need_signatures:
       return all_embed, list_normal_signatures
     else:

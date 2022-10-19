@@ -133,7 +133,7 @@ def synthesize(task, domain, model, device,
 
   if not random_beam:
     io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
-    val_base_embed, all_signatures = model.val(all_values, device=device, output_values=output_value, needs_signatures=True)
+    val_base_embed, all_signatures = model.val(all_values, device=device, output_values=output_value, need_signatures=True)
     value_embed = model.encode_weight(val_base_embed, [v.get_weight() for v in all_values])
 
   training_samples = []
