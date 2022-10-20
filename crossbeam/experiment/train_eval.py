@@ -34,6 +34,7 @@ import traceback
 from crossbeam.dsl import domains
 from crossbeam.dsl import value as value_module
 from crossbeam.common.config import get_torch_device
+from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS
 from absl import logging
 import timeit
 import json
@@ -70,8 +71,11 @@ def thread_wrapped_func(func):
 
 
 def task_loss(task, device, training_samples, all_values, model, score_normed=True):
+  all_values, all_signatures = all_values
+  effective_values = len(all_signatures) + MAX_NUM_FREE_VARS
+  all_values = all_values[:effective_values]
   io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
-  val_embed = model.val(all_values, device=device, output_values=value_module.OutputValue(task.outputs))
+  val_embed = model.val.forward_with_signatures(all_values, device=device, list_normal_signatures=all_signatures)
   loss = 0.0
   for sample in training_samples:
     arg_options, aux_info, true_arg_pos, num_vals, op = sample

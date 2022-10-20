@@ -15,12 +15,12 @@
 # limitations under the License.
 
 
-tout=1800
+tout=60
 maxw=14
 maxne=5
 maxni=3
-skip=0.75
-lambdaskip=0.5
+skip=0.00
+lambdaskip=0.00
 
 data_folder=$HOME/xlambda-data/deepcoder/t-${tout}-maxne-${maxne}-maxni-${maxni}-skip-${skip}-lambdaskip-${lambdaskip}
 
