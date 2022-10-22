@@ -16,11 +16,6 @@ import numpy as np
 VERBOSITY = 2
 
 
-def sig_to_np(sig):
-  return np.array([[frac_applicable, frac_true]
-                   for frac_applicable, _, _, frac_true in sig])
-
-
 def sig_distance(x, y):
   return np.linalg.norm(x - y)
 
@@ -125,12 +120,12 @@ def evaluate_property_signatures(value_set, output_value):
         f'values with unique functionality.')
   print()
 
-  concrete_sigs_np = [sig_to_np(sig) for sig in concrete_sigs]
-  lambda_sigs_np = [sig_to_np(sig) for sig in lambda_sigs]
+  concrete_sigs_np = [np.array(sig) for sig in concrete_sigs]
+  lambda_sigs_np = [np.array(sig) for sig in lambda_sigs]
 
-  print('For concrete signatures:')
-  analyze_distances(concrete_values, concrete_sigs_np)
-  print()
+  #print('For concrete signatures:')
+  #analyze_distances(concrete_values, concrete_sigs_np)
+  #print()
 
   print('For lambda signatures:')
   analyze_distances(lambda_values, lambda_sigs_np)
@@ -146,15 +141,18 @@ def main(argv):
       'lst': [[1, 2, 3], [4, 5, 6]],
   }
   outputs = [
-      [4, 5, 6],
-      [9, 10, 11],
+      [4, 5],
+      [9, 10],
+      #[4, 5, 6],
+      #[9, 10, 11],
   ]
   task = task_module.Task(inputs_dict, outputs, solution='')
   domain = domains.get_domain('deepcoder')
   result, value_set, _, _ = baseline_enumeration.synthesize_baseline(
-      task, domain, timeout=5)
+      task, domain, timeout=60)
+  print(f'Found solution: {result.expression()}')
   assert (result.expression() ==
-          'Map(lambda u1: (lambda v1: Add(delta, v1))(u1), lst)')
+          'Take(-1, Map(lambda u1: (lambda v1: Add(delta, v1))(u1), lst))')
 
   value_set = sorted(list(value_set), key=str)
 

@@ -53,6 +53,7 @@ length signatures).
 # pylint: disable=unidiomatic-typecheck
 
 import itertools
+import random
 from typing import Any, List, Optional, Tuple, Type
 
 from crossbeam.dsl import deepcoder_operations
@@ -67,17 +68,19 @@ DEFAULT_VALUES = {
 
 # DeepCoder only uses lambdas that take int(s) as input.
 VALUES_TO_TRY = {
-    int: (
-        [-176, -97, -55, -28, -13] +
-        list(range(-10, 11)) +
-        [16, 35, 66, 85, 143, 239]
-    ),
+    int: [-176, -67, -31, -7, -3, -2, -1, 0, 1, 2, 3, 5, 16, 25, 83, 130],
+    #int: (
+    #    [-176, -97, -55, -28, -13] +
+    #    list(range(-10, 11)) +
+    #    [16, 35, 66, 85, 143, 239]
+    #),
 }
 
 # The maximum number of inputs for a lambda Value or an I/O example, if
 # fixed-length signatures are desired. The inputs will be padded or truncated to
 # match this number.
-FIXED_NUM_INPUTS = 3
+FIXED_NUM_IO_INPUTS = 3
+FIXED_NUM_LAMBDA_INPUTS = 2
 
 
 def _type_property(x) -> List[bool]:
@@ -254,6 +257,7 @@ def _property_signature_single_example(
     inputs: List[Any],
     output: Any,
     fixed_length: bool = True,
+    fixed_num_inputs: int = FIXED_NUM_IO_INPUTS,
     input_types: Optional[List[Type[Any]]] = None) -> List[Optional[bool]]:
   """Returns a property signature for a single I/O example."""
   if not fixed_length:
@@ -262,19 +266,19 @@ def _property_signature_single_example(
                                                       x_types=input_types)
          for i in inputs), [])
   else:
-    if len(inputs) > FIXED_NUM_INPUTS:
-      inputs = inputs[:FIXED_NUM_INPUTS]
+    if len(inputs) > fixed_num_inputs:
+      inputs = inputs[:fixed_num_inputs]
     result = _basic_signature(output, fixed_length)
     basic_sig_length = len(result)
     result.extend(sum(
         (_basic_signature(i, fixed_length) + _compare(i, output, fixed_length,
                                                       x_types=input_types)
          for i in inputs), []))
-    if len(inputs) < FIXED_NUM_INPUTS:
+    if len(inputs) < fixed_num_inputs:
       assert (len(result) - basic_sig_length) % len(inputs) == 0
       result.extend([None] * (
           (len(result) - basic_sig_length) // len(inputs) *  # Length per input
-          (FIXED_NUM_INPUTS - len(inputs))))  # Number of inputs to pad
+          (fixed_num_inputs - len(inputs))))  # Number of inputs to pad
     return  result
 
 
@@ -301,10 +305,7 @@ def _reduce_across_examples(
     bools_not_none = [x for x in bools if x is not None]
     num_not_none = len(bools_not_none)
     frac_true = sum(bools_not_none) / num_not_none if num_not_none else 0.5
-    result.append((len(bools_not_none) / num_examples,
-                   frac_true == 1,
-                   frac_true == 0,
-                   frac_true))
+    result.append((len(bools_not_none) / num_examples, frac_true))
   return result
 
 
@@ -318,7 +319,9 @@ def property_signature_io_examples(
   return _reduce_across_examples(
       [_property_signature_single_example(  # pylint: disable=g-complex-comprehension
           [i_value[example_index] for i_value in input_values],
-          output_value[example_index], fixed_length=fixed_length)
+          output_value[example_index],
+          fixed_length=fixed_length,
+          fixed_num_inputs=FIXED_NUM_IO_INPUTS)
        for example_index in range(num_examples)])
 
 IO_EXAMPLES_SIGNATURE_LENGTH = len(property_signature_io_examples(
@@ -348,12 +351,16 @@ def run_lambda(
   num_examples = value.num_examples
   io_pairs_per_example = [[] for _ in range(num_examples)]
   inputs_to_try = sum(VALUES_TO_TRY.values(), [])
-  for inputs_list in itertools.product(inputs_to_try, repeat=arity):
-    for lambda_fn, io_pairs in zip(value.values, io_pairs_per_example):
+  for i, (lambda_fn, io_pairs) in enumerate(zip(value.values, io_pairs_per_example)):
+    shuffled_product = list(itertools.product(inputs_to_try, repeat=arity))
+    random.Random(i).shuffle(shuffled_product)
+    for inputs_list in shuffled_product:
       try:
         result = lambda_fn(*inputs_list)
         if domains.deepcoder_small_value_filter(result):
           io_pairs.append((inputs_list, result))
+          if len(io_pairs) >= 10:
+            break
       except:  # pylint: disable=bare-except
         pass
   if all(not pairs_for_example for pairs_for_example in io_pairs_per_example):
@@ -391,8 +398,10 @@ def _property_signature_lambda(
       signatures_to_reduce.append(
           _type_property(value) +
           _compare(output, output_value[example_index], fixed_length) +
-          _property_signature_single_example(inputs, output, fixed_length,
-                                             input_types=list(VALUES_TO_TRY)))
+          _property_signature_single_example(
+            inputs, output, fixed_length,
+            fixed_num_inputs=FIXED_NUM_LAMBDA_INPUTS,
+            input_types=list(VALUES_TO_TRY)))
   return _reduce_across_examples(signatures_to_reduce)
 
 
@@ -416,7 +425,8 @@ def property_signature_value(
                                                  fixed_length) +
               [_REDUCED_PADDING] * _SIGNATURE_LENGTH_LAMBDA_VALUE)
 
-_REDUCED_PADDING = (0.0, False, False, 0.5)
+_REDUCED_PADDING = (0.0, 0.5)
+SIGNATURE_TUPLE_LENGTH = len(_REDUCED_PADDING)
 _SIGNATURE_LENGTH_CONCRETE_VALUE = len(_property_signature_concrete_value(
     value_module.ConstantValue(0), value_module.OutputValue([1]),
     fixed_length=True))
@@ -449,13 +459,6 @@ def test():
   for x in [True, False, 0, 1, 15, [], [1, 2, 5], [-4, -4, -4]]:
     sig = _basic_signature(x, fixed_length)
     print(f'_basic_signature({x}) -> len {len(sig)}: {sig}')
-  print()
-
-  inputs = [[1, 2, 4, 7], 3]
-  output = [4, 5, 7, 10]
-  sig = _property_signature_single_example(inputs, output, fixed_length)
-  print(f'_property_signature_single_example({inputs}, {output}) -> '
-        f'len {len(sig)}: {sig}')
   print()
 
   class Mock(object):

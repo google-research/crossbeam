@@ -113,11 +113,48 @@ def decode_args(operation, args, all_values):
   return arg_list, arg_var_list, free_vars
 
 
+def update_stats_value_explored(stats, value):
+  stats['num_values_explored'] += 1
+  if value is None:
+    stats['num_explored_none'] += 1
+  elif value.num_free_variables:
+    stats['num_explored_lambda'] += 1
+  else:
+    stats['num_explored_concrete'] += 1
+
+
+def update_stats_value_kept(stats, value):
+  # Not including trace elements manually added during training.
+  stats['num_values_kept'] += 1
+  if value.num_free_variables:
+    stats['num_kept_lambda'] += 1
+  else:
+    stats['num_kept_concrete'] += 1
+
+
+def update_stats_with_percents(stats):
+  stats.update({
+    'explored_percent_none': stats['num_explored_none'] * 100 / stats['num_values_explored'],
+    'explored_percent_concrete': stats['num_explored_concrete'] * 100 / stats['num_values_explored'],
+    'explored_percent_lambda': stats['num_explored_lambda'] * 100 / stats['num_values_explored'],
+    'kept_percent_concrete': stats['num_kept_concrete'] * 100 / stats['num_values_kept'],
+    'kept_percent_lambda': stats['num_kept_lambda'] * 100 / stats['num_values_kept'],
+  })
+
+
 def synthesize(task, domain, model, device,
                trace=None, max_weight=15, k=2, is_training=False,
                include_as_train=None, timeout=None, max_values_explored=None, is_stochastic=False,
                random_beam=False, use_ur=False, masking=True, static_weight=False):
-  stats = {'num_values_explored': 0}
+  stats = {
+      'num_values_explored': 0,
+      'num_explored_none': 0,
+      'num_explored_concrete': 0,
+      'num_explored_lambda': 0,
+      'num_values_kept': 0,
+      'num_kept_concrete': 0,
+      'num_kept_lambda': 0,
+  }
 
   verbose = False
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
@@ -200,7 +237,8 @@ def synthesize(task, domain, model, device,
           randomizer.mark_sequence_complete()
 
           result_value = operation.apply(arg_list)
-          stats['num_values_explored'] += 1
+          update_stats_value_explored(stats, result_value)
+
           if verbose and result_value is None:
             print('Cannot apply {} to {}'.format(operation, arg_list))
           if result_value is None or result_value.get_weight() > max_weight:
@@ -216,6 +254,7 @@ def synthesize(task, domain, model, device,
           if verbose:
             print('new value: {}, {}'.format(result_value, result_value.expression()))
           new_values.append(result_value)
+          update_stats_value_kept(stats, result_value)
 
         for new_value in new_values:
           all_value_dict[new_value] = len(all_values)
@@ -224,7 +263,7 @@ def synthesize(task, domain, model, device,
             return new_value, (all_values, all_signatures), stats
 
         continue
-      
+
       weight_snapshot = [v.get_weight() for v in all_values]
       if random_beam:
         raise NotImplementedError  #TODO(hadai): enable random beam during training
@@ -253,7 +292,7 @@ def synthesize(task, domain, model, device,
       for beam_pos, args_and_vars in enumerate(args):
         arg_list, arg_vars, free_vars = decode_args(operation, args_and_vars, all_values)
         result_value = operation.apply(arg_list, arg_vars, free_vars)
-        stats['num_values_explored'] += 1
+        update_stats_value_explored(stats, result_value)
         if result_value is None or result_value.get_weight() > max_weight:
           continue
         if not property_signatures.is_value_valid(result_value):
@@ -268,6 +307,7 @@ def synthesize(task, domain, model, device,
           continue
         all_value_dict[result_value] = len(all_values)
         all_values.append(result_value)
+        update_stats_value_kept(stats, result_value)
         if result_value == output_value and not is_training:
           return result_value, (all_values, all_signatures), stats
         # TODO: allow multi-choice when options in trace have the same priority

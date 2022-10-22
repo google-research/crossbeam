@@ -38,6 +38,7 @@ from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS
 from absl import logging
 import timeit
 import json
+import pprint
 
 
 def thread_wrapped_func(func):
@@ -70,8 +71,7 @@ def thread_wrapped_func(func):
     return decorated_function
 
 
-def task_loss(task, device, training_samples, all_values, model, score_normed=True):
-  all_values, all_signatures = all_values
+def task_loss(task, device, training_samples, all_values, all_signatures, model, score_normed=True):
   effective_values = len(all_signatures) + MAX_NUM_FREE_VARS
   all_values = all_values[:effective_values]
   io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
@@ -107,8 +107,9 @@ def do_eval(eval_tasks, domain, model,
             timeout=None, max_values_explored=None, is_stochastic=False, use_ur=True,
             use_type_masking=True, static_weight=False):
   if verbose:
-    print('doing eval...')
+    print(f'doing eval on {len(eval_tasks)} tasks...')
 
+  eval_start_time = timeit.default_timer()
   num_tasks_solved = 0
   json_dict = {'results': []}
   for t in eval_tasks:
@@ -116,7 +117,7 @@ def do_eval(eval_tasks, domain, model,
     if verbose:
       print('\nTask: ', t)
     with torch.no_grad():
-      out, all_values, stats = synthesis.synthesize(
+      out, (all_values, all_signatures), stats = synthesis.synthesize(
           t, domain, model,
           device=device,
           max_weight=max_search_weight,
@@ -130,22 +131,25 @@ def do_eval(eval_tasks, domain, model,
           masking=use_type_masking,
           static_weight=static_weight)
     elapsed_time = timeit.default_timer() - start_time
-    json_dict['results'].append({
+    synthesis.update_stats_with_percents(stats)
+    results_dict = {
         'task': str(t),
         'task_solution': t.solution.expression() if t.solution else None,
         'task_solution_weight': t.solution.get_weight() if t.solution else None,
         'success': bool(out),
         'elapsed_time': elapsed_time,
-        'num_values_explored': stats['num_values_explored'],
         'num_unique_values': len(all_values),
         'solution': out.expression() if out else None,
         'solution_weight': out.get_weight() if out else None,
-    })
+        'stats': stats,
+    }
+    json_dict['results'].append(results_dict)
     if verbose:
-      print('Elapsed time: {:.2f}'.format(elapsed_time))
-      print('Num values explored: {}'.format(stats['num_values_explored']))
-      print('Num unique values: {}'.format(len(all_values)))
-      print('out: {} {}'.format(out, out.expression()) if out else None)
+      pprint.pprint(results_dict)
+      #print('Elapsed time: {:.2f}'.format(elapsed_time))
+      #print('Num values explored: {}'.format(stats['num_values_explored']))
+      #print('Num unique values: {}'.format(len(all_values)))
+      #print('out: {} {}'.format(out, out.expression()) if out else None)
       sys.stdout.flush()
     if out is not None:
       num_tasks_solved += 1
@@ -158,6 +162,9 @@ def do_eval(eval_tasks, domain, model,
   json_dict['num_tasks'] = len(eval_tasks)
   json_dict['num_tasks_solved'] = num_tasks_solved
   json_dict['success_rate'] = success_rate
+
+  eval_time = timeit.default_timer() - eval_start_time
+  print(f'Eval {len(eval_tasks)} tasks took {eval_time:.1f} seconds.')
 
   return success_rate, json_dict
 
@@ -238,14 +245,18 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
 
     # Training
     pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)
+    verbose = False  # TODO(kshi)
     for _ in pbar:
+      grad_step_start_time = timeit.default_timer()
       optimizer.zero_grad()
       batch_tasks = next(train_gen)
       batch_traces = [list(trace_gen(t.solution)) for t in batch_tasks]
       loss_acc = []
+      total_synthesis_time = 0
       for t, trace in zip(batch_tasks, batch_traces):
         with torch.no_grad():
-          training_samples, all_values, _ = synthesis.synthesize(
+          synthesis_start_time = timeit.default_timer()
+          training_samples, (all_values, all_signatures), stats = synthesis.synthesize(
               t, domain, model, device=device,
               trace=trace,
               max_weight=args.max_search_weight,
@@ -254,9 +265,20 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
               random_beam=args.random_beam,
               masking=args.type_masking,
               static_weight=args.static_weight)
+          synthesis_elapsed_time = timeit.default_timer() - synthesis_start_time
+          total_synthesis_time += synthesis_elapsed_time
+        synthesis.update_stats_with_percents(stats)
+        stats.update({
+            'task_num_inputs': len(t.inputs_dict),
+            'task_solution_weight': t.solution.get_weight() if t.solution else None,
+            'elapsed_time': synthesis_elapsed_time,
+            'num_unique_values': len(all_values),
+        })
+        if verbose:
+          pprint.pprint(stats)
 
         if isinstance(training_samples, list):
-          loss = task_loss(t, device, training_samples, all_values, model, score_normed=args.score_normed) / args.num_proc
+          loss = task_loss(t, device, training_samples, all_values, all_signatures, model, score_normed=args.score_normed) / args.num_proc
           loss = loss / args.grad_accumulate
           loss.backward()
           loss_acc.append(loss.item())
@@ -271,6 +293,12 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
       optimizer.step()
       if rank == 0:
         pbar.set_description('train loss: %.2f' % (loss * args.num_proc))
+
+      grad_step_elapsed_time = timeit.default_timer() - grad_step_start_time
+      if verbose:
+        print(f'Grad step time: {grad_step_elapsed_time:.2f} sec')
+        print(f'Synthesis time: {total_synthesis_time:.2f} sec '
+              f'({total_synthesis_time * 100 / grad_step_elapsed_time:.1f}% of grad step time)')
 
   if rank == 0:
     print('Training finished. Performing final evaluation...')
@@ -323,6 +351,8 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
     device = args.gpu
     if args.gpu_list is not None:
       device = int(args.gpu_list.strip())
+    if args.num_valid > 0:
+      eval_tasks = eval_tasks[:args.num_valid]
     train_eval_loop(args, get_torch_device(device), model, train_files, eval_tasks,
                     task_gen, trace_gen)
   logging.info("Training finished!!")

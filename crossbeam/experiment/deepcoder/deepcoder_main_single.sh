@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+date="oct7"
 tout=60
 maxw=14
 maxne=5
@@ -22,15 +22,15 @@ maxni=3
 skip=0.00
 lambdaskip=0.00
 
-data_folder=$HOME/xlambda-data/deepcoder/t-${tout}-maxne-${maxne}-maxni-${maxni}-skip-${skip}-lambdaskip-${lambdaskip}
+data_folder=$HOME/xlambda-data/deepcoder/${date}-t-${tout}-maxne-${maxne}-maxni-${maxni}-skip-${skip}-lambdaskip-${lambdaskip}
 
 beam_size=10
-grad_acc=1
+grad_acc=4
 maxsw=12
 io=lambda_signature
 value=lambda_signature
 
-save_dir=$HOME/results/xlambda/deepcoder/tout-${tout}-io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
+save_dir=$HOME/xlambda-results/deepcoder/oct19-speed-t-${tout}-io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
 
 if [ ! -e $save_dir ];
 then
@@ -57,8 +57,9 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --grad_accumulate $grad_acc \
     --beam_size $beam_size \
     --num_proc=1 \
-    --embed_dim=64 \
-    --eval_every 10 \
+    --embed_dim=64\
+    --eval_every 1000 \
+    --num_valid 100 \
     --use_ur=False \
     --encode_weight=True \
     --train_steps 1000000 \
