@@ -4,34 +4,12 @@
 from crossbeam.dsl import operation_base
 
 
-def check_values(xs):
-  """Checks that all values are acceptable."""
-  return all(check_single_value(e) for e in xs)
-
-
-def check_single_value(x):
-  """Checks that x is not None, does not contain None, and is not nested."""
-  if x is None:
-    return False
-  if isinstance(x, list) and len(x):
-    # All list elements must be int.
-    if not all(type(e) == int for e in x):
-      return False
-  return True
-
-
 class DeepCoderOperation(operation_base.OperationBase):
   """A base class for DeepCoder operations."""
 
   def __init__(self, *args, **kwargs):
     super(DeepCoderOperation, self).__init__(self.__class__.__name__,
                                              *args, **kwargs)
-
-  def apply(self, *args, **kwargs):
-    value = super(DeepCoderOperation, self).apply(*args, **kwargs)
-    if value is None or not check_values(value.values):
-      return None
-    return value
 
 
 ################################################################################
@@ -330,23 +308,31 @@ class Map(DeepCoderOperation):
 
 
 class Filter(DeepCoderOperation):
+  """DeepCoder's Filter operation."""
 
   def __init__(self):
     super(Filter, self).__init__(2, num_bound_variables=[1, 0])
 
   def apply_single(self, raw_args):
     f, xs = raw_args
-    return list(filter(f, xs))
+    conditions = [f(x) for x in xs]
+    if not all(isinstance(x, bool) for x in conditions):
+      return None
+    return [x for x, c in zip(xs, conditions) if c]
 
 
 class Count(DeepCoderOperation):
+  """DeepCoder's Count operation."""
 
   def __init__(self):
     super(Count, self).__init__(2, num_bound_variables=[1, 0])
 
   def apply_single(self, raw_args):
     f, xs = raw_args
-    return len(list(filter(f, xs)))
+    conditions = [f(x) for x in xs]
+    if not all(isinstance(x, bool) for x in conditions):
+      return None
+    return sum(conditions)
 
 
 class ZipWith(DeepCoderOperation):

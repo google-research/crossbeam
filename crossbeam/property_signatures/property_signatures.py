@@ -56,6 +56,7 @@ import itertools
 from typing import Any, List, Optional, Tuple, Type
 
 from crossbeam.dsl import deepcoder_operations
+from crossbeam.dsl import domains
 from crossbeam.dsl import value as value_module
 
 DEFAULT_VALUES = {
@@ -351,7 +352,7 @@ def run_lambda(
     for lambda_fn, io_pairs in zip(value.values, io_pairs_per_example):
       try:
         result = lambda_fn(*inputs_list)
-        if deepcoder_operations.check_single_value(result):
+        if domains.deepcoder_small_value_filter(result):
           io_pairs.append((inputs_list, result))
       except:  # pylint: disable=bare-except
         pass
