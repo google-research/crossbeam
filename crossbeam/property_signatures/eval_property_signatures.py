@@ -12,29 +12,39 @@ from crossbeam.dsl import task as task_module
 from crossbeam.dsl import value as value_module
 from crossbeam.property_signatures import property_signatures
 
-VERBOSITY = 2
+VERBOSITY = 5
 
 
 def analyze_distances(values, sigs):
   """Analyzes distances between signatures."""
   assert len(values) == len(sigs)
   sig_to_value = {}
-  num_zero_distance = 0
-  num_printed = 0
+  num_same_signature = 0
+  num_avoidable_same_signature = 0
+  num_printed = collections.defaultdict(int)
   for value, sig in zip(values, sigs):
     key = str(sig)
     if key in sig_to_value:
-      num_zero_distance += 1
-      if num_printed < VERBOSITY:
-        print('Values have the same signature:')
-        print(f'  {sig_to_value[key]}')
+      num_same_signature += 1
+      value_type = value.type
+      match = sig_to_value[key]
+      avoidable = (set(str(v) for v in value.values)
+                   != set(str(v) for v in match.values))
+      if avoidable:
+        num_avoidable_same_signature += 1
+      if avoidable and num_printed[value_type] < VERBOSITY:
+        print(f'Values of type {value_type} have the same signature:')
+        print(f'  {match}')
         print(f'  {value}')
-        num_printed += 1
+        num_printed[value_type] += 1
     else:
       sig_to_value[key] = value
 
-  print(f'Number of values with already-seen signatures: {num_zero_distance} '
-        f'({num_zero_distance / len(values) * 100:.2f}%)')
+  print(f'Number of values with already-seen signatures: {num_same_signature} '
+        f'({num_same_signature / len(values) * 100:.2f}%)')
+  print(f'Number of values with already-seen signatures but avoidable: '
+        f'{num_avoidable_same_signature} '
+        f'({num_avoidable_same_signature / len(values) * 100:.2f}%)')
 
 
 def evaluate_property_signatures(value_set, output_value, profile=False):
