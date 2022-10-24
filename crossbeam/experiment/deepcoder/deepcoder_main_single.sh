@@ -30,7 +30,7 @@ maxsw=12
 io=lambda_signature
 value=lambda_signature
 
-save_dir=$HOME/xlambda-results/deepcoder/oct19-speed-t-${tout}-io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
+save_dir=$HOME/xlambda-results/deepcoder/oct24-log-t-${tout}-io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
 
 if [ ! -e $save_dir ];
 then
@@ -62,8 +62,10 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --num_valid 100 \
     --use_ur=False \
     --encode_weight=True \
-    --train_steps 1000000 \
+    --train_steps 5000 \
     --train_data_glob train-tasks*.pkl \
     --random_beam=False \
     --lr=1e-4 \
     $@
+
+    #--load_model=/home/kshi/xlambda-results/deepcoder/oct24-more_speed-t-60-io-lambda_signature-value-lambda_signature-b-10-g-4/model-best-valid.ckpt \

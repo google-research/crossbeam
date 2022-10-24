@@ -157,6 +157,8 @@ def synthesize(task, domain, model, device,
                include_as_train=None, timeout=None, max_values_explored=None, is_stochastic=False,
                random_beam=False, use_ur=False, masking=True, static_weight=False):
   stats = {
+      'num_examples': task.num_examples,
+      'num_inputs': task.num_inputs,
       'num_values_explored': 0,
       'num_explored_none': 0,
       'num_explored_concrete': 0,

@@ -39,6 +39,7 @@ from absl import logging
 import timeit
 import json
 import pprint
+import cProfile
 
 
 def thread_wrapped_func(func):
@@ -245,7 +246,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
 
     # Training
     pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)
-    verbose = False  # TODO(kshi)
+    verbose = True  # TODO(kshi)
+    profile = False  # TODO(kshi)
     for _ in pbar:
       grad_step_start_time = timeit.default_timer()
       optimizer.zero_grad()
@@ -256,6 +258,9 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
       for t, trace in zip(batch_tasks, batch_traces):
         with torch.no_grad():
           synthesis_start_time = timeit.default_timer()
+          if profile:
+            pr = cProfile.Profile()
+            pr.enable()
           training_samples, (all_values, all_signatures), stats = synthesis.synthesize(
               t, domain, model, device=device,
               trace=trace,
@@ -265,7 +270,14 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
               random_beam=args.random_beam,
               masking=args.type_masking,
               static_weight=args.static_weight)
+          if profile:
+            pr.disable()
           synthesis_elapsed_time = timeit.default_timer() - synthesis_start_time
+          if profile and synthesis_elapsed_time > 0.5:
+            pr.print_stats(sort='cumtime')
+            print(f'The above is for a long-running synthesis search of {synthesis_elapsed_time:.2f} seconds.')
+            print('Stats:')
+            pprint.pprint(stats)
           total_synthesis_time += synthesis_elapsed_time
         synthesis.update_stats_with_percents(stats)
         stats.update({
