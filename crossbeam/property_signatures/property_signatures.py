@@ -131,8 +131,7 @@ def _basic_properties(x) -> List[bool]:
         abs_x < 5,
         abs_x < 10,
         abs_x < 20,
-        abs_x < 30,
-        abs_x < 40,
+        abs_x < 35,
         abs_x < 50,
         abs_x < 75,
         abs_x < 100,
@@ -202,7 +201,7 @@ def _compare_same_type(x, y) -> List[bool]:
   if x is None:
     return []
   elif type_x is bool:
-    return [x == y, x and y, x or y]
+    return [x == y]
   elif type_x is int:
     abs_diff = abs(x - y)
     return [
