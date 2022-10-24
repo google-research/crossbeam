@@ -70,10 +70,12 @@ def evaluate_property_signatures(value_set, output_value, profile=False):
 
   start_time = timeit.default_timer()
   if profile:
-    with cProfile.Profile() as pr:
-      lambda_sigs = [
-          property_signatures.property_signature_value(v, output_value)
-          for v in lambda_values]
+    pr = cProfile.Profile()
+    pr.enable()
+    lambda_sigs = [
+        property_signatures.property_signature_value(v, output_value)
+        for v in lambda_values]
+    pr.disable()
     pr.print_stats(sort='cumtime')
   else:
     lambda_sigs = [
