@@ -134,11 +134,21 @@ def update_stats_value_kept(stats, value):
 
 def update_stats_with_percents(stats):
   stats.update({
-    'explored_percent_none': stats['num_explored_none'] * 100 / stats['num_values_explored'],
-    'explored_percent_concrete': stats['num_explored_concrete'] * 100 / stats['num_values_explored'],
-    'explored_percent_lambda': stats['num_explored_lambda'] * 100 / stats['num_values_explored'],
-    'kept_percent_concrete': stats['num_kept_concrete'] * 100 / stats['num_values_kept'],
-    'kept_percent_lambda': stats['num_kept_lambda'] * 100 / stats['num_values_kept'],
+      'explored_percent_none':
+          stats['num_explored_none'] * 100 / stats['num_values_explored']
+          if stats['num_values_explored'] else -1,
+      'explored_percent_concrete':
+          stats['num_explored_concrete'] * 100 / stats['num_values_explored']
+          if stats['num_values_explored'] else -1,
+      'explored_percent_lambda':
+          stats['num_explored_lambda'] * 100 / stats['num_values_explored']
+          if stats['num_values_explored'] else -1,
+      'kept_percent_concrete':
+          stats['num_kept_concrete'] * 100 / stats['num_values_kept']
+          if stats['num_values_kept'] else -1,
+      'kept_percent_lambda':
+          stats['num_kept_lambda'] * 100 / stats['num_values_kept']
+          if stats['num_values_kept'] else -1,
   })
 
 

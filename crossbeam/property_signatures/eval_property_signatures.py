@@ -1,8 +1,10 @@
 """Evaluate property signature quality with heuristics."""
 
 import collections
+import cProfile
 import itertools
 import timeit
+
 from absl import app
 
 from crossbeam.algorithm import baseline_enumeration
@@ -43,7 +45,7 @@ def analyze_distances(values, sigs):
         f'({num_zero_distance / len(distances) * 100:.2f}%)')
 
 
-def evaluate_property_signatures(value_set, output_value):
+def evaluate_property_signatures(value_set, output_value, profile=False):
   """Evaluates how different property signatures are for the set of values."""
   print('\n' + '=' * 80)
   print('\nPerforming evaluation on property signatures.')
@@ -65,9 +67,16 @@ def evaluate_property_signatures(value_set, output_value):
   print()
 
   start_time = timeit.default_timer()
-  lambda_sigs = [
-      property_signatures.property_signature_value(v, output_value)
-      for v in lambda_values]
+  if profile:
+    with cProfile.Profile() as pr:
+      lambda_sigs = [
+          property_signatures.property_signature_value(v, output_value)
+          for v in lambda_values]
+    pr.print_stats(sort='cumtime')
+  else:
+    lambda_sigs = [
+        property_signatures.property_signature_value(v, output_value)
+        for v in lambda_values]
   elapsed_time = timeit.default_timer() - start_time
   print(f'Computed {len(lambda_sigs)} signatures for lambda values in '
         f'{elapsed_time:.3f} total seconds, or '
@@ -137,26 +146,34 @@ def main(argv):
     raise app.UsageError('Too many command-line arguments.')
 
   inputs_dict = {
-      'delta': [3, 5],
-      'lst': [[1, 2, 3], [4, 5, 6]],
+      'delta': [3, 5, -1, 6],
+      'lst': [[1, 2, 3], [4, 5, 6], [2, 7], [9, 5, 2, 8, 5]],
   }
   outputs = [
-      [4, 5],
-      [9, 10],
-      #[4, 5, 6],
-      #[9, 10, 11],
+      [4, 5, 6],
+      [9, 10, 11],
+      [1, 6],
+      [15, 11, 8, 14, 11],
   ]
+  # outputs = [
+  #     [4, 5],
+  #     [9, 10],
+  #     [1, 6],
+  #     [15, 11],
+  # ]
   task = task_module.Task(inputs_dict, outputs, solution='')
   domain = domains.get_domain('deepcoder')
   result, value_set, _, _ = baseline_enumeration.synthesize_baseline(
       task, domain, timeout=60)
   print(f'Found solution: {result.expression()}')
   assert (result.expression() ==
-          'Take(-1, Map(lambda u1: (lambda v1: Add(delta, v1))(u1), lst))')
+          'Map(lambda u1: (lambda v1: Add(delta, v1))(u1), lst)')
+          # 'Take(-1, Map(lambda u1: (lambda v1: Add(delta, v1))(u1), lst))')
 
   value_set = sorted(list(value_set), key=str)
 
-  evaluate_property_signatures(value_set, value_module.OutputValue(outputs))
+  evaluate_property_signatures(value_set, value_module.OutputValue(outputs),
+                               profile=False)
 
 
 if __name__ == '__main__':
