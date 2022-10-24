@@ -305,8 +305,6 @@ def synthesize(task, domain, model, device,
         update_stats_value_explored(stats, result_value)
         if result_value is None or result_value.get_weight() > max_weight:
           continue
-        if not property_signatures.is_value_valid(result_value):
-          continue
         if (domain.small_value_filter and
             not all(domain.small_value_filter(v) for v in result_value.values)):
           continue
@@ -314,6 +312,8 @@ def synthesize(task, domain, model, device,
           if not static_weight:
             update_with_better_value(result_value, all_value_dict, all_values,
                                      model, device, output_value, verbose)
+          continue
+        if not property_signatures.is_value_valid(result_value):
           continue
         all_value_dict[result_value] = len(all_values)
         all_values.append(result_value)

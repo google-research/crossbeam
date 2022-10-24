@@ -53,7 +53,7 @@ length signatures).
 # pylint: disable=unidiomatic-typecheck
 
 import itertools
-from typing import Any, List, Optional, Tuple, Type
+from typing import Any, List, Optional, Tuple, Type, Union
 
 from crossbeam.dsl import deepcoder_operations
 from crossbeam.dsl import domains

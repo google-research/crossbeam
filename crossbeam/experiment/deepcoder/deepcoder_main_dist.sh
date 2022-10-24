@@ -30,7 +30,7 @@ maxsw=12
 io=lambda_signature
 value=lambda_signature
 
-save_dir=$HOME/xlambda-results/deepcoder/oct20-fast-t-${tout}-io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
+save_dir=$HOME/xlambda-results/deepcoder/oct24-more_speed-t-${tout}-io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
 
 if [ ! -e $save_dir ];
 then
