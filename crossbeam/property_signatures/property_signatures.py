@@ -128,15 +128,15 @@ def _basic_properties(x) -> List[bool]:
         x % 2 == 0,
         abs_x < 5,
         abs_x < 10,
-        abs_x < 15,
+        # abs_x < 15,
         abs_x < 20,
-        abs_x < 30,
-        abs_x < 40,
+        # abs_x < 30,
+        # abs_x < 40,
         abs_x < 50,
-        abs_x < 75,
+        # abs_x < 75,
         abs_x < 100,
-        abs_x < 150,
-        abs_x < 200,
+        # abs_x < 150,
+        # abs_x < 200,
     ]
   elif type_x is list:
     sorted_x = list(sorted(x))
@@ -145,8 +145,8 @@ def _basic_properties(x) -> List[bool]:
     return [
         x == sorted_x,
         x == reverse_sorted_x,
-        num_unique == 1,
-        num_unique <= len(x) // 2,
+        # num_unique == 1,
+        # num_unique <= len(x) // 2,
         num_unique == len(x),
     ]
   else:
@@ -212,16 +212,16 @@ def _compare_same_type(x, y) -> List[bool]:
         x == y,
         x < y,
         x > y,
-        x != 0 and y % x == 0,
-        y != 0 and x % y == 0,
+        # x != 0 and y % x == 0,
+        # y != 0 and x % y == 0,
         abs_diff < 2,
-        abs_diff < 5,
+        # abs_diff < 5,
         abs_diff < 10,
-        abs_diff < 20,
-        abs_diff < 50,
-        abs_diff < 100,
-        abs_diff < 200,
-        (x >= 0) == (y >= 0),  # Signs are the same.
+        # abs_diff < 20,
+        # abs_diff < 50,
+        # abs_diff < 100,
+        # abs_diff < 200,
+        # (x >= 0) == (y >= 0),  # Signs are the same.
     ]
   elif type_x is list:
     unique_x = set(x)
@@ -239,6 +239,7 @@ def _compare_same_type(x, y) -> List[bool]:
         all(xi > yi for xi, yi in zip(x, y)),
         all(xi >= yi for xi, yi in zip(x, y)),
         all(xi == yi for xi, yi in zip(x, y)),  # One is prefix of the other.
+        all(xi != yi for xi, yi in zip(x, y)),
         unique_x == unique_y,
         unique_x.issubset(unique_y),
         unique_y.issubset(unique_x),

@@ -2,7 +2,6 @@
 
 import collections
 import cProfile
-import itertools
 import timeit
 
 from absl import app
@@ -13,36 +12,29 @@ from crossbeam.dsl import task as task_module
 from crossbeam.dsl import value as value_module
 from crossbeam.property_signatures import property_signatures
 
-import numpy as np
-
 VERBOSITY = 2
-
-
-def sig_distance(x, y):
-  return np.linalg.norm(x - y)
 
 
 def analyze_distances(values, sigs):
   """Analyzes distances between signatures."""
   assert len(values) == len(sigs)
-
-  distances = []
+  sig_to_value = {}
+  num_zero_distance = 0
   num_printed = 0
-  for i, j in itertools.combinations(range(len(values)), r=2):
-    distance = sig_distance(sigs[i], sigs[j])
-    distances.append(distance)
-    if distance == 0 and num_printed < VERBOSITY:
-      print('Values have the same signature:')
-      print(f'  {values[i]}')
-      print(f'  {values[j]}')
-      num_printed += 1
+  for value, sig in zip(values, sigs):
+    key = str(sig)
+    if key in sig_to_value:
+      num_zero_distance += 1
+      if num_printed < VERBOSITY:
+        print('Values have the same signature:')
+        print(f'  {sig_to_value[key]}')
+        print(f'  {value}')
+        num_printed += 1
+    else:
+      sig_to_value[key] = value
 
-  print(f'Min distance: {min(distances)}')
-  print(f'Mean distance: {np.mean(distances)}')
-  print(f'Max distance: {max(distances)}')
-  num_zero_distance = sum(d == 0 for d in distances)
-  print(f'Number of zero-distance pairs: {num_zero_distance} '
-        f'({num_zero_distance / len(distances) * 100:.2f}%)')
+  print(f'Number of values with already-seen signatures: {num_zero_distance} '
+        f'({num_zero_distance / len(values) * 100:.2f}%)')
 
 
 def evaluate_property_signatures(value_set, output_value, profile=False):
@@ -129,15 +121,12 @@ def evaluate_property_signatures(value_set, output_value, profile=False):
         f'values with unique functionality.')
   print()
 
-  concrete_sigs_np = [np.array(sig) for sig in concrete_sigs]
-  lambda_sigs_np = [np.array(sig) for sig in lambda_sigs]
-
-  #print('For concrete signatures:')
-  #analyze_distances(concrete_values, concrete_sigs_np)
-  #print()
+  print('For concrete signatures:')
+  analyze_distances(concrete_values, concrete_sigs)
+  print()
 
   print('For lambda signatures:')
-  analyze_distances(lambda_values, lambda_sigs_np)
+  analyze_distances(lambda_values, lambda_sigs)
   print()
 
 
