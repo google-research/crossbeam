@@ -76,6 +76,9 @@ def copy_operation_value(operation, value, all_values, all_value_dict, trace_val
   assert isinstance(value, value_module.OperationValue)
   arg_values = []
   for v in value.arg_values:
+    # TODO(kshi): line below is only needed because value's repr format changed
+    # between dataset generation and training.
+    v._repr_cache = None
     if v in all_value_dict:
       arg_values.append(all_values[all_value_dict[v]])
     else:

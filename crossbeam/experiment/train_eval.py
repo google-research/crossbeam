@@ -246,7 +246,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
 
     # Training
     pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)
-    verbose = True  # TODO(kshi)
+    verbose = False  # TODO(kshi)
     profile = False  # TODO(kshi)
     for _ in pbar:
       grad_step_start_time = timeit.default_timer()
