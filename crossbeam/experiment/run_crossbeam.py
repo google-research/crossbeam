@@ -83,6 +83,9 @@ def main(argv):
   for fname in sorted(eval_files):
     with open(os.path.join(FLAGS.data_folder, fname), 'rb') as f:
       eval_tasks += cp.load(f)
+    # Shuffle the evaluation tasks so that when we take the first `num_valid`
+    # tasks, they come from different data-generation searches.
+    random.shuffle(eval_tasks)
 
   proc_args = argparse.Namespace(**FLAGS.flag_values_dict())
   if FLAGS.train_data_glob is not None:

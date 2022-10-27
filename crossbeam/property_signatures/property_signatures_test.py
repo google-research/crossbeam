@@ -79,7 +79,7 @@ class CheckerTest(parameterized.TestCase):
         signature = property_signatures.property_signature_value(
             value, output, fixed_length=True)
         lengths.append(len(signature))
-        self.assertTrue(all(len(element) == 4 for element in signature))
+        self.assertTrue(all(len(element) == 2 for element in signature))
 
     self.assertLen(set(lengths), 1)  # All lengths should be the same.
 
@@ -110,7 +110,7 @@ class CheckerTest(parameterized.TestCase):
         signature = property_signatures.property_signature_io_examples(
             inputs, output, fixed_length=True)
         lengths.append(len(signature))
-        self.assertTrue(all(len(element) == 4 for element in signature))
+        self.assertTrue(all(len(element) == 2 for element in signature))
 
     self.assertLen(set(lengths), 1)  # All lengths should be the same.
 
