@@ -119,14 +119,17 @@ LOGIC_DOMAIN = Domain(
     checker_function=None)
 
 
-def _deepcoder_small_value_filter(x):
+def deepcoder_small_value_filter(x):
+  """Checks whether a single value is ok for DeepCoder."""
+  if x is None:
+    return False
   if isinstance(x, int):
-    return abs(x) <= 256
+    return -256 <= x <= 255
   if isinstance(x, list):
     return (len(x) <= 20 and
             # isinstance(False, int) is True. We don't want booleans in lists.
             all(type(e) is int  # pylint: disable=unidiomatic-typecheck
-                and _deepcoder_small_value_filter(e)
+                and deepcoder_small_value_filter(e)
                 for e in x))
   return True
 
@@ -145,7 +148,7 @@ DEEPCODER_DOMAIN = Domain(
     value_max_len=None,  # TODO(kshi)
     program_tokens=None,  # TODO(kshi)
     output_type=(int, list),
-    small_value_filter=_deepcoder_small_value_filter,
+    small_value_filter=deepcoder_small_value_filter,
     checker_function=checker.check_solution)
 
 

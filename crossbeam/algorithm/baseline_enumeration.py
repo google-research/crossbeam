@@ -209,10 +209,10 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
             if value is None:
               continue
             if value.num_free_variables == 0:
-              if value in value_set:
-                continue
               if (domain.small_value_filter and
                   not all(domain.small_value_filter(v) for v in value.values)):
+                continue
+              if value in value_set:
                 continue
               if value == output_value:
                 # Found solution!

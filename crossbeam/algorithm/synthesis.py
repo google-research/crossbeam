@@ -20,7 +20,7 @@ from copy import deepcopy
 from crossbeam.algorithm.beam_search import beam_search 
 from crossbeam.dsl import value as value_module
 from crossbeam.unique_randomizer import unique_randomizer as ur
-
+from crossbeam.property_signatures import property_signatures
 from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS, MAX_NUM_ARGVS, ALL_BOUND_VARS, ALL_FREE_VARS, ARGV_MAP
 
 
@@ -76,6 +76,9 @@ def copy_operation_value(operation, value, all_values, all_value_dict, trace_val
   assert isinstance(value, value_module.OperationValue)
   arg_values = []
   for v in value.arg_values:
+    # TODO(kshi): line below is only needed because value's repr format changed
+    # between dataset generation and training.
+    v._repr_cache = None
     if v in all_value_dict:
       arg_values.append(all_values[all_value_dict[v]])
     else:
@@ -113,11 +116,60 @@ def decode_args(operation, args, all_values):
   return arg_list, arg_var_list, free_vars
 
 
+def update_stats_value_explored(stats, value):
+  stats['num_values_explored'] += 1
+  if value is None:
+    stats['num_explored_none'] += 1
+  elif value.num_free_variables:
+    stats['num_explored_lambda'] += 1
+  else:
+    stats['num_explored_concrete'] += 1
+
+
+def update_stats_value_kept(stats, value):
+  # Not including trace elements manually added during training.
+  stats['num_values_kept'] += 1
+  if value.num_free_variables:
+    stats['num_kept_lambda'] += 1
+  else:
+    stats['num_kept_concrete'] += 1
+
+
+def update_stats_with_percents(stats):
+  stats.update({
+      'explored_percent_none':
+          stats['num_explored_none'] * 100 / stats['num_values_explored']
+          if stats['num_values_explored'] else -1,
+      'explored_percent_concrete':
+          stats['num_explored_concrete'] * 100 / stats['num_values_explored']
+          if stats['num_values_explored'] else -1,
+      'explored_percent_lambda':
+          stats['num_explored_lambda'] * 100 / stats['num_values_explored']
+          if stats['num_values_explored'] else -1,
+      'kept_percent_concrete':
+          stats['num_kept_concrete'] * 100 / stats['num_values_kept']
+          if stats['num_values_kept'] else -1,
+      'kept_percent_lambda':
+          stats['num_kept_lambda'] * 100 / stats['num_values_kept']
+          if stats['num_values_kept'] else -1,
+  })
+
+
 def synthesize(task, domain, model, device,
                trace=None, max_weight=15, k=2, is_training=False,
                include_as_train=None, timeout=None, max_values_explored=None, is_stochastic=False,
                random_beam=False, use_ur=False, masking=True, static_weight=False):
-  stats = {'num_values_explored': 0}
+  stats = {
+      'num_examples': task.num_examples,
+      'num_inputs': task.num_inputs,
+      'num_values_explored': 0,
+      'num_explored_none': 0,
+      'num_explored_concrete': 0,
+      'num_explored_lambda': 0,
+      'num_values_kept': 0,
+      'num_kept_concrete': 0,
+      'num_kept_lambda': 0,
+  }
 
   verbose = False
   end_time = None if timeout is None or timeout < 0 else timeit.default_timer() + timeout
@@ -127,12 +179,13 @@ def synthesize(task, domain, model, device,
     include_as_train = lambda trace_in_beam: True
 
   all_values = []
+  all_signatures = []
   output_value = init_values(task, domain, all_values)
   all_value_dict = {v: i for i, v in enumerate(all_values)}
 
   if not random_beam:
     io_embed = model.io([task.inputs_dict], [task.outputs], device=device)
-    val_base_embed = model.val(all_values, device=device, output_values=output_value)
+    val_base_embed, all_signatures = model.val(all_values, device=device, output_values=output_value, need_signatures=True)
     value_embed = model.encode_weight(val_base_embed, [v.get_weight() for v in all_values])
 
   training_samples = []
@@ -149,7 +202,7 @@ def synthesize(task, domain, model, device,
     for operation in domain.operations:
       if (end_time is not None and timeit.default_timer() > end_time) or (
           max_values_explored is not None and stats['num_values_explored'] >= max_values_explored):
-        return None, all_values, stats
+        return None, (all_values, all_signatures), stats
       if verbose:
         print('Operation: {}'.format(operation))
       num_values_before_op = len(all_values)
@@ -199,7 +252,8 @@ def synthesize(task, domain, model, device,
           randomizer.mark_sequence_complete()
 
           result_value = operation.apply(arg_list)
-          stats['num_values_explored'] += 1
+          update_stats_value_explored(stats, result_value)
+
           if verbose and result_value is None:
             print('Cannot apply {} to {}'.format(operation, arg_list))
           if result_value is None or result_value.get_weight() > max_weight:
@@ -215,15 +269,16 @@ def synthesize(task, domain, model, device,
           if verbose:
             print('new value: {}, {}'.format(result_value, result_value.expression()))
           new_values.append(result_value)
+          update_stats_value_kept(stats, result_value)
 
         for new_value in new_values:
           all_value_dict[new_value] = len(all_values)
           all_values.append(new_value)
           if new_value == output_value:
-            return new_value, all_values, stats
+            return new_value, (all_values, all_signatures), stats
 
         continue
-      
+
       weight_snapshot = [v.get_weight() for v in all_values]
       if random_beam:
         raise NotImplementedError  #TODO(hadai): enable random beam during training
@@ -232,7 +287,8 @@ def synthesize(task, domain, model, device,
           args[b] += [np.random.randint(0, len(all_values)) for _ in range(operation.arity)]
       else:
         if len(all_values) > val_base_embed.shape[0]:
-          more_val_embed = model.val(all_values[val_base_embed.shape[0]:], device=device, output_values=output_value)
+          more_val_embed, more_signatures = model.val(all_values[val_base_embed.shape[0]:], device=device, output_values=output_value, need_signatures=True)
+          all_signatures += more_signatures
           val_base_embed = torch.cat((val_base_embed, more_val_embed), dim=0)
         value_embed = model.encode_weight(val_base_embed, weight_snapshot)
         op_state = model.init(io_embed, value_embed, operation)
@@ -251,7 +307,7 @@ def synthesize(task, domain, model, device,
       for beam_pos, args_and_vars in enumerate(args):
         arg_list, arg_vars, free_vars = decode_args(operation, args_and_vars, all_values)
         result_value = operation.apply(arg_list, arg_vars, free_vars)
-        stats['num_values_explored'] += 1
+        update_stats_value_explored(stats, result_value)
         if result_value is None or result_value.get_weight() > max_weight:
           continue
         if (domain.small_value_filter and
@@ -262,10 +318,13 @@ def synthesize(task, domain, model, device,
             update_with_better_value(result_value, all_value_dict, all_values,
                                      model, device, output_value, verbose)
           continue
+        if not property_signatures.is_value_valid(result_value):
+          continue
         all_value_dict[result_value] = len(all_values)
         all_values.append(result_value)
+        update_stats_value_kept(stats, result_value)
         if result_value == output_value and not is_training:
-          return result_value, all_values, stats
+          return result_value, (all_values, all_signatures), stats
         # TODO: allow multi-choice when options in trace have the same priority
         # one easy fix would to include this into trace_generation stage (add stochasticity)
         if len(trace) and result_value == trace[0] and trace_in_beam < 0:
@@ -292,8 +351,8 @@ def synthesize(task, domain, model, device,
         trace_values[trace[0]] = true_val
         trace.pop(0)
         if len(trace) == 0:
-          return training_samples, all_values, stats
+          return training_samples, (all_values, all_signatures), stats
     if len(all_values) == cur_num_values and not use_ur and not is_stochastic:
       # no improvement
       break
-  return None, all_values, stats
+  return None, (all_values, all_signatures), stats

@@ -48,8 +48,12 @@ class Value(abc.ABC):
       if isinstance(self, (FreeVariable, BoundVariable)) or self.free_variables:
         self._repr_cache = self.expression()
       else:
+        values = self.values
+        first_value = values[0]
+        if self.type is int and all(v == first_value for v in values):
+          values = [first_value]
         self._repr_cache = '[' + ', '.join('{}:{!r}'.format(type(v).__name__, v)
-                                           for v in self.values) + ']'
+                                           for v in values) + ']'
     return self._repr_cache
 
   def __hash__(self):
