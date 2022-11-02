@@ -98,7 +98,8 @@ def arg_vars_options(num_arg_vars, num_free_vars, num_bound_vars):
 
 def synthesize_baseline(task, domain, max_weight=10, timeout=5,
                         max_values_explored=None,
-                        skip_probability=0, lambda_skip_probability=0):
+                        skip_probability=0, lambda_skip_probability=0,
+                        shuffle_ops=False):
   """Synthesizes a solution using normal bottom-up enumerative search."""
   print('synthesize_baseline for task: {}'.format(task))
   start_time = timeit.default_timer()
@@ -133,6 +134,11 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
   value_set = set().union(*values_by_weight)
   gather_values_cache = {}
 
+  # Shuffle operations if desired.
+  operations = list(domain.operations)
+  if shuffle_ops:
+    random.shuffle(operations)
+
   output_value = value_module.OutputValue(task.outputs)
   if output_value in value_set:
     # Found solution!
@@ -146,7 +152,7 @@ def synthesize_baseline(task, domain, max_weight=10, timeout=5,
 
   for target_weight in range(2, max_weight + 1):
     for num_free_vars, op in itertools.product(
-        range(0, variables.MAX_NUM_FREE_VARS + 1), domain.operations):
+        range(0, variables.MAX_NUM_FREE_VARS + 1), operations):
       if target_weight >= max_weight and num_free_vars > 0:
         break
 
