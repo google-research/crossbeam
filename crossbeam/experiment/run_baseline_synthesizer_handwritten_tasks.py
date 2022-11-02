@@ -12,23 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
 import json
+import multiprocessing
 import os
-import pickle5 as cp
 import timeit
+
 from absl import app
 from absl import flags
-import numpy as np
-
 from crossbeam.algorithm import baseline_enumeration
+from crossbeam.data.deepcoder import deepcoder_tasks
 from crossbeam.datasets import data_gen
 from crossbeam.dsl import domains
 from crossbeam.experiment import exp_common
+import numpy as np
+from tqdm import tqdm
 
 FLAGS = flags.FLAGS
+flags.DEFINE_integer('num_process', 16, 'number of evaluation process')
 
-flags.DEFINE_string('eval_set_pkl', None, 'pkl file for evaluation set tasks')
-flags.DEFINE_integer('num_eval_tasks', 5, 'number of evaluation tasks')
+
+def baseline_enumeration_with_timing(task, *args, **kargs):
+  start_time = timeit.default_timer()
+  result, value_set, _, stats = baseline_enumeration.synthesize_baseline(
+      task, *args, **kargs)
+  elapsed_time = timeit.default_timer() - start_time
+  return task, result, value_set, stats, elapsed_time
 
 
 def run_synthesis(domain, tasks, timeout, max_values_explored=None,
@@ -40,18 +49,18 @@ def run_synthesis(domain, tasks, timeout, max_values_explored=None,
   successful_times = []
   json_dict = {'results': []}
 
-  for i, task in enumerate(tasks):
-    start_time = timeit.default_timer()
-    result, value_set, _, stats = baseline_enumeration.synthesize_baseline(
-        task, domain, max_weight=max_weight, timeout=timeout,
-        max_values_explored=max_values_explored,
-        shuffle_ops=False)
-    elapsed_time = timeit.default_timer() - start_time
+  worker_fun = functools.partial(
+      baseline_enumeration_with_timing,
+      domain=domain,
+      timeout=timeout,
+      max_weight=max_weight,
+      max_values_explored=max_values_explored)
 
+  pool = multiprocessing.Pool(FLAGS.num_process)
+  for task, result, value_set, stats, elapsed_time in tqdm(
+      pool.imap_unordered(worker_fun, tasks), total=len(tasks)):
     json_dict['results'].append({
         'task': str(task),
-        'task_solution': task.solution.expression() if task.solution else None,
-        'task_solution_weight': task.solution.get_weight() if task.solution else None,
         'success': bool(result),
         'elapsed_time': elapsed_time,
         'num_values_explored': stats['num_values_explored'],
@@ -59,11 +68,8 @@ def run_synthesis(domain, tasks, timeout, max_values_explored=None,
         'solution': result.expression() if result else None,
         'solution_weight': result.get_weight() if result else None,
     })
-
     if verbose:
-      print('Task {}: {}'.format(i, task))
-      print('Task solution has weight {}'.format(task.solution.get_weight()
-                                                 if task.solution else None))
+      print('Task: {}'.format(task))
       print('Solution: {}, weight {}'.format(
           result.expression() if result else None,
           result.get_weight() if result else None))
@@ -99,20 +105,7 @@ def main(argv):
 
   domain = domains.get_domain(FLAGS.domain)
 
-  if FLAGS.eval_set_pkl:
-    with open(os.path.expanduser(FLAGS.eval_set_pkl), 'rb') as f:
-      tasks = cp.load(f)
-    if FLAGS.num_tasks > 0:
-      tasks = tasks[:FLAGS.num_tasks]
-  else:
-    tasks = data_gen.gen_random_tasks(domain,
-                                      num_tasks=FLAGS.num_eval_tasks,
-                                      min_weight=FLAGS.min_task_weight,
-                                      max_weight=FLAGS.max_task_weight,
-                                      num_examples=FLAGS.num_examples,
-                                      num_inputs=FLAGS.num_inputs,
-                                      verbose=FLAGS.verbose)
-
+  tasks = deepcoder_tasks.HANDWRITTEN_TASKS
   run_synthesis(domain=domain,
                 tasks=tasks,
                 timeout=FLAGS.timeout,
