@@ -34,7 +34,7 @@ FLAGS = flags.FLAGS
 
 def perform_search(domain, min_weight, max_weight, num_examples, num_inputs,
                    timeout, num_tasks, skip_probability=0,
-                   lambda_skip_probability=0, choose_half_with_lambdas=False):
+                   lambda_skip_probability=0, lambda_fraction=None):
   """Generates training data by running bottom-up synthesizer."""
   inputs_dict = domain.inputs_dict_generator(num_inputs=num_inputs,
                                              num_examples=num_examples)
@@ -48,23 +48,16 @@ def perform_search(domain, min_weight, max_weight, num_examples, num_inputs,
   _, value_set, values_by_weight, _ = baseline_enumeration.synthesize_baseline(
       task, domain, max_weight=max_weight, timeout=timeout,
       skip_probability=skip_probability,
-      lambda_skip_probability=lambda_skip_probability)
+      lambda_skip_probability=lambda_skip_probability,
+      shuffle_ops=True)
   elapsed_time = timeit.default_timer() - start_time
 
-  if elapsed_time > timeout:
-    # If timeout, we didn't finish enumerating the largest weight. We want to
-    # avoid biasing toward ops considered first.
-    largest_weight = max(i for i in range(min_weight, max_weight + 1)
-                         if values_by_weight[i])
-    # We can keep values of the largest weight if we found some lambdas with
-    # that weight (which means we finished enumerating non-lambdas first).
-    if any(v.num_free_variables > 0 for v in values_by_weight[largest_weight]):
-      max_weight = largest_weight
-    else:
-      # We didn't finish enumerating non-lambdas. Throw out everything with the
-      # largest weight.
-      max_weight = largest_weight - 1
-    print('Reached timeout. Enumerated programs up to size', max_weight)
+  largest_weight = max(i for i in range(min_weight, max_weight + 1)
+                       if values_by_weight[i])
+  print(f'Enumerated programs up to size {largest_weight} in '
+        f'{elapsed_time:.2f} seconds.')
+  print(f'Considering programs between size {min_weight} and {max_weight} '
+        f'inclusive.')
 
   output_types = (domain.output_type if isinstance(domain.output_type,
                                                    (list, tuple))
@@ -80,17 +73,39 @@ def perform_search(domain, min_weight, max_weight, num_examples, num_inputs,
   print(f'Found {num_choices} choices.')
   random.shuffle(choices)
 
-  if choose_half_with_lambdas:
-    # Interleave ones with and without lambdas, and take the rest if there
-    # aren't enough.
+  if lambda_fraction is not None:
+    assert 0 <= lambda_fraction <= 1
+    assert isinstance(num_tasks, int)
+
+    target_num_with_lambda = round(num_tasks * lambda_fraction)
+    target_num_without_lambda = num_tasks - target_num_with_lambda
     choices_with_lambda = [v for v in choices if v.contains_lambda]
     choices_without_lambda = [v for v in choices if not v.contains_lambda]
-    print(f'Found {len(choices_with_lambda)} choices with lambdas, and '
-          f'{len(choices_without_lambda)} choices without lambdas.')
-    combined = sum(itertools.zip_longest(choices_with_lambda,
-                                         choices_without_lambda), ())
-    choices = [x for x in combined if x is not None]
-    assert len(choices) == num_choices
+    print(f'{len(choices_with_lambda)} values have lambdas, and '
+          f'{len(choices_without_lambda)} values do not.')
+
+    if target_num_with_lambda > len(choices_with_lambda):
+      # We don't have enough values with lambdas. Use them all and fill the rest
+      # with values without lambdas.
+      choices_without_lambda = (
+          choices_without_lambda[:num_tasks - len(choices_with_lambda)])
+    elif target_num_without_lambda > len(choices_without_lambda):
+      # Not enough values without lambdas.
+      choices_with_lambda = (
+          choices_with_lambda[:num_tasks - len(choices_without_lambda)])
+    else:
+      # We have enough values of both kinds.
+      choices_with_lambda = choices_with_lambda[:target_num_with_lambda]
+      choices_without_lambda = choices_without_lambda[:target_num_without_lambda]
+
+    print(f'Choosing {len(choices_with_lambda)} values with lambdas, and '
+          f'{len(choices_without_lambda)} values without lambdas.')
+    choices = choices_with_lambda + choices_without_lambda
+    random.shuffle(choices)
+
+    assert len(choices) <= num_tasks
+    if len(choices) < num_tasks:
+      assert len(choices) == num_choices  # We used everything we had.
 
   single_split = isinstance(num_tasks, int)
   if single_split:
@@ -124,7 +139,7 @@ def generate_data(domain, min_weight, max_weight,
                   min_num_inputs, max_num_inputs,
                   timeout, num_searches, num_tasks_per_search,
                   skip_probability=0, lambda_skip_probability=0,
-                  choose_half_with_lambdas=False):
+                  lambda_fraction=None):
   """Generates and writes data by running multiple searches."""
   tasks = []
   for i in range(num_searches):
@@ -134,7 +149,7 @@ def generate_data(domain, min_weight, max_weight,
         domain, min_weight, max_weight, num_examples, num_inputs, timeout,
         num_tasks=num_tasks_per_search, skip_probability=skip_probability,
         lambda_skip_probability=lambda_skip_probability,
-        choose_half_with_lambdas=choose_half_with_lambdas))
+        lambda_fraction=lambda_fraction))
     print('Completed search {} of {}. {} tasks total.'.format(i+1, num_searches, len(tasks)))
   return tasks
 
@@ -144,7 +159,7 @@ def datagen_worker(seed,
                    min_num_examples, max_num_examples,
                    min_num_inputs, max_num_inputs,
                    timeout, num_tasks, skip_probability=0,
-                   lambda_skip_probability=0, choose_half_with_lambdas=False):
+                   lambda_skip_probability=0, lambda_fraction=None):
   exp_common.set_global_seed(seed)
   num_examples = random.randint(min_num_examples, max_num_examples)
   num_inputs = random.randint(min_num_inputs, max_num_inputs)
@@ -152,7 +167,7 @@ def datagen_worker(seed,
       domain, min_weight, max_weight, num_examples, num_inputs, timeout,
       num_tasks=num_tasks, skip_probability=skip_probability,
       lambda_skip_probability=lambda_skip_probability,
-      choose_half_with_lambdas=choose_half_with_lambdas)
+      lambda_fraction=lambda_fraction)
   return tasks
 
 
@@ -175,7 +190,7 @@ def main(argv):
         num_tasks_per_search=FLAGS.num_tasks,
         skip_probability=FLAGS.skip_probability,
         lambda_skip_probability=FLAGS.lambda_skip_probability,
-        choose_half_with_lambdas=FLAGS.choose_half_with_lambdas)
+        lambda_fraction=FLAGS.lambda_fraction)
 
     if FLAGS.verbose:
       for i, task in enumerate(tasks):
@@ -206,7 +221,7 @@ def main(argv):
         num_tasks=FLAGS.num_tasks,
         skip_probability=FLAGS.skip_probability,
         lambda_skip_probability=FLAGS.lambda_skip_probability,
-        choose_half_with_lambdas=FLAGS.choose_half_with_lambdas)
+        lambda_fraction=FLAGS.lambda_fraction)
     for local_tasks in tqdm(pool.imap_unordered(worker_fun, seeds), total=len(seeds)):
       total_num_tasks += len(local_tasks)
       all_tasks.extend(local_tasks)

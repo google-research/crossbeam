@@ -44,7 +44,8 @@ def run_synthesis(domain, tasks, timeout, max_values_explored=None,
     start_time = timeit.default_timer()
     result, value_set, _, stats = baseline_enumeration.synthesize_baseline(
         task, domain, max_weight=max_weight, timeout=timeout,
-        max_values_explored=max_values_explored)
+        max_values_explored=max_values_explored,
+        shuffle_ops=False)
     elapsed_time = timeit.default_timer() - start_time
 
     json_dict['results'].append({
