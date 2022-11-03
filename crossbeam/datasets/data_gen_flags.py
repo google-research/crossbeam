@@ -19,6 +19,7 @@ from absl import flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_integer('data_gen_seed', 1, 'Seed for data generation')
+flags.DEFINE_integer('shard_start_index', 0, 'starting index of shards for current job')
 flags.DEFINE_enum('domain', 'tuple',
                   ['tuple', 'arithmetic', 'bustle', 'logic', 'deepcoder'],
                   'task domain')
