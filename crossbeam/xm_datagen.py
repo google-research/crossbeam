@@ -14,8 +14,10 @@ flags.DEFINE_integer('tout', 1800, 'timeout')
 flags.DEFINE_integer('maxw', 100, 'max search weights')
 flags.DEFINE_integer('maxne', 5, 'max num ex')
 flags.DEFINE_integer('maxni', 3, 'max num input')
+flags.DEFINE_integer('start_seed', 0, 'offset of seed, to separate train/valid')
 flags.DEFINE_float('skip', 0.75, 'skip')
 flags.DEFINE_float('lambdaskip', 0.5, 'lambdaskip')
+flags.DEFINE_float('lambda_fraction', 0.8, 'lambda_fraction')
 flags.DEFINE_integer('num_proc', 1, 'num processes')
 flags.DEFINE_string('name_prefix', 'valid', 'name prefix')
 flags.DEFINE_integer('num_searches', 1000, 'num searches')
@@ -33,13 +35,13 @@ FLAGS = flags.FLAGS
 def main(argv) -> None:
   if len(argv) > 1:
     raise app.UsageError('Too many command-line arguments.')
-
+  assert FLAGS.num_proc > 1  # sharding enabled only for multi-proc jobs
   with xm_abc.create_experiment(experiment_title=_EXP_NAME.value) as experiment:
-    job_requirements = xm.JobRequirements(ram=50 * xm.GiB, cpu=FLAGS.num_proc)
+    job_requirements = xm.JobRequirements(ram=25 * FLAGS.num_proc * xm.GiB, cpu=FLAGS.num_proc)
     executor = xm_abc.executors.Gcp(requirements=job_requirements)
 
-    data_folder = 't-%d-maxne-%d-maxni-%d-skip-%.2f-lambdaskip-%.2f' % (
-      FLAGS.tout, FLAGS.maxne, FLAGS.maxni, FLAGS.skip, FLAGS.lambdaskip
+    data_folder = 't-%d-maxne-%d-maxni-%d-skip-%.2f-lambdaskip-%.2f-lambdafrac-%.2f' % (
+      FLAGS.tout, FLAGS.maxne, FLAGS.maxni, FLAGS.skip, FLAGS.lambdaskip, FLAGS.lambda_fraction
     )
     save_dir = '/gcs/xcloud-shared/hadai/data/xlambda/%s' % data_folder
     num_searches = FLAGS.num_searches // FLAGS.num_workers
@@ -59,7 +61,7 @@ def main(argv) -> None:
       'max_num_inputs': FLAGS.maxni,
       'skip_probability': FLAGS.skip,
       'lambda_skip_probability': FLAGS.lambdaskip,
-      'choose_half_with_lambdas': True,
+      'lambda_fraction': FLAGS.lambda_fraction,
       'num_datagen_proc': FLAGS.num_proc,
       'shard_size': FLAGS.shard_size,
       'verbose': False
@@ -76,9 +78,9 @@ def main(argv) -> None:
         args=executable_args)
         ])
     job = xm.Job(executable, executor)
-    nshard_per_job = num_searches * FLAGS.num_tasks // (FLAGS.num_workers * FLAGS.shard_size) + 1
-    nshard_per_job = max(nshard_per_job, num_searches)
-    job_configs = list([{'data_gen_seed': x * nshard_per_job} for x in range(FLAGS.num_workers)])
+    nshard_per_job = num_searches * FLAGS.num_tasks // FLAGS.shard_size + 1
+    job_configs = list([{'data_gen_seed': x * num_searches + FLAGS.start_seed,
+                         'shard_start_index': x * nshard_per_job} for x in range(FLAGS.num_workers)])
 
     for job_args in job_configs:
       experiment.add(job, args={'args': job_args})
