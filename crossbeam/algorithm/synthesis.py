@@ -352,10 +352,11 @@ def synthesize(task, domain, model, device,
           op_state = model.init(io_embed, value_embed, operation)
           # Draw samples with UR incrementally, until we find enough new values
           # (which is checked outside this generator).
+          frozen_all_values = list(all_values)  # Don't use new values.
           randomizer = ur.UniqueRandomizer()
           while not randomizer.exhausted():
             beam = beam_search(operation.arity, 1,
-                               all_values,
+                               frozen_all_values,
                                value_embed,
                                model.special_var_embed,
                                op_state,
@@ -397,7 +398,6 @@ def synthesize(task, domain, model, device,
       arg_list_generator = arg_list_generator_fn(operation, weight_snapshot)
 
       # Get argument lists and process them to create new values.
-      new_values = []
       trace_index_in_beam = -1
       beam_index = -1
 
@@ -433,15 +433,13 @@ def synthesize(task, domain, model, device,
         if not property_signatures.is_value_valid(result_value):
           continue
 
-        # The new value is good, save it. Don't add to the big collections yet,
-        # since doing so may affect future argument lists we get from the
-        # generator.
-        new_values.append(result_value)
+        # The new value is good, save it.
+        all_value_dict[result_value] = len(all_values)
+        all_values.append(result_value)
         update_stats_value_kept(stats, result_value)
 
         # Check if we found a solution.
         if result_value == output_value and not is_training:
-          all_values.extend(new_values)
           return result_value, (all_values, all_signatures), stats
 
         # Search for the next trace element.
@@ -452,11 +450,6 @@ def synthesize(task, domain, model, device,
             trace_index_in_beam < 0 and result_value == trace[0]):
           trace_index_in_beam = beam_index
       # End of loop over argument lists.
-
-      # Transfer new values to the big collections.
-      for value in new_values:
-        all_value_dict[value] = len(all_values)
-        all_values.append(value)
 
       # When applicable (if training and the next trace element uses this
       # operation), collect training data to increase the probability of this
