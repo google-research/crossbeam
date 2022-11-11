@@ -193,6 +193,12 @@ def synthesize(task, domain, model, device,
   verbose = False
   end_time = (None if timeout is None or timeout < 0
               else timeit.default_timer() + timeout)
+  
+  # We can use at most 1 of:
+  #   * random_beam (sampling during search)
+  #   * is_stochastic (sampling during evaluation)
+  #   * use_ur (UniqueRandomizer during evaluation)
+  assert sum(int(random_beam) + int(is_stochastic) + int(use_ur)) <= 1
 
   # Initialize collections that store all values found during search.
   all_values = []
@@ -257,70 +263,70 @@ def synthesize(task, domain, model, device,
           continue
 
       # TODO(kshi): refactor this entire section
-      if use_ur:
-        assert not is_training
-        randomizer = ur.UniqueRandomizer()
-        if len(all_values) > val_base_embed.shape[0]:
-          more_val_embed = model.val(all_values[val_base_embed.shape[0]:], device=device, output_values=output_value)
-          val_base_embed = torch.cat((val_base_embed, more_val_embed), dim=0)
-        value_embed = model.encode_weight(val_base_embed, [v.get_weight() for v in all_values])
-        init_embed = model.init(io_embed, value_embed, operation)
+      # if use_ur:
+      #   assert not is_training
+      #   randomizer = ur.UniqueRandomizer()
+      #   if len(all_values) > val_base_embed.shape[0]:
+      #     more_val_embed = model.val(all_values[val_base_embed.shape[0]:], device=device, output_values=output_value)
+      #     val_base_embed = torch.cat((val_base_embed, more_val_embed), dim=0)
+      #   value_embed = model.encode_weight(val_base_embed, [v.get_weight() for v in all_values])
+      #   init_embed = model.init(io_embed, value_embed, operation)
 
-        new_values = []
-        score_model = model.arg
-        num_tries = 0
-        init_state = score_model.get_init_state(init_embed, batch_size=1)
-        randomizer.current_node.cache['state'] = init_state
-        while len(new_values) < k and num_tries < 10*k and not randomizer.exhausted():
-          num_tries += 1
-          arg_list = []
-          for arg_index in range(operation.arity):
-            cur_state = randomizer.current_node.cache['state']
-            if randomizer.needs_probabilities():
-              scores = score_model.step_score(cur_state, value_embed)
-              scores = scores.view(-1)
-              if len(type_masks):
-                scores = torch.where(type_masks[arg_index][1], scores, torch.FloatTensor([-1e10]).to(device))
-              prob = torch.softmax(scores, dim=0)
-            else:
-              prob = None
-            choice_index = randomizer.sample_distribution(prob)
-            arg_list.append(all_values[choice_index])
-            if 'state' not in randomizer.current_node.cache:
-              choice_embed = value_embed[[choice_index]]
-              if cur_state is None:
-                raise ValueError('cur_state is None!!')
-              cur_state = score_model.step_state(cur_state, choice_embed)
-              randomizer.current_node.cache['state'] = cur_state
-          randomizer.mark_sequence_complete()
+      #   new_values = []
+      #   score_model = model.arg
+      #   num_tries = 0
+      #   init_state = score_model.get_init_state(init_embed, batch_size=1)
+      #   randomizer.current_node.cache['state'] = init_state
+      #   while len(new_values) < k and num_tries < 10*k and not randomizer.exhausted():
+      #     num_tries += 1
+      #     arg_list = []
+      #     for arg_index in range(operation.arity):
+      #       cur_state = randomizer.current_node.cache['state']
+      #       if randomizer.needs_probabilities():
+      #         scores = score_model.step_score(cur_state, value_embed)
+      #         scores = scores.view(-1)
+      #         if len(type_masks):
+      #           scores = torch.where(type_masks[arg_index][1], scores, torch.FloatTensor([-1e10]).to(device))
+      #         prob = torch.softmax(scores, dim=0)
+      #       else:
+      #         prob = None
+      #       choice_index = randomizer.sample_distribution(prob)
+      #       arg_list.append(all_values[choice_index])
+      #       if 'state' not in randomizer.current_node.cache:
+      #         choice_embed = value_embed[[choice_index]]
+      #         if cur_state is None:
+      #           raise ValueError('cur_state is None!!')
+      #         cur_state = score_model.step_state(cur_state, choice_embed)
+      #         randomizer.current_node.cache['state'] = cur_state
+      #     randomizer.mark_sequence_complete()
 
-          result_value = operation.apply(arg_list)
-          update_stats_value_explored(stats, result_value)
+      #     result_value = operation.apply(arg_list)
+      #     update_stats_value_explored(stats, result_value)
 
-          if verbose and result_value is None:
-            print('Cannot apply {} to {}'.format(operation, arg_list))
-          if result_value is None or result_value.get_weight() > max_weight:
-            continue
-          if (domain.small_value_filter and
-              not all(domain.small_value_filter(v) for v in result_value.values)):
-            continue
-          if result_value in all_value_dict:
-            if not static_weight:
-              update_with_better_value(result_value, all_value_dict, all_values,
-                                       verbose)
-            continue
-          if verbose:
-            print('new value: {}, {}'.format(result_value, result_value.expression()))
-          new_values.append(result_value)
-          update_stats_value_kept(stats, result_value)
+      #     if verbose and result_value is None:
+      #       print('Cannot apply {} to {}'.format(operation, arg_list))
+      #     if result_value is None or result_value.get_weight() > max_weight:
+      #       continue
+      #     if (domain.small_value_filter and
+      #         not all(domain.small_value_filter(v) for v in result_value.values)):
+      #       continue
+      #     if result_value in all_value_dict:
+      #       if not static_weight:
+      #         update_with_better_value(result_value, all_value_dict, all_values,
+      #                                  verbose)
+      #       continue
+      #     if verbose:
+      #       print('new value: {}, {}'.format(result_value, result_value.expression()))
+      #     new_values.append(result_value)
+      #     update_stats_value_kept(stats, result_value)
 
-        for new_value in new_values:
-          all_value_dict[new_value] = len(all_values)
-          all_values.append(new_value)
-          if new_value == output_value:
-            return new_value, (all_values, all_signatures), stats
+      #   for new_value in new_values:
+      #     all_value_dict[new_value] = len(all_values)
+      #     all_values.append(new_value)
+      #     if new_value == output_value:
+      #       return new_value, (all_values, all_signatures), stats
 
-        continue
+      #   continue
 
       # Info about search context before we do beam search, used to create
       # training data.
@@ -329,39 +335,57 @@ def synthesize(task, domain, model, device,
       collect_training_data_for_this_operation = (
           is_training and trace and trace[0].operation == operation)
 
-      # Get arg lists via beam search, random sampling, or UniqueRandomizer.
+      # Get argument lists via beam search, random sampling, or
+      # UniqueRandomizer, by using a generator.
       if random_beam:
         # TODO(hadai): enable random beam during training
         raise NotImplementedError()
-        # args = [[] for _ in range(k)]
-        # for b in range(k):
-        #   args[b] += [np.random.randint(0, len(all_values))
-        #               for _ in range(operation.arity)]
+      elif use_ur:
+        # TODO(kshi): Create a generator for this
+        pass
       else:
-        # Run the model on values it hasn't seen before.
-        if len(all_values) > val_base_embed.shape[0]:
-          more_val_embed, more_signatures = model.val(
-              all_values[val_base_embed.shape[0]:],
-              device=device, output_values=output_value, need_signatures=True)
-          all_signatures += more_signatures
-          val_base_embed = torch.cat((val_base_embed, more_val_embed), dim=0)
-        # Perform beam search.
-        value_embed = model.encode_weight(val_base_embed, weight_snapshot)
-        op_state = model.init(io_embed, value_embed, operation)
-        args = beam_search(operation.arity, k,
-                           all_values,
-                           value_embed,
-                           model.special_var_embed,
-                           op_state,
-                           model.arg,
-                           device=device,
-                           choice_masks=type_masks,
-                           is_stochastic=is_stochastic)
-        args = args.data.cpu().numpy().astype(np.int32)
+        # Normal beam search or sampling.
+        def arg_list_generator_fn(operation, weight_snapshot):
+          # Run the model on values it hasn't seen before.
+          if len(all_values) > val_base_embed.shape[0]:
+            more_val_embed, more_signatures = model.val(
+                all_values[val_base_embed.shape[0]:],
+                device=device, output_values=output_value, need_signatures=True)
+            all_signatures += more_signatures
+            val_base_embed = torch.cat((val_base_embed, more_val_embed), dim=0)
+          # Perform beam search.
+          value_embed = model.encode_weight(val_base_embed, weight_snapshot)
+          op_state = model.init(io_embed, value_embed, operation)
+          beam = beam_search(operation.arity, k,
+                             all_values,
+                             value_embed,
+                             model.special_var_embed,
+                             op_state,
+                             model.arg,
+                             device=device,
+                             choice_masks=type_masks,
+                             is_stochastic=is_stochastic)
+          for args_and_vars in beam.data.cpu().numpy().astype(np.int32):
+            yield args_and_vars
+
+      arg_list_generator = arg_list_generator_fn(operation, weight_snapshot)
 
       # Process each argument list to create new values.
       trace_index_in_beam = -1
-      for index_in_beam, args_and_vars in enumerate(args):
+      beam_index = -1
+      while True:
+        # Compute the loop condition and get a new argument list.
+        if use_ur:
+          # TODO(kshi): Stopping condition
+          args_and_vars = None
+          continue_looping = False
+        else:
+          args_and_vars = next(arg_list_generator, None)
+          continue_looping = args_and_vars is not None
+        if not continue_looping:
+          break
+        beam_index += 1
+
         # Create the new value.
         arg_list, arg_vars, free_vars = decode_args(operation, args_and_vars,
                                                     all_values)
