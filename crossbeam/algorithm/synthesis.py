@@ -193,12 +193,12 @@ def synthesize(task, domain, model, device,
   verbose = False
   end_time = (None if timeout is None or timeout < 0
               else timeit.default_timer() + timeout)
-  
+
   # We can use at most 1 of:
   #   * random_beam (sampling during search)
   #   * is_stochastic (sampling during evaluation)
   #   * use_ur (UniqueRandomizer during evaluation)
-  assert sum(int(random_beam) + int(is_stochastic) + int(use_ur)) <= 1
+  assert int(random_beam) + int(is_stochastic) + int(use_ur) <= 1
 
   # Initialize collections that store all values found during search.
   all_values = []
@@ -346,6 +346,7 @@ def synthesize(task, domain, model, device,
       else:
         # Normal beam search or sampling.
         def arg_list_generator_fn(operation, weight_snapshot):
+          nonlocal val_base_embed, all_signatures
           # Run the model on values it hasn't seen before.
           if len(all_values) > val_base_embed.shape[0]:
             more_val_embed, more_signatures = model.val(
