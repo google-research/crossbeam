@@ -148,8 +148,4 @@ def beam_search(arity, k, values, value_embed, special_var_embed, init_embed,
       arg_choices = torch.cat([arg_choices, step_argvars], dim=1)
 
   assert arg_choices.shape[1] == arity + MAX_NUM_ARGVS * arity
-
-  if randomizer:
-    randomizer.mark_sequence_complete()
-
   return arg_choices

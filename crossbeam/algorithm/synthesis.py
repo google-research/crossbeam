@@ -226,8 +226,6 @@ def synthesize(task, domain, model, device,
     val_base_embed, all_signatures = model.val(
         all_values, device=device, output_values=output_value,
         need_signatures=True)
-    value_embed = model.encode_weight(val_base_embed,
-                                      [v.get_weight() for v in all_values])
 
   # Main synthesis loop.
   last_num_values_before_operation_loop = -1
@@ -341,8 +339,35 @@ def synthesize(task, domain, model, device,
         # TODO(hadai): enable random beam during training
         raise NotImplementedError()
       elif use_ur:
-        # TODO(kshi): Create a generator for this
-        pass
+        def arg_list_generator_fn(operation, weight_snapshot):
+          nonlocal val_base_embed, all_signatures
+          # Run the model on values it hasn't seen before.
+          if len(all_values) > val_base_embed.shape[0]:
+            more_val_embed, more_signatures = model.val(
+                all_values[val_base_embed.shape[0]:],
+                device=device, output_values=output_value, need_signatures=True)
+            all_signatures += more_signatures
+            val_base_embed = torch.cat((val_base_embed, more_val_embed), dim=0)
+          value_embed = model.encode_weight(val_base_embed, weight_snapshot)
+          op_state = model.init(io_embed, value_embed, operation)
+          # Draw samples with UR incrementally, until we find enough new values
+          # (which is checked outside this generator).
+          randomizer = ur.UniqueRandomizer()
+          while not randomizer.exhausted():
+            beam = beam_search(operation.arity, 1,
+                               all_values,
+                               value_embed,
+                               model.special_var_embed,
+                               op_state,
+                               model.arg,
+                               device=device,
+                               choice_masks=type_masks,
+                               is_stochastic=is_stochastic,
+                               randomizer=randomizer)
+            randomizer.mark_sequence_complete()
+            beam = beam.data.cpu().numpy().astype(np.int32)
+            assert len(beam) == 1
+            yield beam[0]
       else:
         # Normal beam search or sampling.
         def arg_list_generator_fn(operation, weight_snapshot):
@@ -354,9 +379,9 @@ def synthesize(task, domain, model, device,
                 device=device, output_values=output_value, need_signatures=True)
             all_signatures += more_signatures
             val_base_embed = torch.cat((val_base_embed, more_val_embed), dim=0)
-          # Perform beam search.
           value_embed = model.encode_weight(val_base_embed, weight_snapshot)
           op_state = model.init(io_embed, value_embed, operation)
+          # Perform beam search.
           beam = beam_search(operation.arity, k,
                              all_values,
                              value_embed,
@@ -371,21 +396,22 @@ def synthesize(task, domain, model, device,
 
       arg_list_generator = arg_list_generator_fn(operation, weight_snapshot)
 
-      # Process each argument list to create new values.
+      # Get argument lists and process them to create new values.
+      new_values = []
       trace_index_in_beam = -1
       beam_index = -1
+
       while True:
-        # Compute the loop condition and get a new argument list.
-        if use_ur:
-          # TODO(kshi): Stopping condition
-          args_and_vars = None
-          continue_looping = False
-        else:
-          args_and_vars = next(arg_list_generator, None)
-          continue_looping = args_and_vars is not None
-        if not continue_looping:
-          break
         beam_index += 1
+
+        # Check if we should continue trying with UniqueRandomizer.
+        if use_ur and (len(new_values) >= k or beam_index >= 10*k):
+          break
+
+        # Get a new argument list.
+        args_and_vars = next(arg_list_generator, None)
+        if args_and_vars is None:  # Generator is exhausted.
+          break
 
         # Create the new value.
         arg_list, arg_vars, free_vars = decode_args(operation, args_and_vars,
@@ -393,7 +419,7 @@ def synthesize(task, domain, model, device,
         result_value = operation.apply(arg_list, arg_vars, free_vars)
         update_stats_value_explored(stats, result_value)
 
-        # Check many reasons to throw away this new value.
+        # Check various reasons to throw away this new value.
         if result_value is None or result_value.get_weight() > max_weight:
           continue
         if (domain.small_value_filter and
@@ -407,13 +433,15 @@ def synthesize(task, domain, model, device,
         if not property_signatures.is_value_valid(result_value):
           continue
 
-        # The new value is good, save it.
-        all_value_dict[result_value] = len(all_values)
-        all_values.append(result_value)
+        # The new value is good, save it. Don't add to the big collections yet,
+        # since doing so may affect future argument lists we get from the
+        # generator.
+        new_values.append(result_value)
         update_stats_value_kept(stats, result_value)
 
         # Check if we found a solution.
         if result_value == output_value and not is_training:
+          all_values.extend(new_values)
           return result_value, (all_values, all_signatures), stats
 
         # Search for the next trace element.
@@ -422,8 +450,13 @@ def synthesize(task, domain, model, device,
         # stage (add stochasticity)
         if (collect_training_data_for_this_operation and
             trace_index_in_beam < 0 and result_value == trace[0]):
-          trace_index_in_beam = index_in_beam
+          trace_index_in_beam = beam_index
       # End of loop over argument lists.
+
+      # Transfer new values to the big collections.
+      for value in new_values:
+        all_value_dict[value] = len(all_values)
+        all_values.append(value)
 
       # When applicable (if training and the next trace element uses this
       # operation), collect training data to increase the probability of this
