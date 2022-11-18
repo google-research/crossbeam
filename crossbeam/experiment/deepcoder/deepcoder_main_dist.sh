@@ -30,7 +30,13 @@ maxsw=12
 io=lambda_signature
 value=lambda_signature
 
-save_dir=$HOME/xlambda-results/deepcoder/oct24-more_speed-t-${tout}-io-${io}-value-${value}-b-${beam_size}-g-${grad_acc}
+devices=0,1,2,3,4,5,6,7
+n_devices=8
+port=29500
+
+lr=4e-4
+save_dir=$HOME/xlambda-results/deepcoder/nov07-lr-${lr}-gpus-${n_devices}-grad_acc-${grad_acc}
+
 
 if [ ! -e $save_dir ];
 then
@@ -38,7 +44,8 @@ then
 fi
 
 
-export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+export CUDA_VISIBLE_DEVICES=${devices}
+
 
 python3 -m crossbeam.experiment.run_crossbeam \
     --domain=deepcoder \
@@ -56,15 +63,16 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --save_dir $save_dir \
     --grad_accumulate $grad_acc \
     --beam_size $beam_size \
-    --num_proc=8 \
+    --num_proc=${n_devices} \
     --gpu_list=0,1,2,3,4,5,6,7 \
     --embed_dim=64 \
     --eval_every 5000 \
     --num_valid 250 \
     --use_ur=False \
     --encode_weight=True \
-    --train_steps 1000000 \
+    --train_steps 200000 \
     --train_data_glob train-tasks*.pkl \
     --random_beam=False \
-    --lr=1e-4 \
+    --lr=${lr} \
+    --port=${port} \
     $@

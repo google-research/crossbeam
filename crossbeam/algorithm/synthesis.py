@@ -339,6 +339,7 @@ def synthesize(task, domain, model, device,
         # TODO(hadai): enable random beam during training
         raise NotImplementedError()
       elif use_ur:
+        frozen_all_values = list(all_values)  # Don't use new values.
         def arg_list_generator_fn(operation, weight_snapshot):
           nonlocal val_base_embed, all_signatures
           # Run the model on values it hasn't seen before.
@@ -352,7 +353,6 @@ def synthesize(task, domain, model, device,
           op_state = model.init(io_embed, value_embed, operation)
           # Draw samples with UR incrementally, until we find enough new values
           # (which is checked outside this generator).
-          frozen_all_values = list(all_values)  # Don't use new values.
           randomizer = ur.UniqueRandomizer()
           while not randomizer.exhausted():
             beam = beam_search(operation.arity, 1,
@@ -404,8 +404,10 @@ def synthesize(task, domain, model, device,
       while True:
         beam_index += 1
 
-        # Check if we should continue trying with UniqueRandomizer.
-        if use_ur and (len(new_values) >= k or beam_index >= 10*k):
+        # When using UniqueRandomizer, stop once we have k new values, or we
+        # tried too many times.
+        if use_ur and (len(all_values) - len(frozen_all_values) >= k
+                       or beam_index >= 10*k):
           break
 
         # Get a new argument list.

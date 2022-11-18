@@ -133,10 +133,18 @@ def do_eval(eval_tasks, domain, model,
           static_weight=static_weight)
     elapsed_time = timeit.default_timer() - start_time
     synthesis.update_stats_with_percents(stats)
+    if t.solution is None:
+      task_solution = task_solution_weight = None
+    elif isinstance(t.solution, str):
+      task_solution = t.solution
+      task_solution_weight = None
+    else:
+      task_solution = t.solution.expression()
+      task_solution_weight = t.solution.get_weight()
     results_dict = {
         'task': str(t),
-        'task_solution': t.solution.expression() if t.solution else None,
-        'task_solution_weight': t.solution.get_weight() if t.solution else None,
+        'task_solution': task_solution,
+        'task_solution_weight': task_solution_weight,
         'success': bool(out),
         'elapsed_time': elapsed_time,
         'num_unique_values': len(all_values),
@@ -234,9 +242,9 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
       if args.num_proc > 1:
         succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
       if succ > best_succ and rank == 0 and args.save_dir:
-        print('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
-        best_succ = succ
         save_file = os.path.join(args.save_dir, 'model-best-valid.ckpt')
+        print('saving best model dump so far with %.2f%% valid succ to %s' % (succ * 100, save_file))
+        best_succ = succ
         torch.save(model.state_dict(), save_file)
         # Is it too slow to write eval results to a file? It might be a huge file
         # if args.json_results_file:

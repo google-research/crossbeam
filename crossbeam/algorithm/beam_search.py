@@ -37,7 +37,8 @@ def _beam_step(score_model, k, cur_state, choice_embed, prefix_scores,
       arg_selected = torch.multinomial(prob, cur_k)
     else:
       assert randomizer is not None and cur_k == 1
-      arg_selected = [randomizer.sample_distribution(prob)]
+      arg_selected = torch.LongTensor(
+          [randomizer.sample_distribution(prob)]).to(prefix_scores.get_device())
     prefix_scores = joint_scores[arg_selected]
     prefix_scores, idx_sorted = torch.sort(prefix_scores)
     arg_selected = arg_selected[idx_sorted]
