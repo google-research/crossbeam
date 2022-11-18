@@ -6,3 +6,6 @@ pickle5
 pytest
 seaborn
 tqdm
+ml_collections
+torch_scatter
+tensorboard

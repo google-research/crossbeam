@@ -18,10 +18,12 @@ import os
 import pickle5 as cp
 from absl import app
 from absl import flags
+from absl import logging
 import torch
 import random
-
+from ml_collections import config_flags
 from crossbeam.datasets import data_gen
+from crossbeam.common import configs_all
 from crossbeam.dsl import domains
 from crossbeam.experiment.exp_common import set_global_seed
 from crossbeam.experiment.train_eval import main_train_eval
@@ -31,6 +33,11 @@ from crossbeam.model.deepcoder_model import DeepCoderModel
 from crossbeam.model.util import CharacterTable
 
 FLAGS = flags.FLAGS
+
+config_flags.DEFINE_config_file(
+    name='config',
+    default=None,
+    help_string='Path to the Training configuration.')
 
 flags.DEFINE_string('model_type', 'char', 'int/char/logic')
 flags.DEFINE_bool('stochastic_beam', False, 'do stochastic beam search during test')
@@ -64,42 +71,50 @@ def init_model(args, domain, model_type):
 
 def main(argv):
   del argv
-  set_global_seed(FLAGS.seed)
+  if FLAGS.config is None:
+    config = FLAGS
+    proc_args = argparse.Namespace(**FLAGS.flag_values_dict())
+  else:
+    config = configs_all.get_config()
+    config.update(FLAGS.config)
+    proc_args = config
+    config.data_folder = os.path.join(config.data_root, config.data_name)
+    logging.info(config)
+  set_global_seed(config.seed)
 
-  domain = domains.get_domain(FLAGS.domain)
-  model = init_model(FLAGS, domain, FLAGS.model_type)
-  if FLAGS.load_model is not None:
-    model_dump = os.path.join(FLAGS.save_dir, FLAGS.load_model)
+  domain = domains.get_domain(config.domain)
+  model = init_model(config, domain, config.model_type)
+  if config.load_model is not None:
+    model_dump = os.path.join(config.save_dir, config.load_model)
     print('loading model from', model_dump)
     model.load_state_dict(torch.load(model_dump))
     print('model loaded.')
-  if FLAGS.do_test:
+  if config.do_test:
     eval_prefix = 'test-tasks'
   else:
     eval_prefix = 'valid-tasks'
-  eval_files = os.listdir(FLAGS.data_folder)
+  eval_files = os.listdir(config.data_folder)
   eval_files = [fname for fname in eval_files if fname.startswith(eval_prefix)]
   eval_tasks = []
   for fname in sorted(eval_files):
-    with open(os.path.join(FLAGS.data_folder, fname), 'rb') as f:
+    with open(os.path.join(config.data_folder, fname), 'rb') as f:
       eval_tasks += cp.load(f)
     # Shuffle the evaluation tasks so that when we take the first `num_valid`
     # tasks, they come from different data-generation searches.
     random.shuffle(eval_tasks)
 
-  proc_args = argparse.Namespace(**FLAGS.flag_values_dict())
-  if FLAGS.train_data_glob is not None:
+  if config.train_data_glob is not None:
     task_gen_func = None
   else:
     task_gen_func = functools.partial(
         data_gen.task_gen,
-        min_weight=FLAGS.min_task_weight,
-        max_weight=FLAGS.max_task_weight,
-        min_num_examples=FLAGS.min_num_examples,
-        max_num_examples=FLAGS.max_num_examples,
-        min_num_inputs=FLAGS.min_num_inputs,
-        max_num_inputs=FLAGS.max_num_inputs,
-        verbose=FLAGS.verbose)
+        min_weight=config.min_task_weight,
+        max_weight=config.max_task_weight,
+        min_num_examples=config.min_num_examples,
+        max_num_examples=config.max_num_examples,
+        min_num_inputs=config.min_num_inputs,
+        max_num_inputs=config.max_num_inputs,
+        verbose=config.verbose)
   
   main_train_eval(proc_args, model, eval_tasks,
                   task_gen=task_gen_func,

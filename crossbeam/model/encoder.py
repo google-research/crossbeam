@@ -165,7 +165,7 @@ class LambdaSignature(nn.Module):
     self.len_signature = len_signature
 
   def quantize(self, sig):
-    return torch.where(sig == 0, 0, (sig * 10).floor() + 1)
+    return torch.where(sig < 1e-8, 0, (sig * 10).floor().long() + 1)
 
   def forward(self, list_signatures, device):
     # shape: [num signatures, self.len_signature, self.tuple_length]
