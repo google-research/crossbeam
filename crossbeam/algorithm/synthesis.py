@@ -356,7 +356,7 @@ def synthesize(task, domain, model, device,
           randomizer = ur.UniqueRandomizer()
           while not randomizer.exhausted():
             beam = beam_search(operation.arity, 1,
-                               frozen_all_values,
+                               frozen_all_values,  # pylint: disable=cell-var-from-loop
                                value_embed,
                                model.special_var_embed,
                                op_state,

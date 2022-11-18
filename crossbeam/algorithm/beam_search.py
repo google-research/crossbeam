@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
 import torch
 
 from crossbeam.algorithm.variables import MAX_NUM_ARGVS
@@ -21,7 +22,7 @@ N_INF = -1e10
 
 
 def _beam_step(score_model, k, cur_state, choice_embed, prefix_scores,
-               choice_mask=None, is_stochastic=False, randomizer=None):
+               choice_mask=None, is_stochastic=False):
   """One step of beam search."""
   # scores: a score matrix of size (N-state, N-choice)
   scores = score_model.step_score(cur_state, choice_embed)
@@ -31,24 +32,54 @@ def _beam_step(score_model, k, cur_state, choice_embed, prefix_scores,
     joint_scores = joint_scores * choice_mask + (1 - choice_mask) * N_INF
   joint_scores = joint_scores.view(-1)
   cur_k = joint_scores.shape[0] if k > joint_scores.shape[0] else k
-  if is_stochastic or randomizer is not None:
+
+  if is_stochastic:
     prob = torch.softmax(joint_scores, dim=0)
-    if is_stochastic:
-      arg_selected = torch.multinomial(prob, cur_k)
-    else:
-      assert randomizer is not None and cur_k == 1
-      arg_selected = torch.LongTensor(
-          [randomizer.sample_distribution(prob)]).to(prefix_scores.get_device())
+    arg_selected = torch.multinomial(prob, cur_k)
     prefix_scores = joint_scores[arg_selected]
     prefix_scores, idx_sorted = torch.sort(prefix_scores)
     arg_selected = arg_selected[idx_sorted]
   else:
     prefix_scores, arg_selected = torch.topk(joint_scores, cur_k)
+
   prev_index = torch.div(arg_selected, num_choices, rounding_mode='floor')
   op_choice = arg_selected % num_choices
   prev_state = score_model.state_select(cur_state, prev_index)
   cur_op_embed = choice_embed[op_choice]
   cur_state = score_model.step_state(prev_state, cur_op_embed)
+  return cur_state, prev_index, op_choice, prefix_scores
+
+
+def _beam_step_ur(score_model, k, cur_state, choice_embed, prefix_scores,
+                  randomizer, choice_mask=None, is_stochastic=False):
+  """One step of beam search, using UniqueRandomizer."""
+  assert randomizer is not None and k == 1 and not is_stochastic
+
+  if randomizer.needs_probabilities():
+    # scores: a score matrix of size (N-state, N-choice)
+    scores = score_model.step_score(cur_state, choice_embed)
+    joint_scores = scores  # We only have 1 prefix so its score doesn't matter.
+    if choice_mask is not None:
+      joint_scores = joint_scores * choice_mask + (1 - choice_mask) * N_INF
+    joint_scores = joint_scores.view(-1)
+    prob = torch.softmax(joint_scores, dim=0)
+  else:
+    # We already have probabilities stored in the UniqueRandomizer trie node.
+    prob = None
+
+  choice_index = randomizer.sample_distribution(prob)
+
+  # There was only 1 previous beam element, so no need to divide or mod.
+  prev_index = [0]
+  op_choice = [choice_index]
+
+  if 'state' not in randomizer.current_node.cache:
+    prev_state = score_model.state_select(cur_state, prev_index)
+    cur_op_embed = choice_embed[op_choice]
+    cur_state = score_model.step_state(prev_state, cur_op_embed)
+  else:
+    cur_state = randomizer.current_node.cache['state']
+
   return cur_state, prev_index, op_choice, prefix_scores
 
 
@@ -82,12 +113,20 @@ def beam_search(arity, k, values, value_embed, special_var_embed, init_embed,
     arg_choices: jax int32 array of size k x arity, the indices of selected args
     prefix_scores: scores for each arg-list
   """
-  if randomizer is not None:
+  if randomizer:
     # When using UniqueRandomizer, we should get 1 sample at a time.
-    assert k == 1
-    assert not is_stochastic
+    assert k == 1 and not is_stochastic
+    beam_step_fn = functools.partial(_beam_step_ur, randomizer=randomizer)
+  else:
+    beam_step_fn = _beam_step
 
-  cur_state = score_model.get_init_state(init_embed, batch_size=1)
+  if randomizer and 'state' in randomizer.current_node.cache:
+    cur_state = randomizer.current_node.cache['state']
+  else:
+    cur_state = score_model.get_init_state(init_embed, batch_size=1)
+    if randomizer:
+      randomizer.current_node.cache['state'] = cur_state
+
   prefix_scores = torch.zeros(1).to(device)
   arg_choices = torch.LongTensor([[]]).to(device)
 
@@ -97,10 +136,9 @@ def beam_search(arity, k, values, value_embed, special_var_embed, init_embed,
       choice_mask = choice_masks[step][1].view(1, -1).float()
     else:
       choice_mask = None
-    cur_state, prev_index, op_choice, prefix_scores = _beam_step(
+    cur_state, prev_index, op_choice, prefix_scores = beam_step_fn(
         score_model, k, cur_state, value_embed, prefix_scores,
-        choice_mask=choice_mask, is_stochastic=is_stochastic,
-        randomizer=randomizer)
+        choice_mask=choice_mask, is_stochastic=is_stochastic)
     new_arg_choices = arg_choices[prev_index]
     new_arg_choices = torch.cat((new_arg_choices, op_choice.unsqueeze(1)),
                                 axis=1)
@@ -132,9 +170,9 @@ def beam_search(arity, k, values, value_embed, special_var_embed, init_embed,
       sub_cur_state = score_model.state_select(cur_state, step_indices)
       sub_prefix_scores = prefix_scores[step_indices]
       sub_new_state, sub_prev_idx, sub_op_choices, sub_prefix_scores = (
-          _beam_step(score_model, cur_beam_size, sub_cur_state,
-                     special_var_embed, sub_prefix_scores,
-                     is_stochastic=is_stochastic))
+          beam_step_fn(score_model, cur_beam_size, sub_cur_state,
+                       special_var_embed, sub_prefix_scores,
+                       is_stochastic=is_stochastic))
       prefix_scores = torch.cat(
           [sub_prefix_scores, prefix_scores[stop_indices]], dim=0)
       sub_arg_choices = arg_choices[step_indices]
