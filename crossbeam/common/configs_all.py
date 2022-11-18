@@ -23,7 +23,7 @@ def get_config():
     beam_size=4,
     great_transformer=False,
     gpu=-1,
-    port=29500,
+    port='29500',
     gpu_list=config_dict.FieldReference(None, field_type=str),
     num_proc=1,
     # from crossbeam.datasets.data_gen_flags
