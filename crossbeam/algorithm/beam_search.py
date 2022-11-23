@@ -71,7 +71,7 @@ def _beam_step_ur(score_model, k, cur_state, choice_embed, prefix_scores,
 
   # There was only 1 previous beam element, so no need to divide or mod.
   prev_index = [0]
-  op_choice = [choice_index]
+  op_choice = torch.LongTensor([choice_index]).to(choice_embed.device)
 
   if 'state' not in randomizer.current_node.cache:
     prev_state = score_model.state_select(cur_state, prev_index)
