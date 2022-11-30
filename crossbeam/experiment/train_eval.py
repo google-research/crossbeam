@@ -40,6 +40,7 @@ import timeit
 import json
 import pprint
 import cProfile
+from torch.utils import tensorboard
 
 
 def thread_wrapped_func(func):
@@ -201,6 +202,11 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
     rank = dist.get_rank()
   else:
     rank = 0
+  if rank == 0:
+    log_folder = os.path.join(args.save_dir, 'logs')
+    if not os.path.isdir(log_folder):
+      os.makedirs(log_folder)
+    log_writer = tensorboard.SummaryWriter(log_folder)
   model = model.to(device)
   eval_func = functools.partial(do_eval,
                                 max_search_weight=args.max_search_weight,
@@ -229,12 +235,14 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
     # Evaluation
     if cur_step > 0:
       if rank == 0:
-        print('eval at step %d' % cur_step)
+        logging.info('eval at step %d' % cur_step)
       succ, json_dict = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
+      if rank == 0:
+        log_writer.add_scalar('eval/succ', succ, cur_step)
       if args.num_proc > 1:
         succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
       if succ > best_succ and rank == 0 and args.save_dir:
-        print('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
+        logging.info('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
         best_succ = succ
         save_file = os.path.join(args.save_dir, 'model-best-valid.ckpt')
         torch.save(model.state_dict(), save_file)
@@ -245,10 +253,10 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
         #   print('Wrote JSON results file at {}'.format(args.json_results_file))
 
     # Training
-    pbar = tqdm(range(args.eval_every)) if rank == 0 else range(args.eval_every)
+    pbar = range(args.eval_every)
     verbose = False  # TODO(kshi)
     profile = False  # TODO(kshi)
-    for _ in pbar:
+    for inner_step in pbar:
       grad_step_start_time = timeit.default_timer()
       optimizer.zero_grad()
       batch_tasks = next(train_gen)
@@ -303,13 +311,14 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
       if args.grad_clip > 0:
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=args.grad_clip)
       optimizer.step()
-      if rank == 0:
-        pbar.set_description('train loss: %.2f' % (loss * args.num_proc))
-
+      if (inner_step + cur_step) % args.log_every == 0:
+        if rank == 0:
+          log_writer.add_scalar('train/loss', loss * args.num_proc, inner_step + cur_step)
+        logging.info('train/loss: %.4f at step %d', loss * args.num_proc, inner_step + cur_step)
       grad_step_elapsed_time = timeit.default_timer() - grad_step_start_time
       if verbose:
-        print(f'Grad step time: {grad_step_elapsed_time:.2f} sec')
-        print(f'Synthesis time: {total_synthesis_time:.2f} sec '
+        logging.info(f'Grad step time: {grad_step_elapsed_time:.2f} sec')
+        logging.info(f'Synthesis time: {total_synthesis_time:.2f} sec '
               f'({total_synthesis_time * 100 / grad_step_elapsed_time:.1f}% of grad step time)')
 
   if rank == 0:
