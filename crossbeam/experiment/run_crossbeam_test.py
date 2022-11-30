@@ -116,6 +116,7 @@ class RunCrossBeamTest(parameterized.TestCase):
 
     max_search_weight = 8
     FLAGS([''])  # Parse flags
+    FLAGS.save_dir = '/tmp/crossbeam/'
     FLAGS.domain = 'deepcoder'
     FLAGS.train_steps = 100
     FLAGS.eval_every = 20  # Run pytest with the `-s` flag to see training logs.
