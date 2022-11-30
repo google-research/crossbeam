@@ -335,6 +335,8 @@ def synthesize(task, domain, model, device,
       trace_index_in_beam = -1
       beam_index = -1
 
+      beam = []
+
       while True:
         beam_index += 1
 
@@ -348,6 +350,7 @@ def synthesize(task, domain, model, device,
         args_and_vars = next(arg_list_generator, None)
         if args_and_vars is None:  # Generator is exhausted.
           break
+        beam.append(args_and_vars)
 
         # Create the new value.
         arg_list, arg_vars, free_vars = decode_args(operation, args_and_vars,
@@ -391,6 +394,7 @@ def synthesize(task, domain, model, device,
       # operation), collect training data to increase the probability of this
       # trace element.
       if collect_training_data_for_this_operation:
+        beam = np.array(beam)
         true_val = copy_operation_value(operation, trace[0], all_values,
                                         all_value_dict, trace_values)
         # If the trace element was not present in the predicted beam, add it.
@@ -409,11 +413,11 @@ def synthesize(task, domain, model, device,
             true_args += [-1] * (MAX_NUM_ARGVS
                                  - len(true_val.arg_variables[arg_pos]))
           true_args = np.array(true_args, dtype=np.int32)
-          args = np.concatenate((args, np.expand_dims(true_args, 0)), axis=0)
-          trace_index_in_beam = args.shape[0] - 1
+          beam = np.concatenate((beam, np.expand_dims(true_args, 0)), axis=0)
+          trace_index_in_beam = beam.shape[0] - 1
 
         # Save one element of training data.
-        training_samples.append((args, weight_snapshot, trace_index_in_beam,
+        training_samples.append((beam, weight_snapshot, trace_index_in_beam,
                                  num_values_before_op, operation))
         trace_values[trace[0]] = true_val
         trace.pop(0)
