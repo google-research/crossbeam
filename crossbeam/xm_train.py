@@ -20,7 +20,7 @@ config_flags.DEFINE_config_file(
     help_string='Training configuration file.',
     lock_config=True)
 
-flags.DEFINE_string('save_folder_pattern', 
+flags.DEFINE_string('save_folder_pattern',
                     '/gcs/xcloud-shared/{user}/results/xlambda/{exp_name}_{exp_id}',
                     'save folder pattern')
 flags.DEFINE_integer('num_gpus', 1, 'number of gpus per job')
@@ -54,7 +54,8 @@ def main(argv) -> None:
         user=uname, exp_name=_EXP_NAME.value, exp_id=experiment.experiment_id)
 
     executable_args.update({
-        'config.data_root': '/gcs/xcloud-shared/%s/data/xlambda' % uname,
+        # Hanjun has the "master copy" of the data.
+        'config.data_root': '/gcs/xcloud-shared/hadai/data/xlambda' % uname,
     })
     module = 'crossbeam.experiment.run_crossbeam'
     executable, = experiment.package([
