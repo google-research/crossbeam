@@ -55,7 +55,7 @@ def main(argv) -> None:
 
     executable_args.update({
         # Hanjun has the "master copy" of the data.
-        'config.data_root': '/gcs/xcloud-shared/hadai/data/xlambda' % uname,
+        'config.data_root': '/gcs/xcloud-shared/hadai/data/xlambda',
     })
     module = 'crossbeam.experiment.run_crossbeam'
     executable, = experiment.package([
