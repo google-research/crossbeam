@@ -22,7 +22,7 @@ then
     mkdir -p $save_dir
 fi
 
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=${devices:=0}
 
 python3 -m crossbeam.experiment.run_crossbeam \
     --config="configs/${config_name?}.py" \
