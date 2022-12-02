@@ -1,13 +1,15 @@
+from copy import deepcopy
+import getpass
+import os
+import subprocess
+
 from absl import app
 from absl import flags
-import os
-import getpass
-from copy import deepcopy
+from ml_collections import config_flags
 from xmanager import xm
 from xmanager import xm_abc
 from xmanager.contrib import framework_defaults
 from xmanager.contrib import gcs
-from ml_collections import config_flags
 from xmanager.contrib.internal import tensorboard
 
 
@@ -20,7 +22,7 @@ config_flags.DEFINE_config_file(
     help_string='Training configuration file.',
     lock_config=True)
 
-flags.DEFINE_string('save_folder_pattern', 
+flags.DEFINE_string('save_folder_pattern',
                     '/gcs/xcloud-shared/{user}/results/xlambda/{exp_name}_{exp_id}',
                     'save folder pattern')
 flags.DEFINE_integer('num_gpus', 1, 'number of gpus per job')
@@ -46,15 +48,16 @@ def main(argv) -> None:
   uname = getpass.getuser()
 
   with xm_abc.create_experiment(experiment_title=_EXP_NAME.value) as experiment:
-    job_requirements = xm.JobRequirements(ram=8 * FLAGS.num_gpus * xm.GiB,
-                                          cpu=4 * FLAGS.num_gpus,
+    job_requirements = xm.JobRequirements(ram=16 * FLAGS.num_gpus * xm.GiB,
+                                          cpu=8 * FLAGS.num_gpus,
                                           v100=FLAGS.num_gpus)
     executor = xm_abc.executors.Gcp(requirements=job_requirements)
     save_dir = FLAGS.save_folder_pattern.format(
         user=uname, exp_name=_EXP_NAME.value, exp_id=experiment.experiment_id)
 
     executable_args.update({
-        'config.data_root': '/gcs/xcloud-shared/%s/data/xlambda' % uname,
+        # Hanjun has the "master copy" of the data.
+        'config.data_root': '/gcs/xcloud-shared/hadai/data/xlambda',
     })
     module = 'crossbeam.experiment.run_crossbeam'
     executable, = experiment.package([
@@ -69,15 +72,30 @@ def main(argv) -> None:
 
     async def make_job(work_unit, **kwargs):
       args = deepcopy(executable_args)
-      args['config.save_dir'] = f'{save_dir}/{work_unit.work_unit_id}'
+      sweep_str_parts = []
+      for k, v in kwargs.items():
+        if k.startswith('config.'):
+          k = k[len('config.'):]
+        sweep_str_parts.append(f'{k}={v!r}')
+      sweep_str = ','.join(sweep_str_parts)
+      args['config.save_dir'] = f'{save_dir}/{work_unit.work_unit_id}_{sweep_str}'
       args.update(kwargs)
       work_unit.add(xm.Job(executable, args=args, executor=executor))
 
     for sweep_args in job_config.get('sweep', [{}]):
       experiment.add(make_job, args=sweep_args)
+
     tensorboard.add_tensorboard_corp(experiment, save_dir)
     tensorboard.add_tensorboard_borg(experiment, save_dir)
 
+    config_save_location = os.path.join(
+        save_dir.replace('/gcs/', 'gs://'),
+        'config',
+        os.path.basename(config_filename))
+    copy_config_command = ['gsutil', 'cp', config_filename,
+                           config_save_location]
+    print(f'Executing command: {" ".join(copy_config_command)}')
+    subprocess.run(copy_config_command, check=True)
 
 if __name__ == '__main__':
   app.run(main)
