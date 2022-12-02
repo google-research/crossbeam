@@ -31,6 +31,6 @@ def get_config():
   config.train_steps = 1000000
   config.train_data_glob = 'train-tasks*.pkl'
   config.random_beam = False
-  config.lr = 1e-4
+  config.lr = 5e-4
   config.data_name = 't-3600-maxne-5-maxni-3-skip-0.00-lambdaskip-0.00-lambdafrac-0.80'
   return config
