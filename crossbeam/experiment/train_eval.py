@@ -173,7 +173,8 @@ def do_eval(eval_tasks, domain, model,
 
 def _gather_eval_info(rank, device, local_acc, local_num):
   stats = torch.tensor([local_acc * local_num, local_num], dtype=torch.float32).to(device)
-  dist.reduce(stats, 0, op=dist.ReduceOp.SUM)
+  with torch.cuda.device(device):
+    dist.reduce(stats, 0, op=dist.ReduceOp.SUM)
   succ = (stats[0] / stats[1]).item()
   if rank == 0:
     print('eval success rate: {:.1f}%'.format(succ * 100))
@@ -253,7 +254,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
         #   print('Wrote JSON results file at {}'.format(args.json_results_file))
 
     # Training
-    pbar = range(args.eval_every)
+    pbar = range(args.eval_every) if rank else tqdm(range(args.eval_every))
     verbose = False  # TODO(kshi)
     profile = False  # TODO(kshi)
     for inner_step in pbar:
@@ -307,7 +308,8 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
         for param in model.parameters():
           if param.grad is None:
             param.grad = param.data.new(param.data.shape).zero_()
-          dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
+          with torch.cuda.device(device):
+            dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
       if args.grad_clip > 0:
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=args.grad_clip)
       optimizer.step()

@@ -79,7 +79,7 @@ def main(argv):
     config.update(FLAGS.config)
     proc_args = config
     config.data_folder = os.path.join(config.data_root, config.data_name)
-    logging.info(config)
+  logging.info(proc_args)
   set_global_seed(config.seed)
 
   domain = domains.get_domain(config.domain)
