@@ -16,7 +16,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from functools import partial
-from crossbeam.model.op_arg import LSTMArgSelector
+from crossbeam.model.op_arg import LSTMArgSelector, AttnLstmArgSelector
 from crossbeam.model.op_init import PoolingState, OpPoolingState
 from crossbeam.model.encoder import LambdaSigIOEncoder
 from crossbeam.model.encoder import LambdaSigValueEncoder
@@ -40,7 +40,13 @@ class DeepCoderModel(nn.Module):
     else:
       self.encode_weight = DummyWeightEncoder()
     self.val = val
-    arg_mod = LSTMArgSelector
+    if args.arg_selector == 'lstm':
+      arg_mod = LSTMArgSelector
+    elif args.arg_selector == 'attn_lstm':
+      arg_mod = AttnLstmArgSelector
+    else:
+      raise ValueError('unknown arg selector %s' % args.arg_selector)
+
     init_mod = OpPoolingState
     self.init = init_mod(ops=tuple(operations), state_dim=args.embed_dim, pool_method='mean')
     self.arg = arg_mod(hidden_size=args.embed_dim,

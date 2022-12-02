@@ -97,7 +97,7 @@ class LSTMArgSelector(nn.Module):
     h, _ = state
     return self.step_func_mod(h[-1], x, is_outer=True)
 
-  def step_state(self, state, x):
+  def step_state(self, state, choice_embed, x):
     assert len(x.shape) == 2
     x = x.unsqueeze(1)
     if x.device == torch.device('cpu'):
@@ -139,4 +139,60 @@ class LSTMArgSelector(nn.Module):
   def batch_forward(self, init_state, choice_embed, arg_seq, masks=None):
     h0, c0 = self.get_batch_init_state(init_state)
     step_scores = self.get_step_scores(h0, c0, choice_embed, arg_seq, masks)
+    return step_scores
+
+
+class AttnLstmArgSelector(LSTMArgSelector):
+  def __init__(self, hidden_size, mlp_sizes, n_lstm_layers = 1,
+               step_score_func: str = 'mlp', step_score_normalize: bool = False):
+    super(AttnLstmArgSelector, self).__init__(
+      hidden_size, mlp_sizes, n_lstm_layers, step_score_func, step_score_normalize
+    )
+    if step_score_func == 'mlp':
+      self.attn_func_mod = MLPStepScore([self.hidden_size * 2] + mlp_sizes, step_score_normalize)
+    elif step_score_func == 'innerprod':
+      self.attn_func_mod = InnerprodStepScore(step_score_normalize)
+    self.state_input = MLP(hidden_size * 2, [hidden_size * 2, hidden_size])
+
+  def step_state(self, state, choice_embed, x):
+    assert len(x.shape) == 2
+    h, _ = state
+    attn_logits = self.attn_func_mod(h[-1], choice_embed, is_outer=True)
+    attn = F.softmax(attn_logits, dim=-1)
+
+    context = torch.matmul(attn, choice_embed)
+    x = torch.cat([context, x], axis=-1)
+    x = self.state_input(x)
+    x = x.unsqueeze(1)
+
+    if x.device == torch.device('cpu'):
+      new_state = self.lstm(x, state)[1]
+    else:
+      with torch.cuda.device(x.device):
+        new_state = self.lstm(x, state)[1]
+    return new_state
+
+  def get_step_scores(self, h0, c0, choice_embed, arg_seq, masks=None, need_last_state=False):
+    arg_seq_embed = choice_embed[arg_seq]
+    if masks is not None:
+      masks = masks.unsqueeze(1).repeat(1, state.shape[1], 1).view(-1, masks.shape[-1])
+
+    state = (h0, c0)
+    list_h = [h0[-1]]
+    for step in range(arg_seq_embed.shape[1]):
+      cur_arg_embed = arg_seq_embed[:, step]
+      state = self.step_state(state, choice_embed, cur_arg_embed)
+      h, _ = state
+      list_h.append(h[-1])
+    last_state = state
+    state = torch.cat(list_h[:-1], dim=0)
+
+    if self.step_score_normalize:
+      step_logits = self.step_func_mod(state, choice_embed, is_outer=True, masks=masks)
+      step_scores = step_logits[torch.arange(state.shape[0]), arg_seq.view(-1)]
+    else:
+      step_scores = self.step_func_mod(state, arg_seq_embed.view(state.shape), is_outer=False)
+    step_scores = step_scores.view(-1, arg_seq.shape[1])
+    if need_last_state:
+      return step_scores, last_state
     return step_scores
