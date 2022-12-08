@@ -224,7 +224,7 @@ def synthesize(task, domain, model, device,
         init_embed = model.init(io_embed, value_embed, operation)
 
         new_values = []
-        score_model = model.arg
+        score_model = model.arg(operation)
         num_tries = 0
         init_state = score_model.get_init_state(init_embed, batch_size=1)
         randomizer.current_node.cache['state'] = init_state
@@ -297,7 +297,7 @@ def synthesize(task, domain, model, device,
                            value_embed,
                            model.special_var_embed,
                            op_state,
-                           model.arg,
+                           model.arg(operation),
                            device=device,
                            choice_masks=type_masks,
                            is_stochastic=is_stochastic)
