@@ -340,7 +340,7 @@ def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace
   if device == 'cpu':
     backend = 'gloo'
   else:
-    backend = 'nccl'
+    backend = 'gloo'
   dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
   train_eval_loop(args, device, model, train_files, eval_tasks, task_gen, trace_gen)
 
@@ -353,6 +353,10 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
   if args.num_proc > 1:
     if args.gpu_list is not None:
       devices = [get_torch_device(int(x.strip())) for x in args.gpu_list.split(',')]
+      if len(devices) < args.num_proc:
+        assert args.num_proc % len(devices) == 0
+        n_proc_per_gpu = args.num_proc // len(devices)
+        devices = devices * n_proc_per_gpu
     else:
       devices = ['cpu'] * args.num_proc
     assert len(devices) == args.num_proc
