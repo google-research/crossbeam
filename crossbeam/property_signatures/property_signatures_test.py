@@ -72,16 +72,17 @@ class CheckerTest(parameterized.TestCase):
         # Few examples.
         value_module.OutputValue([True, False]),
     ]
-    lengths = []
     for value, output in itertools.product(values, output_values):
       if (value.num_examples == 1 or output.num_examples == 1 or
           value.num_examples == output.num_examples):
         signature = property_signatures.property_signature_value(
             value, output, fixed_length=True)
-        lengths.append(len(signature))
         self.assertTrue(all(len(element) == 2 for element in signature))
-
-    self.assertLen(set(lengths), 1)  # All lengths should be the same.
+        if value.num_free_variables:
+          self.assertLen(signature, property_signatures.LAMBDA_SIGNATURE_LENGTH)
+        else:
+          self.assertLen(signature,
+                         property_signatures.CONCRETE_SIGNATURE_LENGTH)
 
   def test_property_signature_io_examples_same_length(self):
     # Construct a variety of Value objects.
@@ -104,15 +105,14 @@ class CheckerTest(parameterized.TestCase):
         value_module.OutputValue([[1, 1], [2, 2], [3, 3], [4, 4]]),
     ]
     # Try a lot of combinations.
-    lengths = []
     for inputs, output in itertools.product(input_examples, output_values):
       if inputs[0].num_examples == output.num_examples:
         signature = property_signatures.property_signature_io_examples(
             inputs, output, fixed_length=True)
-        lengths.append(len(signature))
         self.assertTrue(all(len(element) == 2 for element in signature))
+        self.assertLen(signature,
+                       property_signatures.IO_EXAMPLES_SIGNATURE_LENGTH)
 
-    self.assertLen(set(lengths), 1)  # All lengths should be the same.
 
 if __name__ == '__main__':
   absltest.main()

@@ -423,7 +423,7 @@ def _property_signature_lambda(
   if not io_with_example_index_list:
     # The lambda never ran successfully. We return all padding here, but such a
     # value shouldn't be kept in search.
-    return [_REDUCED_PADDING] * _SIGNATURE_LENGTH_LAMBDA_VALUE
+    return [_REDUCED_PADDING] * LAMBDA_SIGNATURE_LENGTH
   signatures_to_reduce = []
   for inputs, output, example_index in io_with_example_index_list:
     signatures_to_reduce.append(
@@ -441,36 +441,24 @@ def property_signature_value(
     value: value_module.Value,
     output_value: value_module.Value,
     fixed_length: bool = True) -> List[SignatureTupleType]:
-  """Returns a property signature for a Value w.r.t. to the output Value."""
-  if not fixed_length:
-    if value.num_free_variables:
-      return _property_signature_lambda(value, output_value, fixed_length)
-    else:
-      return _property_signature_concrete_value(value, output_value,
-                                                fixed_length)
-  else:
-    if value.num_free_variables:
-      return ([_REDUCED_PADDING] * _SIGNATURE_LENGTH_CONCRETE_VALUE +
-              _property_signature_lambda(value, output_value, fixed_length))
-    else:
-      return (_property_signature_concrete_value(value, output_value,
-                                                 fixed_length) +
-              [_REDUCED_PADDING] * _SIGNATURE_LENGTH_LAMBDA_VALUE)
+  """Returns a property signature for a Value w.r.t. to the output Value.
 
-_SIGNATURE_LENGTH_CONCRETE_VALUE = len(_property_signature_concrete_value(
+  Concrete values and lambda values will have signatures of different lengths.
+  """
+  if value.num_free_variables:
+    return _property_signature_lambda(value, output_value, fixed_length)
+  else:
+    return _property_signature_concrete_value(value, output_value, fixed_length)
+
+
+CONCRETE_SIGNATURE_LENGTH = len(property_signature_value(
     value_module.ConstantValue(0), value_module.OutputValue([1]),
     fixed_length=True))
 _LAMBDA_VALUE = deepcoder_operations.Add().apply(
     [value_module.ConstantValue(10), value_module.get_free_variable(0)],
     free_variables=[value_module.get_free_variable(0)])
-_SIGNATURE_LENGTH_LAMBDA_VALUE = len(_property_signature_lambda(
-    _LAMBDA_VALUE, value_module.OutputValue([1]),
-    fixed_length=True))
-
-VALUE_SIGNATURE_LENGTH = len(property_signature_value(
-    value_module.InputVariable([1, 2], 'in1'),
-    value_module.OutputValue([-1, -2]),
-    fixed_length=True))
+LAMBDA_SIGNATURE_LENGTH = len(property_signature_value(
+    _LAMBDA_VALUE, value_module.OutputValue([1]), fixed_length=True))
 
 
 def test():
@@ -480,11 +468,10 @@ def test():
   print(f'_BASIC_PROPERTIES_OF_RELEVANT_LENGTH_BY_TYPE: '
         f'{_BASIC_PROPERTIES_OF_RELEVANT_LENGTH_BY_TYPE}')
   print(f'_COMPARE_LENGTH_BY_TYPES: {_COMPARE_LENGTH_BY_TYPES}')
-  print(f'_SIGNATURE_LENGTH_CONCRETE_VALUE: {_SIGNATURE_LENGTH_CONCRETE_VALUE}')
-  print(f'_SIGNATURE_LENGTH_LAMBDA_VALUE: {_SIGNATURE_LENGTH_LAMBDA_VALUE}')
   print()
+  print(f'CONCRETE_SIGNATURE_LENGTH: {CONCRETE_SIGNATURE_LENGTH}')
+  print(f'LAMBDA_SIGNATURE_LENGTH: {LAMBDA_SIGNATURE_LENGTH}')
   print(f'IO_EXAMPLES_SIGNATURE_LENGTH: {IO_EXAMPLES_SIGNATURE_LENGTH}')
-  print(f'VALUE_SIGNATURE_LENGTH: {VALUE_SIGNATURE_LENGTH}')
   print()
 
   for x in [True, False, 0, 1, 15, [], [1, 2, 5], [-4, -4, -4]]:
