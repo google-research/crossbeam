@@ -29,4 +29,5 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --config="configs/${config_name?}.py" \
     --config.save_dir=${save_dir} \
     --config.data_root="${HOME}/xlambda-data/deepcoder" \
+    --config.load_model="bak.ckpt" \
     $@

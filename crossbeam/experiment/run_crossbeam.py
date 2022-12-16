@@ -84,7 +84,7 @@ def main(argv):
 
   domain = domains.get_domain(config.domain)
   model = init_model(config, domain, config.model_type)
-  if config.load_model is not None:
+  if config.load_model:
     model_dump = os.path.join(config.save_dir, config.load_model)
     print('loading model from', model_dump)
     model.load_state_dict(torch.load(model_dump))
