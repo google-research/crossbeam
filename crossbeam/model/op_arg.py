@@ -174,18 +174,18 @@ class AttnLstmArgSelector(LSTMArgSelector):
 
   def get_step_scores(self, h0, c0, choice_embed, arg_seq, masks=None, need_last_state=False):
     arg_seq_embed = choice_embed[arg_seq]
-    if masks is not None:
-      masks = masks.unsqueeze(1).repeat(1, state.shape[1], 1).view(-1, masks.shape[-1])
-
     state = (h0, c0)
-    list_h = [h0[-1]]
+    list_h = [h0[-1].unsqueeze(1)]
     for step in range(arg_seq_embed.shape[1]):
       cur_arg_embed = arg_seq_embed[:, step]
       state = self.step_state(state, choice_embed, cur_arg_embed)
       h, _ = state
-      list_h.append(h[-1])
+      list_h.append(h[-1].unsqueeze(1))
     last_state = state
-    state = torch.cat(list_h[:-1], dim=0)
+    state = torch.cat(list_h[:-1], dim=1)
+    if masks is not None:
+      masks = masks.unsqueeze(1).repeat(1, state.shape[1], 1).view(-1, masks.shape[-1])
+    state = state.view(-1, state.shape[-1])
 
     if self.step_score_normalize:
       step_logits = self.step_func_mod(state, choice_embed, is_outer=True, masks=masks)
@@ -196,3 +196,4 @@ class AttnLstmArgSelector(LSTMArgSelector):
     if need_last_state:
       return step_scores, last_state
     return step_scores
+
