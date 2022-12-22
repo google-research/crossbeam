@@ -42,7 +42,11 @@ class BottomUpDataGenerationTest(parameterized.TestCase):
         num_searches=2,
         num_tasks_per_search=10)
 
-    self.assertLen(tasks, 20)
+    # Rarely, a search might produce zero eligible tasks. A task must use all
+    # input variables, but if x1 always equals x2 (for all examples), then x2
+    # will never be used (since x1 would be used first).
+    self.assertGreaterEqual(len(tasks), 10)
+
     self.assertTrue(all(4 <= t.solution.get_weight() <= 6 for t in tasks))
     if domain.output_type:
       for t in tasks:
