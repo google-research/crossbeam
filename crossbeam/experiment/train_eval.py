@@ -134,10 +134,18 @@ def do_eval(eval_tasks, domain, model,
           static_weight=static_weight)
     elapsed_time = timeit.default_timer() - start_time
     synthesis.update_stats_with_percents(stats)
+    if t.solution is None:
+      task_solution = task_solution_weight = None
+    elif isinstance(t.solution, str):
+      task_solution = t.solution
+      task_solution_weight = None
+    else:
+      task_solution = t.solution.expression()
+      task_solution_weight = t.solution.get_weight()
     results_dict = {
         'task': str(t),
-        'task_solution': t.solution.expression() if t.solution else None,
-        'task_solution_weight': t.solution.get_weight() if t.solution else None,
+        'task_solution': task_solution,
+        'task_solution_weight': task_solution_weight,
         'success': bool(out),
         'elapsed_time': elapsed_time,
         'num_unique_values': len(all_values),
