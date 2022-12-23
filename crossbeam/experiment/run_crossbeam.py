@@ -21,6 +21,8 @@ from absl import flags
 from absl import logging
 import torch
 import random
+
+from crossbeam.data.deepcoder import deepcoder_tasks
 from ml_collections import config_flags
 from crossbeam.datasets import data_gen
 from crossbeam.common import configs_all
@@ -69,6 +71,25 @@ def init_model(args, domain, model_type):
     raise ValueError('unknown model type %s' % model_type)
 
 
+def get_eval_tasks(config):
+  if FLAGS.do_test:
+    if FLAGS.domain == 'deepcoder':
+      return deepcoder_tasks.HANDWRITTEN_TASKS
+    eval_prefix = 'test-tasks'
+  else:
+    eval_prefix = 'valid-tasks'
+  eval_files = os.listdir(config.data_folder)
+  eval_files = [fname for fname in eval_files if fname.startswith(eval_prefix)]
+  eval_tasks = []
+  for fname in sorted(eval_files):
+    with open(os.path.join(config.data_folder, fname), 'rb') as f:
+      eval_tasks += cp.load(f)
+    # Shuffle the evaluation tasks so that when we take the first `num_valid`
+    # tasks, they come from different data-generation searches.
+    random.shuffle(eval_tasks)
+  return eval_tasks
+
+
 def main(argv):
   del argv
   if FLAGS.config is None:
@@ -89,19 +110,7 @@ def main(argv):
     print('loading model from', model_dump)
     model.load_state_dict(torch.load(model_dump))
     print('model loaded.')
-  if config.do_test:
-    eval_prefix = 'test-tasks'
-  else:
-    eval_prefix = 'valid-tasks'
-  eval_files = os.listdir(config.data_folder)
-  eval_files = [fname for fname in eval_files if fname.startswith(eval_prefix)]
-  eval_tasks = []
-  for fname in sorted(eval_files):
-    with open(os.path.join(config.data_folder, fname), 'rb') as f:
-      eval_tasks += cp.load(f)
-    # Shuffle the evaluation tasks so that when we take the first `num_valid`
-    # tasks, they come from different data-generation searches.
-    random.shuffle(eval_tasks)
+  eval_tasks = get_eval_tasks(config)
 
   if config.train_data_glob is not None:
     task_gen_func = None
@@ -115,7 +124,8 @@ def main(argv):
         min_num_inputs=config.min_num_inputs,
         max_num_inputs=config.max_num_inputs,
         verbose=config.verbose)
-  
+
+  print(f'Starting training, will save model dumps to {FLAGS.save_dir}')
   main_train_eval(proc_args, model, eval_tasks,
                   task_gen=task_gen_func,
                   trace_gen=data_gen.trace_gen)
