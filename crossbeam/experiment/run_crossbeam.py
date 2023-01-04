@@ -125,7 +125,7 @@ def main(argv):
         max_num_inputs=config.max_num_inputs,
         verbose=config.verbose)
 
-  print(f'Starting training, will save model dumps to {FLAGS.save_dir}')
+  print(f'Starting training, will save model dumps to {config.save_dir}')
   main_train_eval(proc_args, model, eval_tasks,
                   task_gen=task_gen_func,
                   trace_gen=data_gen.trace_gen)
