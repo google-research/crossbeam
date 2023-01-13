@@ -191,7 +191,8 @@ def _gather_eval_info(rank, device, local_acc, local_num):
 
 
 def train_eval_loop(args, device, model, train_files, eval_tasks,
-                    task_gen, trace_gen):
+                    task_gen, trace_gen, checkpoint):
+  random.shuffle(train_files)
   def local_task_gen(domain):
     if len(train_files) or task_gen is None:
       while True:
@@ -218,6 +219,13 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
       os.makedirs(log_folder)
     log_writer = tensorboard.SummaryWriter(log_folder)
   model = model.to(device)
+  optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+  if checkpoint is not None:
+    model.load_state_dict(checkpoint['model'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
+    starting_step = checkpoint['step']
+  else:
+    starting_step = 0
   eval_func = functools.partial(do_eval,
                                 max_search_weight=args.max_search_weight,
                                 beam_size=args.beam_size,
@@ -238,16 +246,23 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
       print('Wrote JSON results file at {}'.format(args.json_results_file))
     print('Done testing! Exiting.')
     sys.exit()
-  optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
   best_succ = -1
-  for cur_step in range(0, args.train_steps, args.eval_every):
+  for cur_step in range(starting_step, args.train_steps, args.eval_every):
 
     # Evaluation
-    if cur_step > 0:
+    if cur_step > starting_step:
       if rank == 0:
         logging.info('eval at step %d' % cur_step)
       succ, json_dict = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
       if rank == 0:
+        checkpoint = {
+          'step': cur_step,
+          'model': model.state_dict(),
+          'optimizer': optimizer.state_dict(),
+        }
+        logging.info('saving model at step %d' % cur_step)
+        save_file = os.path.join(args.save_dir, 'model-latest.ckpt')
+        torch.save(checkpoint, save_file)
         log_writer.add_scalar('eval/succ', succ, cur_step)
       if args.num_proc > 1:
         succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
@@ -255,7 +270,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
         logging.info('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
         best_succ = succ
         save_file = os.path.join(args.save_dir, 'model-best-valid.ckpt')
-        torch.save(model.state_dict(), save_file)
+        torch.save(checkpoint, save_file)
         # Is it too slow to write eval results to a file? It might be a huge file
         # if args.json_results_file:
         #   with open(args.json_results_file, 'w') as f:
@@ -340,7 +355,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
 
 
 @thread_wrapped_func
-def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace_gen):
+def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace_gen, checkpoint):
   if args.num_proc > 1:
     torch.set_num_threads(1)
   os.environ['MASTER_ADDR'] = '127.0.0.1'
@@ -350,10 +365,10 @@ def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace
   else:
     backend = 'gloo'
   dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
-  train_eval_loop(args, device, model, train_files, eval_tasks, task_gen, trace_gen)
+  train_eval_loop(args, device, model, train_files, eval_tasks, task_gen, trace_gen, checkpoint)
 
 
-def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
+def main_train_eval(args, model, eval_tasks, task_gen, trace_gen, checkpoint):
   if args.train_data_glob is not None:
     train_files = sorted(glob.glob(os.path.join(args.data_folder, args.train_data_glob)))
   else:
@@ -378,7 +393,7 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
       local_train_files = train_files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
       proc = mp.Process(target=train_mp,
                         args=(args, rank, device, model, local_train_files, local_eval_tasks,
-                              task_gen, trace_gen))
+                              task_gen, trace_gen, checkpoint))
       procs.append(proc)
       proc.start()
     for proc in procs:
@@ -390,5 +405,5 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
     if args.num_valid > 0:
       eval_tasks = eval_tasks[:args.num_valid]
     train_eval_loop(args, get_torch_device(device), model, train_files, eval_tasks,
-                    task_gen, trace_gen)
+                    task_gen, trace_gen, checkpoint)
   logging.info("Training finished!!")

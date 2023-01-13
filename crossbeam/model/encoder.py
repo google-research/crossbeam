@@ -373,6 +373,7 @@ class IndexedConcat(torch.autograd.Function):
   @staticmethod
   def forward(ctx, *tensors):
     num_tensors = len(tensors)
+    assert num_tensors % 2 == 0
     list_embedding = tensors[:num_tensors // 2]
     list_idx = tensors[num_tensors // 2:]
     num_rows = sum(x.shape[0] for x in list_idx)
