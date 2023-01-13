@@ -18,10 +18,12 @@ flags.DEFINE_integer('start_seed', 0, 'offset of seed, to separate train/valid')
 flags.DEFINE_float('skip', 0.75, 'skip')
 flags.DEFINE_float('lambdaskip', 0.5, 'lambdaskip')
 flags.DEFINE_float('lambda_fraction', 0.8, 'lambda_fraction')
+flags.DEFINE_boolean('shuffle_ops', False, 'shuffle ops during data gen?')
 flags.DEFINE_integer('num_proc', 1, 'num processes')
-flags.DEFINE_string('name_prefix', 'valid', 'name prefix')
+flags.DEFINE_string('user', None, 'Whose xcloud-shared folder to save in')
+flags.DEFINE_string('split', 'train', 'split')
 flags.DEFINE_integer('num_searches', 1000, 'num searches')
-flags.DEFINE_integer('num_tasks', 1000, 'num tasks per search')
+flags.DEFINE_integer('num_tasks_per_weight', 1000, 'num tasks per weight, per search')
 flags.DEFINE_integer('min_task_weight', 3, 'min task weight')
 flags.DEFINE_integer('min_num_inputs', 1, 'min num inputs')
 flags.DEFINE_integer('min_num_examples', 2, 'min num ex')
@@ -40,18 +42,19 @@ def main(argv) -> None:
     job_requirements = xm.JobRequirements(ram=25 * FLAGS.num_proc * xm.GiB, cpu=FLAGS.num_proc)
     executor = xm_abc.executors.Gcp(requirements=job_requirements)
 
-    data_folder = 't-%d-maxne-%d-maxni-%d-skip-%.2f-lambdaskip-%.2f-lambdafrac-%.2f' % (
-      FLAGS.tout, FLAGS.maxne, FLAGS.maxni, FLAGS.skip, FLAGS.lambdaskip, FLAGS.lambda_fraction
+    data_folder = 't-%d-maxne-%d-maxni-%d-skip-%.2f-lambdaskip-%.2f-lambdafrac-%.2f-shuffleops-%s' % (
+      FLAGS.tout, FLAGS.maxne, FLAGS.maxni, FLAGS.skip, FLAGS.lambdaskip, FLAGS.lambda_fraction, FLAGS.shuffle_ops
     )
-    save_dir = '/gcs/xcloud-shared/hadai/data/xlambda/%s' % data_folder
+    data_save_dir = '/gcs/xcloud-shared/%s/data/xlambda/%s' % (FLAGS.user, data_folder)
     num_searches = FLAGS.num_searches // FLAGS.num_workers
     if FLAGS.num_searches % FLAGS.num_workers > 0:
       num_searches += 1
     executable_args = {
       'domain': _EXP_NAME.value,
-      'output_file': '%s/%s-tasks.pkl' % (save_dir, FLAGS.name_prefix),
+      'data_save_dir': data_save_dir,
+      'split': FLAGS.split,
       'data_gen_timeout': FLAGS.tout,
-      'num_tasks': FLAGS.num_tasks,
+      'num_tasks_per_weight': FLAGS.num_tasks_per_weight,
       'num_searches': num_searches,
       'min_task_weight': FLAGS.min_task_weight,
       'max_task_weight': FLAGS.maxw,
@@ -62,6 +65,7 @@ def main(argv) -> None:
       'skip_probability': FLAGS.skip,
       'lambda_skip_probability': FLAGS.lambdaskip,
       'lambda_fraction': FLAGS.lambda_fraction,
+      'shuffle_ops': FLAGS.shuffle_ops,
       'num_datagen_proc': FLAGS.num_proc,
       'shard_size': FLAGS.shard_size,
       'verbose': False
@@ -78,7 +82,7 @@ def main(argv) -> None:
         args=executable_args)
         ])
     job = xm.Job(executable, executor)
-    nshard_per_job = num_searches * FLAGS.num_tasks // FLAGS.shard_size + 1
+    nshard_per_job = num_searches * FLAGS.num_tasks_per_weight // FLAGS.shard_size + 1
     job_configs = list([{'data_gen_seed': x * num_searches + FLAGS.start_seed,
                          'shard_start_index': x * nshard_per_job} for x in range(FLAGS.num_workers)])
 
