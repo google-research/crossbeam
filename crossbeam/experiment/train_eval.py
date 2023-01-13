@@ -252,7 +252,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
     # Evaluation
     if cur_step > starting_step:
       if rank == 0:
-        logging.info('eval at step %d' % cur_step)
+        print('eval at step %d' % cur_step)
       succ, json_dict = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
       if rank == 0:
         checkpoint = {
@@ -260,14 +260,14 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
           'model': model.state_dict(),
           'optimizer': optimizer.state_dict(),
         }
-        logging.info('saving model at step %d' % cur_step)
+        print('saving model at step %d' % cur_step)
         save_file = os.path.join(args.save_dir, 'model-latest.ckpt')
         torch.save(checkpoint, save_file)
         log_writer.add_scalar('eval/succ', succ, cur_step)
       if args.num_proc > 1:
         succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
       if succ > best_succ and rank == 0 and args.save_dir:
-        logging.info('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
+        print('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
         best_succ = succ
         save_file = os.path.join(args.save_dir, 'model-best-valid.ckpt')
         torch.save(checkpoint, save_file)

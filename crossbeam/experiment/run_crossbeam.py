@@ -111,7 +111,7 @@ def main(argv):
   if os.path.exists(ckpt_file):
     print('loading model from', ckpt_file)
     ckpt = torch.load(ckpt_file)
-    print('model loaded.')
+    print('model loaded at step %d' % ckpt['step'])
   else:
     ckpt = None
   eval_tasks = get_eval_tasks(config)
