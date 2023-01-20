@@ -45,12 +45,11 @@ def main(argv) -> None:
   assert FLAGS.num_proc > 1  # sharding enabled only for multi-proc jobs
   with xm_abc.create_experiment(experiment_title=_EXP_NAME.value) as experiment:
     job_requirements = xm.JobRequirements(ram=25 * FLAGS.num_proc * xm.GiB,
-                                          cpu=FLAGS.num_proc + 1)
+                                          cpu=FLAGS.num_proc)
     executor = xm_abc.executors.Gcp(requirements=job_requirements)
 
     data_folder = (
-        f't-{FLAGS.tout}-searches-{FLAGS.num_searches}-tasks-{FLAGS.num_tasks_per_weight}-'
-        f'lambdafrac-{FLAGS.lambda_fraction}-shuffleops-{FLAGS.shuffle_ops}')
+        f't-{FLAGS.tout}-lambdafrac-{FLAGS.lambda_fraction}-shuffleops-{FLAGS.shuffle_ops}')
     data_save_dir = (
         f'/gcs/xcloud-shared/{FLAGS.user}/data/xlambda/{data_folder}')
     num_searches = math.ceil(FLAGS.num_searches / FLAGS.num_workers)

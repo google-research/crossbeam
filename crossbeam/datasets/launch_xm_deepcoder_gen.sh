@@ -4,7 +4,7 @@ tout=3600
 split=valid
 num_tasks_per_weight=5
 num_searches=1000  # Total across all workers
-num_workers=250
+num_workers=50
 num_proc=4
 lambda_fraction=0.8
 shuffle_ops=False
@@ -12,6 +12,7 @@ start_seed=0
 
 xmanager launch \
   xm_datagen.py -- \
+  --noxm_monitor_on_launch \
   --xm_resource_alloc="user:xcloud/${USER}" \
   --xm_gcs_path=/gcs/xcloud-shared/${USER}/xlambda \
   --user=${USER} \
@@ -37,14 +38,15 @@ xmanager launch \
 
 
 split=train
-num_tasks_per_weight=100
+num_tasks_per_weight=200
 num_searches=10000  # Total across all workers
-num_workers=2500
+num_workers=500
 num_proc=4
 start_seed=10000
 
 xmanager launch \
   xm_datagen.py -- \
+  --noxm_monitor_on_launch \
   --xm_resource_alloc="user:xcloud/${USER}" \
   --xm_gcs_path=/gcs/xcloud-shared/${USER}/xlambda \
   --user=${USER} \
