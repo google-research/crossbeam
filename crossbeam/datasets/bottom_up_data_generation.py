@@ -188,8 +188,10 @@ def datagen_worker(seed,
 def main(argv):
   del argv
   exp_common.set_global_seed(FLAGS.data_gen_seed)
-  if not os.path.exists(FLAGS.data_save_dir):
+  try:
     os.makedirs(FLAGS.data_save_dir)
+  except FileExistsError:
+    pass  # If we check if the path exists, we can still have a race condition.
 
   domain = domains.get_domain(FLAGS.domain)
   if FLAGS.num_datagen_proc == 1:
