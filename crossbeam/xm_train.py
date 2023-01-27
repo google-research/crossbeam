@@ -48,8 +48,8 @@ def main(argv) -> None:
   uname = getpass.getuser()
 
   with xm_abc.create_experiment(experiment_title=_EXP_NAME.value) as experiment:
-    job_requirements = xm.JobRequirements(ram=26 * FLAGS.num_gpus * xm.GiB,
-                                          cpu=7 * FLAGS.num_gpus,
+    job_requirements = xm.JobRequirements(ram=8 * FLAGS.num_gpus * xm.GiB,
+                                          cpu=4 * FLAGS.num_gpus,
                                           v100=FLAGS.num_gpus)
     executor = xm_abc.executors.Gcp(requirements=job_requirements)
     save_dir = FLAGS.save_folder_pattern.format(

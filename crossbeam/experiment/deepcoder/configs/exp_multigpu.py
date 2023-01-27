@@ -5,7 +5,9 @@ def get_config():
   config = config_dict.ConfigDict(initial_dictionary=dict(
     save_dir='', data_root='',
   ))
-  config.sweep = [{'config.lr': 1e-4}, {'config.lr': 1e-3}]
+  config.sweep = [{'config.embed_dim': 64},
+                  {'config.embed_dim': 128},
+                  {'config.embed_dim': 256}]
 
   config.tout = 3600
   config.domain = 'deepcoder'
@@ -21,7 +23,7 @@ def get_config():
   config.max_search_weight = 12
   config.grad_accumulate = 4
   config.beam_size = 10
-  config.gpu_list = '0,1,2,3'
+  config.gpu_list = '0,1,2,3,4,5,6,7'
   config.gpu = 0
   config.num_proc = 8
   config.embed_dim = 64

@@ -114,9 +114,7 @@ class MLP(nn.Module):
     for i in range(1, len(hidden_dims)):
       list_layers.append(nn.Linear(hidden_dims[i - 1], hidden_dims[i]))
       if i + 1 < len(hidden_dims):  # not the last layer
-        if self.bn:
-          bnorm_layer = nn.BatchNorm1d(hidden_dims[i])
-          list_layers.append(bnorm_layer)
+        list_layers.append(nn.LayerNorm(hidden_dims[i]))
         list_layers.append(NONLINEARITIES[self.nonlinearity])
         if dropout > 0:
           list_layers.append(nn.Dropout(dropout))
