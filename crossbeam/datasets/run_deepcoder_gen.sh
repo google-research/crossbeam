@@ -17,14 +17,15 @@
 data_dir=$HOME/xlambda-data/deepcoder
 
 tout=3600  # 1 hour.
-maxw=100  # Run until timeout.
+maxw=15  # Run until timeout.
 maxne=5
 maxni=3
 skip=0.0
 lambdaskip=0.0
 lambda_fraction=0.8
-num_proc=1  # TODO(hadai): change to whatever is reasonable
-out_dir=$data_dir/t-${tout}-maxne-${maxne}-maxni-${maxni}-skip-${skip}-lambdaskip-${lambdaskip}-lambdafrac-${lambda_fraction}
+shuffle_ops=False
+num_proc=1
+out_dir=$data_dir/t-${tout}-maxne-${maxne}-maxni-${maxni}-skip-${skip}-lambdaskip-${lambdaskip}-lambdafrac-${lambda_fraction}-shuffleops-${shuffle_ops}
 
 if [ ! -e $out_dir ];
 then
@@ -32,14 +33,13 @@ then
 fi
 
 echo 'Generating validation'
-valid_file=$out_dir/valid-tasks.pkl
-
 python3 -m crossbeam.datasets.bottom_up_data_generation \
     --domain=deepcoder \
-    --output_file=$valid_file \
+    --data_save_dir=$out_dir \
+    --split=valid \
     --data_gen_seed=10000 \
     --data_gen_timeout=$tout \
-    --num_tasks=20 \
+    --num_tasks_per_weight=10 \
     --num_searches=1000 \
     --min_task_weight=3 \
     --max_task_weight=$maxw \
@@ -50,19 +50,18 @@ python3 -m crossbeam.datasets.bottom_up_data_generation \
     --skip_probability=$skip \
     --lambda_skip_probability=$lambdaskip \
     --lambda_fraction=${lambda_fraction} \
+    --shuffle_ops=${shuffle_ops} \
     --num_datagen_proc=$num_proc \
     --verbose=False
 
 echo 'Generating training'
-
-training_file=$out_dir/train-tasks.pkl
-
 python3 -m crossbeam.datasets.bottom_up_data_generation \
     --domain=deepcoder \
-    --output_file=$training_file \
+    --data_save_dir=$out_dir \
+    --split=train \
     --data_gen_seed=0 \
     --data_gen_timeout=$tout \
-    --num_tasks=2000 \
+    --num_tasks_per_weight=100 \
     --num_searches=10000 \
     --min_task_weight=3 \
     --max_task_weight=$maxw \
@@ -73,5 +72,6 @@ python3 -m crossbeam.datasets.bottom_up_data_generation \
     --skip_probability=$skip \
     --lambda_skip_probability=$lambdaskip \
     --lambda_fraction=${lambda_fraction} \
+    --shuffle_ops=${shuffle_ops} \
     --num_datagen_proc=$num_proc \
     --verbose=False

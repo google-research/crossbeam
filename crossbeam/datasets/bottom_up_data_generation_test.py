@@ -25,35 +25,38 @@ class BottomUpDataGenerationTest(parameterized.TestCase):
 
   @parameterized.parameters(
       ('tuple',),
-      ('arithmetic',),
+      # ('arithmetic',),  # Can't get tasks of even size.
       ('bustle',),
       ('deepcoder',))
   def test_runs(self, domain_str):
     domain = domains.get_domain(domain_str)
-    tasks = bottom_up_data_generation.generate_data(
+    min_weight = 4
+    max_weight = 6
+    tasks_by_weight = bottom_up_data_generation.generate_data(
         domain,
-        min_weight=4,
-        max_weight=6,
+        min_weight=min_weight,
+        max_weight=max_weight,
         min_num_examples=2,
         max_num_examples=4,
         min_num_inputs=1,
         max_num_inputs=2,
         timeout=5,
         num_searches=2,
-        num_tasks_per_search=10)
+        num_tasks_per_weight=10)
 
-    # Rarely, a search might produce zero eligible tasks. A task must use all
-    # input variables, but if x1 always equals x2 (for all examples), then x2
-    # will never be used (since x1 would be used first).
-    self.assertGreaterEqual(len(tasks), 10)
+    for weight in range(min_weight, max_weight + 1):
+      tasks = tasks_by_weight[weight]
+      # Sometimes a search will find few tasks of a certain weight, because
+      # each task must use all inputs at least once which may be difficult.
+      self.assertGreaterEqual(len(tasks), 10)
 
-    self.assertTrue(all(4 <= t.solution.get_weight() <= 6 for t in tasks))
-    if domain.output_type:
-      for t in tasks:
-        if isinstance(domain.output_type, (tuple, list)):
-          self.assertIn(t.solution.type, domain.output_type)
-        else:
-          self.assertEqual(t.solution.type, domain.output_type)
+      self.assertTrue(all(t.solution.get_weight() == weight for t in tasks))
+      if domain.output_type:
+        for t in tasks:
+          if isinstance(domain.output_type, (tuple, list)):
+            self.assertIn(t.solution.type, domain.output_type)
+          else:
+            self.assertEqual(t.solution.type, domain.output_type)
 
 if __name__ == '__main__':
   absltest.main()
