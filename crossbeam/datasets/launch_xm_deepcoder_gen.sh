@@ -47,7 +47,7 @@ start_seed=10000
 xmanager launch \
   xm_datagen.py -- \
   --noxm_monitor_on_launch \
-  --xm_resource_alloc="user:xcloud/${USER}" \
+  --xm_resource_alloc="group:xcloud/xcloud-shared-user" \
   --xm_gcs_path=/gcs/xcloud-shared/${USER}/xlambda \
   --user=${USER} \
   --exp_name=gen-deepcoder-${split}-data \
