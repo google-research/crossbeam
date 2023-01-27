@@ -16,7 +16,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from functools import partial
-from crossbeam.model.op_arg import LSTMArgSelector
+from crossbeam.model.op_arg import LSTMArgSelector, AttnLstmArgSelector
 from crossbeam.model.op_init import PoolingState, OpPoolingState
 from crossbeam.model.encoder import LambdaSigIOEncoder
 from crossbeam.model.encoder import LambdaSigValueEncoder
@@ -26,6 +26,9 @@ from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS, MAX_NUM_BOUND_VARS
 class DeepCoderModel(nn.Module):
   def __init__(self, args, operations):
     super(DeepCoderModel, self).__init__()
+    self.ops = tuple(operations)
+    self.op_idx_map = {repr(op): i for i, op in enumerate(self.ops)}
+    self.use_op_specific_lstm = args.use_op_specific_lstm
     if args.io_encoder == 'lambda_signature':
       self.io = LambdaSigIOEncoder(args.max_num_inputs, hidden_size=args.embed_dim)
     else:
@@ -40,13 +43,29 @@ class DeepCoderModel(nn.Module):
     else:
       self.encode_weight = DummyWeightEncoder()
     self.val = val
-    arg_mod = LSTMArgSelector
-    init_mod = OpPoolingState
-    self.init = init_mod(ops=tuple(operations), state_dim=args.embed_dim, pool_method='mean')
-    self.arg = arg_mod(hidden_size=args.embed_dim,
+    if args.arg_selector == 'lstm':
+      arg_mod = LSTMArgSelector
+    elif args.arg_selector == 'attn_lstm':
+      arg_mod = AttnLstmArgSelector
+    else:
+      raise ValueError('unknown arg selector %s' % args.arg_selector)
+    fn_arg_mod = lambda : arg_mod(hidden_size=args.embed_dim,
                        mlp_sizes=[256, 1],
                        step_score_func=args.step_score_func,
                        step_score_normalize=args.score_normed)
+    init_mod = OpPoolingState
+    self.init = init_mod(ops=self.ops, state_dim=args.embed_dim, pool_method='mean')
+    if self.use_op_specific_lstm:
+      self.op_specific_lstm = nn.ModuleList([
+        fn_arg_mod() for _ in range(len(operations))])
+    else:
+      self.lstm = fn_arg_mod()
 
     self.special_var_embed = nn.Parameter(torch.zeros(MAX_NUM_FREE_VARS + MAX_NUM_BOUND_VARS, args.embed_dim))
     nn.init.xavier_uniform_(self.special_var_embed)
+
+  def arg(self, op=None):
+    if self.use_op_specific_lstm:
+      return self.op_specific_lstm[self.op_idx_map[repr(op)]]
+    else:
+      return self.lstm

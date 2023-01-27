@@ -81,12 +81,13 @@ def task_loss(task, device, training_samples, all_values, all_signatures, model,
   loss = 0.0
   for sample in training_samples:
     arg_options, aux_info, true_arg_pos, num_vals, op = sample
+    model_arg = model.arg(op)
     arg_options = torch.LongTensor(arg_options).to(device)
     cur_vals = val_embed[:num_vals]
     cur_vals = model.encode_weight(cur_vals, aux_info)
     op_state = model.init(io_embed, cur_vals, op)
     # arg selection
-    arg_scores, last_state = model.arg(op_state, cur_vals, arg_options[:, :op.arity].contiguous(), need_last_state=True)
+    arg_scores, last_state = model_arg(op_state, cur_vals, arg_options[:, :op.arity].contiguous(), need_last_state=True)
     arg_scores = torch.sum(arg_scores, dim=-1)
     nll = -arg_scores[true_arg_pos]
 
@@ -94,8 +95,8 @@ def task_loss(task, device, training_samples, all_values, all_signatures, model,
     argv_options = arg_options[true_arg_pos, op.arity:]
     argv_options = argv_options[argv_options >= 0]
     if argv_options.shape[0]:
-      init_argv_state = model.arg.state_select(last_state, [true_arg_pos])
-      argv_score = model.arg(init_argv_state, model.special_var_embed, argv_options.unsqueeze(0))
+      init_argv_state = model_arg.state_select(last_state, [true_arg_pos])
+      argv_score = model_arg(init_argv_state, model.special_var_embed, argv_options.unsqueeze(0))
       nll = nll - torch.sum(argv_score)
     # TODO(hadai): if we want to allow contrastive learning then we also need argv_scores for negative samples.
     assert score_normed
@@ -347,7 +348,7 @@ def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace
   if device == 'cpu':
     backend = 'gloo'
   else:
-    backend = 'nccl'
+    backend = 'gloo'
   dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
   train_eval_loop(args, device, model, train_files, eval_tasks, task_gen, trace_gen)
 
@@ -360,6 +361,10 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
   if args.num_proc > 1:
     if args.gpu_list is not None:
       devices = [get_torch_device(int(x.strip())) for x in args.gpu_list.split(',')]
+      if len(devices) < args.num_proc:
+        assert args.num_proc % len(devices) == 0
+        n_proc_per_gpu = args.num_proc // len(devices)
+        devices = devices * n_proc_per_gpu
     else:
       devices = ['cpu'] * args.num_proc
     assert len(devices) == args.num_proc

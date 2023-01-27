@@ -32,6 +32,7 @@ flags.DEFINE_integer('max_values_explored', None, 'max number of values to explo
 
 flags.DEFINE_string('io_encoder', 'char', 'io encoder, choose from [char, signature, char_signature]')
 flags.DEFINE_string('value_encoder', 'char', 'value encoder, choose from [char, signature, char_signature]')
+flags.DEFINE_string('arg_selector', 'lstm', 'arg selector')
 flags.DEFINE_boolean('encode_weight', False, 'encode value weights?')
 flags.DEFINE_boolean('static_weight', False, 'static weights?')
 

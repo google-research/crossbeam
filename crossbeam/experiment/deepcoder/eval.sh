@@ -29,4 +29,13 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --config="configs/${config_name?}.py" \
     --config.save_dir=${save_dir} \
     --config.data_root="${HOME}/xlambda-data/deepcoder" \
+    --config.use_ur=True \
+    --config.do_test=True \
+    --config.timeout=60 \
+    --config.num_proc=1 \
+    --config.gpu_list=0 \
+    --config.gpu=0 \
+    --config.port='29501' \
+    --config.json_results_file=$save_dir/results2.json \
+    --config.load_model=${save_dir}/model-best-valid.ckpt \
     $@

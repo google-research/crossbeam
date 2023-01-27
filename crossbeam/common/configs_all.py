@@ -49,6 +49,8 @@ def get_config():
     # from crossbeam.experiment.exp_common
     pooling='mean',
     step_score_func='mlp',
+    arg_selector='lstm',
+    use_op_specific_lstm=False,
     train_data_glob=config_dict.FieldReference(None, field_type=str),
     test_data_glob=config_dict.FieldReference(None, field_type=str),
     use_ur=True,

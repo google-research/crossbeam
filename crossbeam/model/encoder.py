@@ -155,9 +155,9 @@ class BustlePropSigIOEncoder(nn.Module):
       return io_embed
 
 
-class LambdaSignature(nn.Module):
+class Signature(nn.Module):
   def __init__(self, len_signature):
-    super(LambdaSignature, self).__init__()
+    super(Signature, self).__init__()
     self.tuple_length = deepcoder_propsig.SIGNATURE_TUPLE_LENGTH
     self.embed_length = 2
     self.frac_applicable_embed = nn.Embedding(12, self.embed_length)
@@ -181,7 +181,7 @@ class LambdaSignature(nn.Module):
     return flat_embed
 
 
-class LambdaSigIOEncoder(LambdaSignature):
+class LambdaSigIOEncoder(Signature):
   def __init__(self, max_num_inputs, hidden_size):
     super(LambdaSigIOEncoder, self).__init__(deepcoder_propsig.IO_EXAMPLES_SIGNATURE_LENGTH)
     self.max_num_inputs = max_num_inputs
@@ -368,13 +368,50 @@ class BustlePropSigValueEncoder(nn.Module):
     return val_embed
 
 
-class LambdaSigValueEncoder(LambdaSignature):
+class IndexedConcat(torch.autograd.Function):
+
+  @staticmethod
+  def forward(ctx, *tensors):
+    num_tensors = len(tensors)
+    list_embedding = tensors[:num_tensors // 2]
+    list_idx = tensors[num_tensors // 2:]
+    num_rows = sum(x.shape[0] for x in list_idx)
+    out_tensor = list_embedding[0].new(num_rows, list_embedding[0].shape[1]).contiguous()
+    for i in range(len(list_idx)):
+      out_tensor[list_idx[i]] = list_embedding[i]
+    ctx.save_for_backward(*list_idx)
+    return out_tensor
+
+  @staticmethod
+  def backward(ctx, grad_out):
+    list_idx = ctx.saved_tensors
+    list_grads = []
+    for i in range(len(list_idx)):
+      cur_grad = grad_out[list_idx[i]]
+      list_grads.append(cur_grad)
+    for i in range(len(list_idx)):
+      list_grads.append(None)
+    return tuple(list_grads)
+
+indexed_concat = IndexedConcat.apply
+
+
+class LambdaSigValueEncoder(nn.Module):
   def __init__(self, hidden_size):
-    super(LambdaSigValueEncoder, self).__init__(deepcoder_propsig.VALUE_SIGNATURE_LENGTH)
+    super(LambdaSigValueEncoder, self).__init__()
+    self.concrete_signature = Signature(deepcoder_propsig.CONCRETE_SIGNATURE_LENGTH)
+    self.lambda_signature = Signature(deepcoder_propsig.LAMBDA_SIGNATURE_LENGTH)
+    tuple_length = self.concrete_signature.tuple_length
+    embed_length = self.concrete_signature.embed_length
     self.freevar_embed = nn.Parameter(torch.zeros(MAX_NUM_FREE_VARS, hidden_size))
     nn.init.xavier_uniform_(self.freevar_embed)
-    self.mlp = nn.Sequential(
-      nn.Linear(self.len_signature * self.tuple_length * self.embed_length, hidden_size * 2),
+    self.mlp_concrete = nn.Sequential(
+      nn.Linear(self.concrete_signature.len_signature * tuple_length * embed_length, hidden_size * 2),
+      nn.ReLU(),
+      nn.Linear(hidden_size * 2, hidden_size)
+    )
+    self.mlp_lambda = nn.Sequential(
+      nn.Linear(self.lambda_signature.len_signature * tuple_length * embed_length, hidden_size * 2),
       nn.ReLU(),
       nn.Linear(hidden_size * 2, hidden_size)
     )
@@ -386,9 +423,32 @@ class LambdaSigValueEncoder(LambdaSignature):
       if isinstance(v, value_module.FreeVariable):
         list_special_vars.append(vidx)
         feat_special_vars.append(self.freevar_embed[int(v.name[1:]) - 1].view(1, -1))
+    if len(list_normal_signatures) == 0:
+      assert len(list_special_vars)
+      return torch.cat(feat_special_vars, dim=0)
 
-    normal_sig_embed = super(LambdaSigValueEncoder, self).forward(list_normal_signatures, device)
-    normal_sig_embed = self.mlp(normal_sig_embed)
+    list_of_list_signatures = [[], []]
+    list_of_list_sidx = [[], []]
+    for sidx, (nv, signature) in enumerate(list_normal_signatures):
+      selector = int(nv > 0)
+      list_of_list_signatures[selector].append(signature)
+      list_of_list_sidx[selector].append(sidx)
+
+    if len(list_of_list_signatures[0]):
+      concrete_sig_embed = self.concrete_signature(list_of_list_signatures[0], device)
+      concrete_sig_embed = self.mlp_concrete(concrete_sig_embed)
+      if len(list_of_list_signatures[1]) == 0:
+        normal_sig_embed = concrete_sig_embed
+    if len(list_of_list_signatures[1]):
+      lambda_sig_embed = self.lambda_signature(list_of_list_signatures[1], device)
+      lambda_sig_embed = self.mlp_lambda(lambda_sig_embed)
+      if len(list_of_list_signatures[0]) == 0:
+        normal_sig_embed = lambda_sig_embed
+    if len(list_of_list_signatures[0]) and len(list_of_list_signatures[1]):
+      normal_sig_embed = indexed_concat(concrete_sig_embed, lambda_sig_embed,
+                                        torch.LongTensor(list_of_list_sidx[0]).to(device),
+                                        torch.LongTensor(list_of_list_sidx[1]).to(device))
+
     if len(list_special_vars) == 0:
       all_embed = normal_sig_embed
     else:
@@ -406,7 +466,7 @@ class LambdaSigValueEncoder(LambdaSignature):
     for v in all_values:
       if not isinstance(v, value_module.FreeVariable):
         signature = deepcoder_propsig.property_signature_value(v, output_values, fixed_length=True)
-        list_normal_signatures.append(signature)
+        list_normal_signatures.append((v.num_free_variables, signature))
     all_embed = self.forward_with_signatures(all_values, device, list_normal_signatures)
     if need_signatures:
       return all_embed, list_normal_signatures

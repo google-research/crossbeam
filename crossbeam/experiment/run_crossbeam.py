@@ -105,7 +105,7 @@ def main(argv):
 
   domain = domains.get_domain(config.domain)
   model = init_model(config, domain, config.model_type)
-  if config.load_model is not None:
+  if config.load_model:
     model_dump = os.path.join(config.save_dir, config.load_model)
     print('loading model from', model_dump)
     model.load_state_dict(torch.load(model_dump))
@@ -125,7 +125,7 @@ def main(argv):
         max_num_inputs=config.max_num_inputs,
         verbose=config.verbose)
 
-  print(f'Starting training, will save model dumps to {FLAGS.save_dir}')
+  print(f'Starting training, will save model dumps to {config.save_dir}')
   main_train_eval(proc_args, model, eval_tasks,
                   task_gen=task_gen_func,
                   trace_gen=data_gen.trace_gen)

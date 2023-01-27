@@ -46,7 +46,7 @@ def _beam_step(score_model, k, cur_state, choice_embed, prefix_scores,
   op_choice = arg_selected % num_choices
   prev_state = score_model.state_select(cur_state, prev_index)
   cur_op_embed = choice_embed[op_choice]
-  cur_state = score_model.step_state(prev_state, cur_op_embed)
+  cur_state = score_model.step_state(prev_state, choice_embed, cur_op_embed)
   return cur_state, prev_index, op_choice, prefix_scores
 
 
@@ -76,7 +76,7 @@ def _beam_step_ur(score_model, k, cur_state, choice_embed, prefix_scores,
   if 'state' not in randomizer.current_node.cache:
     prev_state = score_model.state_select(cur_state, prev_index)
     cur_op_embed = choice_embed[op_choice]
-    cur_state = score_model.step_state(prev_state, cur_op_embed)
+    cur_state = score_model.step_state(prev_state, choice_embed, cur_op_embed)
   else:
     cur_state = randomizer.current_node.cache['state']
 
