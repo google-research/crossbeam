@@ -35,11 +35,13 @@ from crossbeam.dsl import domains
 from crossbeam.dsl import value as value_module
 from crossbeam.common.config import get_torch_device
 from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS
+from crossbeam.experiment.task_iterator import TrainTaskGen, TaskScheduler
 from absl import logging
 import timeit
 import json
 import pprint
 import cProfile
+from collections import defaultdict
 from torch.utils import tensorboard
 
 
@@ -190,24 +192,16 @@ def _gather_eval_info(rank, device, local_acc, local_num):
   return succ
 
 
-def train_eval_loop(args, device, model, train_files, eval_tasks,
+def train_eval_loop(args, device, model, weighted_train_files, eval_tasks,
                     task_gen, trace_gen, checkpoint):
-  random.shuffle(train_files)
-  def local_task_gen(domain):
-    if len(train_files) or task_gen is None:
-      while True:
-        for fname in train_files:
-          with open(fname, 'rb') as f:
-            list_tasks = cp.load(f)
-          random.shuffle(list_tasks)
-          for i in range(0, len(list_tasks), args.grad_accumulate):
-            yield list_tasks[i : i + args.grad_accumulate]
-    else:
-      while True:
-        cur_tasks = [task_gen(domain) for _ in range(args.grad_accumulate)]
-        yield cur_tasks
   domain = domains.get_domain(args.domain)
-  train_gen = local_task_gen(domain)
+  fn_taskgen = None
+  if task_gen is not None:
+    fn_taskgen = lambda: task_gen(domain)
+  train_data = TrainTaskGen(weighted_train_files, local_batch_size=args.grad_accumulate,
+                            fn_taskgen=fn_taskgen)
+  task_scheduler = TaskScheduler(args, weighted_train_files.keys())
+
   is_distributed = args.num_proc > 1
   if is_distributed:
     rank = dist.get_rank()
@@ -226,6 +220,9 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
     starting_step = checkpoint['step']
   else:
     starting_step = 0
+
+  current_task_schedule = task_scheduler.get_schedule(starting_step)
+  train_gen = train_data.datagen(current_task_schedule)
   eval_func = functools.partial(do_eval,
                                 max_search_weight=args.max_search_weight,
                                 beam_size=args.beam_size,
@@ -369,10 +366,17 @@ def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace
 
 
 def main_train_eval(args, model, eval_tasks, task_gen, trace_gen, checkpoint):
+  weighted_files = defaultdict(list)
   if args.train_data_glob is not None:
-    train_files = sorted(glob.glob(os.path.join(args.data_folder, args.train_data_glob)))
+    all_train_files = sorted(glob.glob(os.path.join(args.data_folder, args.train_data_glob)))
+    if 'weight' in all_train_files[0]:
+      for fname in all_train_files:
+        w = fname.split('/')[-1].split('weight-')[1].split('-')[0]
+        weighted_files[int(w)].append(fname)
+    else:
+      weighted_files[0] = all_train_files
   else:
-    train_files = []
+    weighted_files[0] = []
   if args.num_proc > 1:
     if args.gpu_list is not None:
       devices = [get_torch_device(int(x.strip())) for x in args.gpu_list.split(',')]
@@ -384,15 +388,19 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen, checkpoint):
       devices = ['cpu'] * args.num_proc
     assert len(devices) == args.num_proc
     nq_per_proc = math.ceil(len(eval_tasks) / args.num_proc)
-    nf_per_proc = math.ceil(len(train_files) / args.num_proc)
+
     procs = []
     for rank, device in enumerate(devices):
       local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
       if args.num_valid > 0:
         local_eval_tasks = local_eval_tasks[:args.num_valid]
-      local_train_files = train_files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
+      local_weighted_files = {}
+      for key in weighted_files:
+        train_files = weighted_files[key]
+        nf_per_proc = math.ceil(len(train_files) / args.num_proc)
+        local_weighted_files[key] = train_files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
       proc = mp.Process(target=train_mp,
-                        args=(args, rank, device, model, local_train_files, local_eval_tasks,
+                        args=(args, rank, device, model, local_weighted_files, local_eval_tasks,
                               task_gen, trace_gen, checkpoint))
       procs.append(proc)
       proc.start()
@@ -404,6 +412,6 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen, checkpoint):
       device = int(args.gpu_list.strip())
     if args.num_valid > 0:
       eval_tasks = eval_tasks[:args.num_valid]
-    train_eval_loop(args, get_torch_device(device), model, train_files, eval_tasks,
+    train_eval_loop(args, get_torch_device(device), model, weighted_files, eval_tasks,
                     task_gen, trace_gen, checkpoint)
   logging.info("Training finished!!")
