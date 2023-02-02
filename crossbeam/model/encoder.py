@@ -373,6 +373,7 @@ class IndexedConcat(torch.autograd.Function):
   @staticmethod
   def forward(ctx, *tensors):
     num_tensors = len(tensors)
+    assert num_tensors % 2 == 0
     list_embedding = tensors[:num_tensors // 2]
     list_idx = tensors[num_tensors // 2:]
     num_rows = sum(x.shape[0] for x in list_idx)
@@ -407,13 +408,17 @@ class LambdaSigValueEncoder(nn.Module):
     nn.init.xavier_uniform_(self.freevar_embed)
     self.mlp_concrete = nn.Sequential(
       nn.Linear(self.concrete_signature.len_signature * tuple_length * embed_length, hidden_size * 2),
+      nn.LayerNorm(hidden_size * 2),
       nn.ReLU(),
-      nn.Linear(hidden_size * 2, hidden_size)
+      nn.Linear(hidden_size * 2, hidden_size),
+      nn.LayerNorm(hidden_size),
     )
     self.mlp_lambda = nn.Sequential(
       nn.Linear(self.lambda_signature.len_signature * tuple_length * embed_length, hidden_size * 2),
+      nn.LayerNorm(hidden_size * 2),
       nn.ReLU(),
-      nn.Linear(hidden_size * 2, hidden_size)
+      nn.Linear(hidden_size * 2, hidden_size),
+      nn.LayerNorm(hidden_size),
     )
 
   def forward_with_signatures(self, all_values, device, list_normal_signatures):

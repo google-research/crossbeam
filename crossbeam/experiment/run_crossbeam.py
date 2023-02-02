@@ -105,11 +105,15 @@ def main(argv):
 
   domain = domains.get_domain(config.domain)
   model = init_model(config, domain, config.model_type)
+  ckpt_file = os.path.join(config.save_dir, 'model-latest.ckpt')
   if config.load_model:
-    model_dump = os.path.join(config.save_dir, config.load_model)
-    print('loading model from', model_dump)
-    model.load_state_dict(torch.load(model_dump))
-    print('model loaded.')
+    ckpt_file = os.path.join(config.save_dir, config.load_model)
+  if os.path.exists(ckpt_file):
+    print('loading model from', ckpt_file)
+    ckpt = torch.load(ckpt_file)
+    print('model loaded at step %d' % ckpt['step'])
+  else:
+    ckpt = None
   eval_tasks = get_eval_tasks(config)
 
   if config.train_data_glob is not None:
@@ -128,7 +132,8 @@ def main(argv):
   print(f'Starting training, will save model dumps to {config.save_dir}')
   main_train_eval(proc_args, model, eval_tasks,
                   task_gen=task_gen_func,
-                  trace_gen=data_gen.trace_gen)
+                  trace_gen=data_gen.trace_gen,
+                  checkpoint=ckpt)
 
 
 if __name__ == '__main__':

@@ -35,11 +35,13 @@ from crossbeam.dsl import domains
 from crossbeam.dsl import value as value_module
 from crossbeam.common.config import get_torch_device
 from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS
+from crossbeam.experiment.task_iterator import TrainTaskGen, TaskScheduler
 from absl import logging
 import timeit
 import json
 import pprint
 import cProfile
+from collections import defaultdict
 from torch.utils import tensorboard
 
 
@@ -190,23 +192,16 @@ def _gather_eval_info(rank, device, local_acc, local_num):
   return succ
 
 
-def train_eval_loop(args, device, model, train_files, eval_tasks,
-                    task_gen, trace_gen):
-  def local_task_gen(domain):
-    if len(train_files) or task_gen is None:
-      while True:
-        for fname in train_files:
-          with open(fname, 'rb') as f:
-            list_tasks = cp.load(f)
-          random.shuffle(list_tasks)
-          for i in range(0, len(list_tasks), args.grad_accumulate):
-            yield list_tasks[i : i + args.grad_accumulate]
-    else:
-      while True:
-        cur_tasks = [task_gen(domain) for _ in range(args.grad_accumulate)]
-        yield cur_tasks
+def train_eval_loop(args, device, model, weighted_train_files, eval_tasks,
+                    task_gen, trace_gen, checkpoint):
   domain = domains.get_domain(args.domain)
-  train_gen = local_task_gen(domain)
+  fn_taskgen = None
+  if task_gen is not None:
+    fn_taskgen = lambda: task_gen(domain)
+  train_data = TrainTaskGen(weighted_train_files, local_batch_size=args.grad_accumulate,
+                            fn_taskgen=fn_taskgen)
+  task_scheduler = TaskScheduler(args, weighted_train_files.keys())
+
   is_distributed = args.num_proc > 1
   if is_distributed:
     rank = dist.get_rank()
@@ -218,6 +213,16 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
       os.makedirs(log_folder)
     log_writer = tensorboard.SummaryWriter(log_folder)
   model = model.to(device)
+  optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+  if checkpoint is not None:
+    model.load_state_dict(checkpoint['model'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
+    starting_step = checkpoint['step']
+  else:
+    starting_step = 0
+
+  current_task_schedule = task_scheduler.get_schedule(starting_step)
+  train_gen = train_data.datagen(current_task_schedule)
   eval_func = functools.partial(do_eval,
                                 max_search_weight=args.max_search_weight,
                                 beam_size=args.beam_size,
@@ -238,24 +243,31 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
       print('Wrote JSON results file at {}'.format(args.json_results_file))
     print('Done testing! Exiting.')
     sys.exit()
-  optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
   best_succ = -1
-  for cur_step in range(0, args.train_steps, args.eval_every):
+  for cur_step in range(starting_step, args.train_steps, args.eval_every):
 
     # Evaluation
-    if cur_step > 0:
+    if cur_step > starting_step:
       if rank == 0:
-        logging.info('eval at step %d' % cur_step)
+        print('eval at step %d' % cur_step)
       succ, json_dict = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
       if rank == 0:
+        checkpoint = {
+          'step': cur_step,
+          'model': model.state_dict(),
+          'optimizer': optimizer.state_dict(),
+        }
+        print('saving model at step %d' % cur_step)
+        save_file = os.path.join(args.save_dir, 'model-latest.ckpt')
+        torch.save(checkpoint, save_file)
         log_writer.add_scalar('eval/succ', succ, cur_step)
       if args.num_proc > 1:
         succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
       if succ > best_succ and rank == 0 and args.save_dir:
-        logging.info('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
+        print('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
         best_succ = succ
         save_file = os.path.join(args.save_dir, 'model-best-valid.ckpt')
-        torch.save(model.state_dict(), save_file)
+        torch.save(checkpoint, save_file)
         # Is it too slow to write eval results to a file? It might be a huge file
         # if args.json_results_file:
         #   with open(args.json_results_file, 'w') as f:
@@ -340,7 +352,7 @@ def train_eval_loop(args, device, model, train_files, eval_tasks,
 
 
 @thread_wrapped_func
-def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace_gen):
+def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace_gen, checkpoint):
   if args.num_proc > 1:
     torch.set_num_threads(1)
   os.environ['MASTER_ADDR'] = '127.0.0.1'
@@ -350,14 +362,21 @@ def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace
   else:
     backend = 'gloo'
   dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
-  train_eval_loop(args, device, model, train_files, eval_tasks, task_gen, trace_gen)
+  train_eval_loop(args, device, model, train_files, eval_tasks, task_gen, trace_gen, checkpoint)
 
 
-def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
+def main_train_eval(args, model, eval_tasks, task_gen, trace_gen, checkpoint):
+  weighted_files = defaultdict(list)
   if args.train_data_glob is not None:
-    train_files = sorted(glob.glob(os.path.join(args.data_folder, args.train_data_glob)))
+    all_train_files = sorted(glob.glob(os.path.join(args.data_folder, args.train_data_glob)))
+    if 'weight' in all_train_files[0]:
+      for fname in all_train_files:
+        w = fname.split('/')[-1].split('weight-')[1].split('-')[0]
+        weighted_files[int(w)].append(fname)
+    else:
+      weighted_files[0] = all_train_files
   else:
-    train_files = []
+    weighted_files[0] = []
   if args.num_proc > 1:
     if args.gpu_list is not None:
       devices = [get_torch_device(int(x.strip())) for x in args.gpu_list.split(',')]
@@ -369,16 +388,20 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
       devices = ['cpu'] * args.num_proc
     assert len(devices) == args.num_proc
     nq_per_proc = math.ceil(len(eval_tasks) / args.num_proc)
-    nf_per_proc = math.ceil(len(train_files) / args.num_proc)
+
     procs = []
     for rank, device in enumerate(devices):
       local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
       if args.num_valid > 0:
         local_eval_tasks = local_eval_tasks[:args.num_valid]
-      local_train_files = train_files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
+      local_weighted_files = {}
+      for key in weighted_files:
+        train_files = weighted_files[key]
+        nf_per_proc = math.ceil(len(train_files) / args.num_proc)
+        local_weighted_files[key] = train_files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
       proc = mp.Process(target=train_mp,
-                        args=(args, rank, device, model, local_train_files, local_eval_tasks,
-                              task_gen, trace_gen))
+                        args=(args, rank, device, model, local_weighted_files, local_eval_tasks,
+                              task_gen, trace_gen, checkpoint))
       procs.append(proc)
       proc.start()
     for proc in procs:
@@ -389,6 +412,6 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen):
       device = int(args.gpu_list.strip())
     if args.num_valid > 0:
       eval_tasks = eval_tasks[:args.num_valid]
-    train_eval_loop(args, get_torch_device(device), model, train_files, eval_tasks,
-                    task_gen, trace_gen)
+    train_eval_loop(args, get_torch_device(device), model, weighted_files, eval_tasks,
+                    task_gen, trace_gen, checkpoint)
   logging.info("Training finished!!")
