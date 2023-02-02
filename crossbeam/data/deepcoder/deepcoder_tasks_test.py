@@ -9,6 +9,10 @@ from crossbeam.dsl import deepcoder_utils
 
 class DeepcoderTasksTest(parameterized.TestCase):
 
+  def test_num_tasks(self):
+    # This test helps us keep track of how many tasks there are.
+    self.assertLen(deepcoder_tasks.HANDWRITTEN_TASKS, 100)
+
   @parameterized.named_parameters(
       *[(task.name, task) for task in deepcoder_tasks.HANDWRITTEN_TASKS])
   def test_task_solution(self, task):
@@ -23,6 +27,8 @@ class DeepcoderTasksTest(parameterized.TestCase):
   def test_tasks_have_unique_names(self):
     names = {task.name for task in deepcoder_tasks.HANDWRITTEN_TASKS}
     self.assertLen(names, len(deepcoder_tasks.HANDWRITTEN_TASKS))
+    names_without_prefix = {name.split(':')[1] for name in names}
+    self.assertLen(names_without_prefix, len(names))
 
   @parameterized.named_parameters(
       *[(task.name, task) for task in deepcoder_tasks.HANDWRITTEN_TASKS])
