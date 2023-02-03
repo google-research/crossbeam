@@ -30,7 +30,10 @@ def get_config():
   config.encode_weight = True
   config.train_steps = 1000000
   config.train_data_glob = 'train-*.pkl'
+  config.test_data_glob = 'valid-*.pkl'
   config.random_beam = False
   config.lr = 1e-4
+  config.steps_per_curr_stage = 10000
+  config.schedule_type = 'halfhalf'
   config.data_name = 't-3600-lambdafrac-0.8-shuffleops-False'
   return config
