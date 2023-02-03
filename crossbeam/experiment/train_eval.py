@@ -376,7 +376,7 @@ def train_eval_loop(args, device, model, weighted_train_files, weighted_test_fil
 
 
 @thread_wrapped_func
-def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace_gen, checkpoint):
+def train_mp(args, rank, device, model, train_files, test_files, eval_tasks, task_gen, trace_gen, checkpoint):
   if args.num_proc > 1:
     torch.set_num_threads(1)
   os.environ['MASTER_ADDR'] = '127.0.0.1'
@@ -386,7 +386,7 @@ def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace
   else:
     backend = 'gloo'
   dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
-  train_eval_loop(args, device, model, train_files, eval_tasks, task_gen, trace_gen, checkpoint)
+  train_eval_loop(args, device, model, train_files, test_files, eval_tasks, task_gen, trace_gen, checkpoint)
 
 
 def get_local_weighted_files(args, rank, data_glob):
