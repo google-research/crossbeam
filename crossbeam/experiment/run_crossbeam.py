@@ -72,8 +72,8 @@ def init_model(args, domain, model_type):
 
 
 def get_eval_tasks(config):
-  if FLAGS.do_test:
-    if FLAGS.domain == 'deepcoder':
+  if config.do_test:
+    if config.domain == 'deepcoder':
       return deepcoder_tasks.HANDWRITTEN_TASKS
     eval_prefix = 'test-tasks'
   else:

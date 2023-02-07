@@ -5,7 +5,12 @@ def get_config():
   config = config_dict.ConfigDict(initial_dictionary=dict(
     save_dir='', data_root='',
   ))
-  config.sweep = [{'config.lr': 1e-4}, {'config.lr': 1e-3}]
+  config.sweep = [{'config.schedule_type': 'halfhalf'},
+                  {'config.schedule_type': 'uniform'},
+                  {'config.schedule_type': 'all-0'},
+                  {'config.schedule_type': 'all-1'},
+                  {'config.schedule_type': 'all-2'},
+                  {'config.schedule_type': 'all-3'}]
 
   config.tout = 3600
   config.domain = 'deepcoder'

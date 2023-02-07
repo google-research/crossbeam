@@ -73,6 +73,9 @@ class TaskScheduler(object):
         probs_of_weights[self.all_weights[stage]] = 0.5
         for s in range(stage):
           probs_of_weights[self.all_weights[s]] = 0.5 / stage
+    elif self.schedule_type.startswith('all-'):
+      idx = int(self.schedule_type.split('-')[1])
+      probs_of_weights[self.all_weights[idx]] = 1.0
     else:
       raise NotImplementedError
     return probs_of_weights
