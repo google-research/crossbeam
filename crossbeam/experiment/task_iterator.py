@@ -23,12 +23,19 @@ class TrainTaskGen(object):
   def datagen(self, seed, probs_of_weights):
     dict_datagen = {}
     keys = list(probs_of_weights.keys())
+    used_keys = []
     probs = []
     for i, key in enumerate(keys):
       rng = np.random.default_rng(seed + i + 1)
-      if probs_of_weights[key] > 0 and key in self.weighted_files:
+      if not key in self.weighted_files:
+        continue
+      if len(self.weighted_files[key]) == 0:
+        continue
+      if probs_of_weights[key] > 0:
         dict_datagen[key] = self.gen_single_weight(rng, key)
         probs.append(probs_of_weights[key])
+        used_keys.append(key)
+    keys = used_keys
     probs = np.array(probs)
     probs = probs / np.sum(probs)
     rng = np.random.default_rng(seed)
