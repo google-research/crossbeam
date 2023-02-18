@@ -60,9 +60,11 @@ class EvalTaskGen(TrainTaskGen):
 
 
 class TaskScheduler(object):
-  def __init__(self, args, all_weights):
+  def __init__(self, args, all_weights, override_schedule_type=None):
     self.all_weights = sorted(list(all_weights))
     self.schedule_type = args.get('schedule_type', 'uniform')
+    if override_schedule_type is not None:
+      self.schedule_type = override_schedule_type
     self.steps_per_curr_stage = args.get('steps_per_curr_stage', 0)
 
   def get_schedule(self, step):
@@ -70,9 +72,13 @@ class TaskScheduler(object):
     if self.schedule_type == 'uniform':
       for key in self.all_weights:
         probs_of_weights[key] = 1.0 / len(self.all_weights)
-    elif self.schedule_type == 'halfhalf':
+    elif self.schedule_type.startswith('halfhalf'):
+      if '-' in self.schedule_type:
+        stage = int(self.schedule_type.split('-')[1])
+      else:
+        stage = 0
       assert self.steps_per_curr_stage > 0
-      stage = step // self.steps_per_curr_stage
+      stage += step // self.steps_per_curr_stage
       stage = min(stage, len(self.all_weights) - 1)
       if stage == 0:
         probs_of_weights[self.all_weights[0]] = 1.0
@@ -82,7 +88,9 @@ class TaskScheduler(object):
           probs_of_weights[self.all_weights[s]] = 0.5 / stage
     elif self.schedule_type.startswith('all-'):
       idx = int(self.schedule_type.split('-')[1])
-      probs_of_weights[self.all_weights[idx]] = 1.0
+      w = 1.0 / (idx + 1)
+      for i in range(idx + 1):
+        probs_of_weights[self.all_weights[i]] = w
     else:
       raise NotImplementedError
     return probs_of_weights

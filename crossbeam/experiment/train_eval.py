@@ -202,7 +202,8 @@ def train_eval_loop(args, device, model, weighted_train_files, weighted_test_fil
                             fn_taskgen=fn_taskgen)
   eval_data = EvalTaskGen(args.num_valid, weighted_test_files)
   task_scheduler = TaskScheduler(args, weighted_train_files.keys())
-
+  canonical_task_schedule = TaskScheduler(args, weighted_test_files.keys(), 'uniform').get_schedule(0)
+  canonical_eval_tasks = list(eval_data.datagen(0, canonical_task_schedule))
   is_distributed = args.num_proc > 1
   if is_distributed:
     rank = dist.get_rank()
@@ -254,16 +255,20 @@ def train_eval_loop(args, device, model, weighted_train_files, weighted_test_fil
       print('Wrote JSON results file at {}'.format(args.json_results_file))
     print('Done testing! Exiting.')
     sys.exit()
-  best_succ = defaultdict(lambda: -1)
+  # best_succ = defaultdict(lambda: -1)
+  best_succ = -1
   if len(eval_tasks) == 0:
     eval_tasks = list(eval_data.datagen(curriculum_stage, current_task_schedule))
+  else:
+    canonical_eval_tasks = eval_tasks
   for cur_step in range(starting_step, args.train_steps, args.eval_every):
 
     # Evaluation
     if cur_step > starting_step:
       if rank == 0:
         print('eval at step %d' % cur_step)
-      succ, json_dict = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
+      succ, json_dict = eval_func(canonical_eval_tasks, domain, model, verbose=not is_distributed)
+
       if rank == 0:
         checkpoint = {
           'step': cur_step,
@@ -271,15 +276,15 @@ def train_eval_loop(args, device, model, weighted_train_files, weighted_test_fil
           'optimizer': optimizer.state_dict(),
         }
         print('saving model at step %d' % cur_step)
-        save_file = os.path.join(args.save_dir, 'model-latest-%d.ckpt' % curriculum_stage)
+        save_file = os.path.join(args.save_dir, 'model-latest.ckpt')
         torch.save(checkpoint, save_file)
         log_writer.add_scalar('eval/succ', succ, cur_step)
       if args.num_proc > 1:
-        succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
-      if succ > best_succ[curriculum_stage] and rank == 0 and args.save_dir:
+        succ = _gather_eval_info(rank, device, succ, len(canonical_eval_tasks))
+      if succ > best_succ and rank == 0 and args.save_dir:
         print('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
-        best_succ[curriculum_stage] = succ
-        save_file = os.path.join(args.save_dir, 'model-best-valid-%d.ckpt' % curriculum_stage)
+        best_succ = succ
+        save_file = os.path.join(args.save_dir, 'model-best-valid.ckpt')
         torch.save(checkpoint, save_file)
         # Is it too slow to write eval results to a file? It might be a huge file
         # if args.json_results_file:

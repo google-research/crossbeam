@@ -5,12 +5,12 @@ def get_config():
   config = config_dict.ConfigDict(initial_dictionary=dict(
     save_dir='', data_root='',
   ))
-  config.sweep = [{'config.schedule_type': 'halfhalf'},
+  config.sweep = [{'config.schedule_type': 'halfhalf-2'},
                   {'config.schedule_type': 'uniform'},
-                  {'config.schedule_type': 'all-0'},
-                  {'config.schedule_type': 'all-1'},
-                  {'config.schedule_type': 'all-2'},
-                  {'config.schedule_type': 'all-3'}]
+                  {'config.schedule_type': 'all-3'},
+                  {'config.schedule_type': 'all-4'},
+                  {'config.schedule_type': 'all-5'},
+                  {'config.schedule_type': 'all-6'}]
 
   config.tout = 3600
   config.domain = 'deepcoder'
@@ -29,7 +29,7 @@ def get_config():
   config.num_proc = 8
   config.gpu_list = '0,1,2,3,4,5,6,7'
   config.gpu = 0
-  config.embed_dim = 128
+  config.embed_dim = 64
   config.eval_every = 5000
   config.num_valid = 250
   config.port = '29500'
@@ -45,7 +45,7 @@ def get_config():
   config.use_op_specific_lstm = True
   config.lr = 5e-4
   config.load_model = ''
-  config.steps_per_curr_stage = 10000
+  config.steps_per_curr_stage = 5000
   config.schedule_type = 'halfhalf'
   config.data_name = 't-3600-lambdafrac-0.8-shuffleops-False'
   return config
