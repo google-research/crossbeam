@@ -35,7 +35,7 @@ from crossbeam.dsl import domains
 from crossbeam.dsl import value as value_module
 from crossbeam.common.config import get_torch_device
 from crossbeam.algorithm.variables import MAX_NUM_FREE_VARS
-from crossbeam.experiment.task_iterator import TrainTaskGen, TaskScheduler
+from crossbeam.experiment.task_iterator import TrainTaskGen, EvalTaskGen, TaskScheduler
 from absl import logging
 import timeit
 import json
@@ -192,7 +192,7 @@ def _gather_eval_info(rank, device, local_acc, local_num):
   return succ
 
 
-def train_eval_loop(args, device, model, weighted_train_files, eval_tasks,
+def train_eval_loop(args, device, model, weighted_train_files, weighted_test_files, eval_tasks,
                     task_gen, trace_gen, checkpoint):
   domain = domains.get_domain(args.domain)
   fn_taskgen = None
@@ -200,8 +200,10 @@ def train_eval_loop(args, device, model, weighted_train_files, eval_tasks,
     fn_taskgen = lambda: task_gen(domain)
   train_data = TrainTaskGen(weighted_train_files, local_batch_size=args.grad_accumulate,
                             fn_taskgen=fn_taskgen)
+  eval_data = EvalTaskGen(args.num_valid, weighted_test_files)
   task_scheduler = TaskScheduler(args, weighted_train_files.keys())
-
+  canonical_task_schedule = TaskScheduler(args, weighted_test_files.keys(), 'uniform').get_schedule(0)
+  canonical_eval_tasks = list(eval_data.datagen(0, canonical_task_schedule))
   is_distributed = args.num_proc > 1
   if is_distributed:
     rank = dist.get_rank()
@@ -222,7 +224,17 @@ def train_eval_loop(args, device, model, weighted_train_files, eval_tasks,
     starting_step = 0
 
   current_task_schedule = task_scheduler.get_schedule(starting_step)
-  train_gen = train_data.datagen(current_task_schedule)
+  if rank == 0:
+    print('starting task schedule', current_task_schedule)
+  skip_steps = starting_step
+  curriculum_stage = 0
+  if args.get('steps_per_curr_stage', 0):
+    skip_steps = starting_step % args.steps_per_curr_stage
+    curriculum_stage = starting_step // args.steps_per_curr_stage
+  train_gen = train_data.datagen(curriculum_stage, current_task_schedule)
+  for _ in range(skip_steps):
+    next(train_gen)
+
   eval_func = functools.partial(do_eval,
                                 max_search_weight=args.max_search_weight,
                                 beam_size=args.beam_size,
@@ -243,14 +255,20 @@ def train_eval_loop(args, device, model, weighted_train_files, eval_tasks,
       print('Wrote JSON results file at {}'.format(args.json_results_file))
     print('Done testing! Exiting.')
     sys.exit()
+  # best_succ = defaultdict(lambda: -1)
   best_succ = -1
+  if len(eval_tasks) == 0:
+    eval_tasks = list(eval_data.datagen(curriculum_stage, current_task_schedule))
+  else:
+    canonical_eval_tasks = eval_tasks
   for cur_step in range(starting_step, args.train_steps, args.eval_every):
 
     # Evaluation
     if cur_step > starting_step:
       if rank == 0:
         print('eval at step %d' % cur_step)
-      succ, json_dict = eval_func(eval_tasks, domain, model, verbose=not is_distributed)
+      succ, json_dict = eval_func(canonical_eval_tasks, domain, model, verbose=not is_distributed)
+
       if rank == 0:
         checkpoint = {
           'step': cur_step,
@@ -262,7 +280,7 @@ def train_eval_loop(args, device, model, weighted_train_files, eval_tasks,
         torch.save(checkpoint, save_file)
         log_writer.add_scalar('eval/succ', succ, cur_step)
       if args.num_proc > 1:
-        succ = _gather_eval_info(rank, device, succ, len(eval_tasks))
+        succ = _gather_eval_info(rank, device, succ, len(canonical_eval_tasks))
       if succ > best_succ and rank == 0 and args.save_dir:
         print('saving best model dump so far with %.2f%% valid succ' % (succ * 100))
         best_succ = succ
@@ -275,6 +293,17 @@ def train_eval_loop(args, device, model, weighted_train_files, eval_tasks,
         #   print('Wrote JSON results file at {}'.format(args.json_results_file))
 
     # Training
+    new_task_schedule = task_scheduler.get_schedule(cur_step)
+    if new_task_schedule != current_task_schedule:
+      current_task_schedule = new_task_schedule
+      curriculum_stage += 1
+      new_evals = list(eval_data.datagen(curriculum_stage, current_task_schedule))
+      if len(new_evals):
+        eval_tasks = new_evals
+      train_gen = train_data.datagen(curriculum_stage, current_task_schedule)
+      if rank == 0:
+        print('updated task schedule to', current_task_schedule)
+
     pbar = range(args.eval_every) if rank else tqdm(range(args.eval_every))
     verbose = False  # TODO(kshi)
     profile = False  # TODO(kshi)
@@ -352,7 +381,7 @@ def train_eval_loop(args, device, model, weighted_train_files, eval_tasks,
 
 
 @thread_wrapped_func
-def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace_gen, checkpoint):
+def train_mp(args, rank, device, model, train_files, test_files, eval_tasks, task_gen, trace_gen, checkpoint):
   if args.num_proc > 1:
     torch.set_num_threads(1)
   os.environ['MASTER_ADDR'] = '127.0.0.1'
@@ -362,21 +391,34 @@ def train_mp(args, rank, device, model, train_files, eval_tasks, task_gen, trace
   else:
     backend = 'gloo'
   dist.init_process_group(backend, rank=rank, world_size=args.num_proc)
-  train_eval_loop(args, device, model, train_files, eval_tasks, task_gen, trace_gen, checkpoint)
+  train_eval_loop(args, device, model, train_files, test_files, eval_tasks, task_gen, trace_gen, checkpoint)
 
 
-def main_train_eval(args, model, eval_tasks, task_gen, trace_gen, checkpoint):
+def get_local_weighted_files(args, rank, data_glob):
   weighted_files = defaultdict(list)
-  if args.train_data_glob is not None:
-    all_train_files = sorted(glob.glob(os.path.join(args.data_folder, args.train_data_glob)))
-    if 'weight' in all_train_files[0]:
-      for fname in all_train_files:
+  if data_glob is not None:
+    all_files = sorted(glob.glob(os.path.join(args.data_folder, data_glob)))
+    if 'weight' in all_files[0]:
+      for fname in all_files:
         w = fname.split('/')[-1].split('weight-')[1].split('-')[0]
         weighted_files[int(w)].append(fname)
     else:
-      weighted_files[0] = all_train_files
+      weighted_files[0] = all_files
   else:
     weighted_files[0] = []
+  if args.num_proc == 1:
+    return weighted_files
+  else:
+    local_weighted_files = {}
+    for key in weighted_files:
+      files = weighted_files[key]
+      nf_per_proc = math.ceil(len(files) / args.num_proc)
+      local_weighted_files[key] = files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
+    return local_weighted_files
+
+
+def main_train_eval(args, model, eval_tasks, task_gen, trace_gen, checkpoint):
+
   if args.num_proc > 1:
     if args.gpu_list is not None:
       devices = [get_torch_device(int(x.strip())) for x in args.gpu_list.split(',')]
@@ -394,13 +436,10 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen, checkpoint):
       local_eval_tasks = eval_tasks[rank * nq_per_proc : (rank + 1) * nq_per_proc]
       if args.num_valid > 0:
         local_eval_tasks = local_eval_tasks[:args.num_valid]
-      local_weighted_files = {}
-      for key in weighted_files:
-        train_files = weighted_files[key]
-        nf_per_proc = math.ceil(len(train_files) / args.num_proc)
-        local_weighted_files[key] = train_files[rank * nf_per_proc : (rank + 1) * nf_per_proc]
+      train_local_files = get_local_weighted_files(args, rank, args.train_data_glob)
+      test_local_files = get_local_weighted_files(args, rank, args.test_data_glob)
       proc = mp.Process(target=train_mp,
-                        args=(args, rank, device, model, local_weighted_files, local_eval_tasks,
+                        args=(args, rank, device, model, train_local_files, test_local_files, local_eval_tasks,
                               task_gen, trace_gen, checkpoint))
       procs.append(proc)
       proc.start()
@@ -412,6 +451,8 @@ def main_train_eval(args, model, eval_tasks, task_gen, trace_gen, checkpoint):
       device = int(args.gpu_list.strip())
     if args.num_valid > 0:
       eval_tasks = eval_tasks[:args.num_valid]
-    train_eval_loop(args, get_torch_device(device), model, weighted_files, eval_tasks,
-                    task_gen, trace_gen, checkpoint)
+    train_weighted_files = get_local_weighted_files(args, 0, args.train_data_glob)
+    test_weighted_files = get_local_weighted_files(args, 0, args.test_data_glob)
+    train_eval_loop(args, get_torch_device(device), model, train_weighted_files, test_weighted_files,
+                    eval_tasks, task_gen, trace_gen, checkpoint)
   logging.info("Training finished!!")

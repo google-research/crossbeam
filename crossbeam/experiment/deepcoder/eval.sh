@@ -15,7 +15,8 @@
 # limitations under the License.
 
 
-save_dir=$HOME/xlambda-results/deepcoder/${config_name?}
+save_dir=${save_dir?}
+config_file=${config?}
 
 if [ ! -e $save_dir ];
 then
@@ -26,7 +27,7 @@ export CUDA_VISIBLE_DEVICES=${devices:=0}
 
 
 python3 -m crossbeam.experiment.run_crossbeam \
-    --config="configs/${config_name?}.py" \
+    --config="${config}" \
     --config.save_dir=${save_dir} \
     --config.data_root="${HOME}/xlambda-data/deepcoder" \
     --config.use_ur=True \
@@ -36,6 +37,6 @@ python3 -m crossbeam.experiment.run_crossbeam \
     --config.gpu_list=0 \
     --config.gpu=0 \
     --config.port='29501' \
-    --config.json_results_file=$save_dir/results2.json \
+    --config.json_results_file=$save_dir/results.json \
     --config.load_model=${save_dir}/model-best-valid.ckpt \
     $@

@@ -72,6 +72,8 @@ def get_config():
     model_type='char',
     stochastic_beam=False,
     random_beam=False,
+    schedule_type='uniform',
+    steps_per_curr_stage=0,
   )
   config = config_dict.ConfigDict(initial_dictionary=cfg_dict)
   return config
