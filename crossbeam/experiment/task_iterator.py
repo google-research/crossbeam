@@ -7,7 +7,6 @@ class TrainTaskGen(object):
     self.weighted_files = weighted_files
     self.local_batch_size = local_batch_size
     self.taskgen = fn_taskgen
-    assert self.taskgen is None  #TODO(hadai) see if we still need this
 
   def gen_single_weight(self, rng, weight):
     while True:
@@ -21,6 +20,10 @@ class TrainTaskGen(object):
           yield task
 
   def datagen(self, seed, probs_of_weights):
+    if self.taskgen:
+      while True:
+        yield [self.taskgen() for _ in range(self.local_batch_size)]
+
     dict_datagen = {}
     keys = list(probs_of_weights.keys())
     used_keys = []
