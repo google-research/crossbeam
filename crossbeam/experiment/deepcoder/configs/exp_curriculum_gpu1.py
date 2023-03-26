@@ -12,6 +12,7 @@ def get_config():
                   {'config.schedule_type': 'all-2'},
                   {'config.schedule_type': 'all-3'}]
 
+  config.seed = 0
   config.tout = 3600
   config.domain = 'deepcoder'
   config.io_encoder = 'lambda_signature'
@@ -34,9 +35,11 @@ def get_config():
   config.num_valid = 250
   config.port = '29500'
   config.use_ur = False
+  config.stochastic_beam = False
   config.do_test = False
   config.json_results_file = ''
   config.timeout = 60
+  config.restarts_timeout = 0
   config.encode_weight = True
   config.train_steps = 1000000
   config.train_data_glob = 'train-*.pkl'

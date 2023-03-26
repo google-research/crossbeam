@@ -7,6 +7,7 @@ def get_config():
   ))
   config.sweep = [{'config.lr': 1e-4}, {'config.lr': 1e-3}]
 
+  config.seed = 0
   config.tout = 3600
   config.domain = 'deepcoder'
   config.io_encoder = 'lambda_signature'

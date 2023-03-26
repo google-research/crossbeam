@@ -109,8 +109,9 @@ def task_loss(task, device, training_samples, all_values, all_signatures, model,
 
 def do_eval(eval_tasks, domain, model,
             max_search_weight, beam_size, device, verbose=True,
-            timeout=None, max_values_explored=None, is_stochastic=False, use_ur=True,
-            use_type_masking=True, static_weight=False):
+            timeout=None, restarts_timeout=None, max_values_explored=None,
+            is_stochastic=False, use_ur=True, use_type_masking=True,
+            static_weight=False):
   if verbose:
     print(f'doing eval on {len(eval_tasks)} tasks...')
 
@@ -129,6 +130,7 @@ def do_eval(eval_tasks, domain, model,
           k=beam_size,
           is_training=False,
           timeout=timeout,
+          restarts_timeout=restarts_timeout,
           max_values_explored=max_values_explored,
           is_stochastic=is_stochastic,
           random_beam=False,
@@ -195,26 +197,9 @@ def _gather_eval_info(rank, device, local_acc, local_num):
 def train_eval_loop(args, device, model, weighted_train_files, weighted_test_files, eval_tasks,
                     task_gen, trace_gen, checkpoint):
   domain = domains.get_domain(args.domain)
-  fn_taskgen = None
-  if task_gen is not None:
-    fn_taskgen = lambda: task_gen(domain)
-  train_data = TrainTaskGen(weighted_train_files, local_batch_size=args.grad_accumulate,
-                            fn_taskgen=fn_taskgen)
-  eval_data = EvalTaskGen(args.num_valid, weighted_test_files)
-  task_scheduler = TaskScheduler(args, weighted_train_files.keys())
-  canonical_task_schedule = TaskScheduler(args, weighted_test_files.keys(), 'uniform').get_schedule(0)
-  canonical_eval_tasks = list(eval_data.datagen(0, canonical_task_schedule))
   is_distributed = args.num_proc > 1
-  if is_distributed:
-    rank = dist.get_rank()
-  else:
-    rank = 0
-  if rank == 0:
-    log_folder = os.path.join(args.save_dir, 'logs')
-    if not os.path.isdir(log_folder):
-      os.makedirs(log_folder)
-    log_writer = tensorboard.SummaryWriter(log_folder)
   model = model.to(device)
+
   optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
   if checkpoint is not None:
     model.load_state_dict(checkpoint['model'])
@@ -223,23 +208,12 @@ def train_eval_loop(args, device, model, weighted_train_files, weighted_test_fil
   else:
     starting_step = 0
 
-  current_task_schedule = task_scheduler.get_schedule(starting_step)
-  if rank == 0:
-    print('starting task schedule', current_task_schedule)
-  skip_steps = starting_step
-  curriculum_stage = 0
-  if args.get('steps_per_curr_stage', 0):
-    skip_steps = starting_step % args.steps_per_curr_stage
-    curriculum_stage = starting_step // args.steps_per_curr_stage
-  train_gen = train_data.datagen(curriculum_stage, current_task_schedule)
-  for _ in range(skip_steps):
-    next(train_gen)
-
   eval_func = functools.partial(do_eval,
                                 max_search_weight=args.max_search_weight,
                                 beam_size=args.beam_size,
                                 device=device,
                                 timeout=args.timeout,
+                                restarts_timeout=args.restarts_timeout,
                                 max_values_explored=args.max_values_explored,
                                 is_stochastic=args.stochastic_beam,
                                 use_ur=args.use_ur,
@@ -255,6 +229,38 @@ def train_eval_loop(args, device, model, weighted_train_files, weighted_test_fil
       print('Wrote JSON results file at {}'.format(args.json_results_file))
     print('Done testing! Exiting.')
     sys.exit()
+
+  fn_taskgen = None
+  if task_gen is not None:
+    fn_taskgen = lambda: task_gen(domain)
+  train_data = TrainTaskGen(weighted_train_files, local_batch_size=args.grad_accumulate,
+                            fn_taskgen=fn_taskgen)
+  eval_data = EvalTaskGen(args.num_valid, weighted_test_files)
+  task_scheduler = TaskScheduler(args, weighted_train_files.keys())
+  canonical_task_schedule = TaskScheduler(args, weighted_test_files.keys(), 'uniform').get_schedule(0)
+  canonical_eval_tasks = list(eval_data.datagen(0, canonical_task_schedule))
+  if is_distributed:
+    rank = dist.get_rank()
+  else:
+    rank = 0
+  if rank == 0:
+    log_folder = os.path.join(args.save_dir, 'logs')
+    if not os.path.isdir(log_folder):
+      os.makedirs(log_folder)
+    log_writer = tensorboard.SummaryWriter(log_folder)
+
+  current_task_schedule = task_scheduler.get_schedule(starting_step)
+  if rank == 0:
+    print('starting task schedule', current_task_schedule)
+  skip_steps = starting_step
+  curriculum_stage = 0
+  if args.get('steps_per_curr_stage', 0):
+    skip_steps = starting_step % args.steps_per_curr_stage
+    curriculum_stage = starting_step // args.steps_per_curr_stage
+  train_gen = train_data.datagen(curriculum_stage, current_task_schedule)
+  for _ in range(skip_steps):
+    next(train_gen)
+
   # best_succ = defaultdict(lambda: -1)
   best_succ = -1
   if len(eval_tasks) == 0:
@@ -396,7 +402,7 @@ def train_mp(args, rank, device, model, train_files, test_files, eval_tasks, tas
 
 def get_local_weighted_files(args, rank, data_glob):
   weighted_files = defaultdict(list)
-  if data_glob is not None:
+  if data_glob:
     all_files = sorted(glob.glob(os.path.join(args.data_folder, data_glob)))
     if 'weight' in all_files[0]:
       for fname in all_files:
