@@ -44,6 +44,7 @@ config_flags.DEFINE_config_file(
 flags.DEFINE_string('model_type', 'char', 'int/char/logic')
 flags.DEFINE_bool('stochastic_beam', False, 'do stochastic beam search during test')
 flags.DEFINE_bool('random_beam', False, 'replace beam search with random choices?')
+flags.DEFINE_float('restarts_timeout', None, 'Timeout per random restart')
 
 
 def init_model(args, domain, model_type):

@@ -172,11 +172,46 @@ def update_stats_with_percents(stats):
   })
 
 
-def synthesize(task, domain, model, device,
-               trace=None, max_weight=15, k=2, is_training=False,
-               timeout=None, max_values_explored=None, is_stochastic=False,
-               random_beam=False, use_ur=False, masking=True,
-               static_weight=False):
+def synthesize(*args, **kwargs):
+  timeout = kwargs.get('timeout')
+  restarts_timeout = kwargs.pop('restarts_timeout', None)
+  max_values_explored = kwargs.get('max_values_explored')
+
+  if not restarts_timeout:
+    return synthesize_single_restart(*args, **kwargs)
+
+  if max_values_explored:
+    raise ValueError('using max_values_explored with restarts_timeout is unimplemented.')
+
+  overall_end_time = (None if timeout is None or timeout < 0
+                      else timeit.default_timer() + timeout)
+  total_num_values_explored = 0
+  total_num_restarts = 0
+
+  while True:
+    kwargs['timeout'] = restarts_timeout
+    synthesis_result = synthesize_single_restart(*args, **kwargs)
+    result_value, (all_values, all_signatures), stats = synthesis_result
+    total_num_values_explored += stats['num_values_explored']
+    total_num_restarts += 1
+    stats['total_num_values_explored'] = total_num_values_explored
+    stats['total_num_restarts'] = total_num_restarts
+
+    if result_value is not None:
+      # Found solution.
+      return synthesis_result
+
+    if overall_end_time is not None and timeit.default_timer() > overall_end_time:
+      # Overall timeout.
+      return synthesis_result
+
+
+def synthesize_single_restart(
+    task, domain, model, device,
+    trace=None, max_weight=15, k=2, is_training=False,
+    timeout=None, max_values_explored=None, is_stochastic=False,
+    random_beam=False, use_ur=False, masking=True,
+    static_weight=False):
   """Perform CrossBeam synthesis."""
 
   stats = {
@@ -241,12 +276,6 @@ def synthesize(task, domain, model, device,
 
     # Loop over all operations.
     for operation in domain.operations:
-
-      # Check for exceeding computation limit.
-      if (end_time is not None and timeit.default_timer() > end_time) or (
-          max_values_explored is not None
-          and stats['num_values_explored'] >= max_values_explored):
-        return None, (all_values, all_signatures), stats
 
       if verbose:
         print('Operation: {}'.format(operation))
@@ -339,6 +368,13 @@ def synthesize(task, domain, model, device,
 
       while True:
         beam_index += 1
+
+        # Check for exceeding computation limit.
+        if (end_time is not None and timeit.default_timer() > end_time) or (
+            max_values_explored is not None
+            and stats['num_values_explored'] >= max_values_explored):
+          return None, (all_values, all_signatures), stats
+
 
         # When using UniqueRandomizer, stop once we have k new values, or we
         # tried too many times.

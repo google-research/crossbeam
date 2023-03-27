@@ -9,6 +9,7 @@ def get_config():
                   {'config.embed_dim': 128},
                   {'config.embed_dim': 256}]
 
+  config.seed = 0
   config.tout = 3600
   config.domain = 'deepcoder'
   config.io_encoder = 'lambda_signature'

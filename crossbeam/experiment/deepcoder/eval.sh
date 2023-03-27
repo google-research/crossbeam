@@ -16,7 +16,11 @@
 
 
 save_dir=${save_dir?}
-config_file=${config?}
+config=${config?}
+name=${name?}
+timeout=${timeout?=60}
+run=${run:=0}
+runs=${runs:=1}
 
 if [ ! -e $save_dir ];
 then
@@ -25,18 +29,24 @@ fi
 
 export CUDA_VISIBLE_DEVICES=${devices:=0}
 
+limit=$((runs + run - 1))
+for i in $(seq ${run} ${limit}); do
+    python3 -m crossbeam.experiment.run_crossbeam \
+        --config="${config}" \
+        --config.save_dir=${save_dir} \
+        --config.data_root="${HOME}/xlambda-data/deepcoder" \
+        --config.do_test=True \
+        --config.timeout=${timeout} \
+        --config.num_proc=1 \
+        --config.gpu_list=0 \
+        --config.gpu=0 \
+        --config.port='29501' \
+        --config.seed=${i} \
+        --config.train_data_glob='' \
+        --config.test_data_glob='' \
+        --config.json_results_file=$save_dir/results.${name}.timeout${timeout}.run${i}.json \
+        --config.load_model=${save_dir}/model-best-valid.ckpt \
+        $@
+done
 
-python3 -m crossbeam.experiment.run_crossbeam \
-    --config="${config}" \
-    --config.save_dir=${save_dir} \
-    --config.data_root="${HOME}/xlambda-data/deepcoder" \
-    --config.use_ur=True \
-    --config.do_test=True \
-    --config.timeout=60 \
-    --config.num_proc=1 \
-    --config.gpu_list=0 \
-    --config.gpu=0 \
-    --config.port='29501' \
-    --config.json_results_file=$save_dir/results.json \
-    --config.load_model=${save_dir}/model-best-valid.ckpt \
-    $@
+#        --config.use_ur=True \

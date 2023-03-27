@@ -12,6 +12,7 @@ def get_config():
                   {'config.schedule_type': 'all-5'},
                   {'config.schedule_type': 'all-6'}]
 
+  config.seed = 0
   config.tout = 3600
   config.domain = 'deepcoder'
   config.io_encoder = 'lambda_signature'
