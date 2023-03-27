@@ -21,13 +21,15 @@ def run_program(program, inputs_dict):
   return outputs
 
 
-def simplify(program):
+def simplify(program, verbose=False):
   """Replace `(lambda a: expr(a))(b)` with `expr(b)`."""
   program = re.sub(r'\s+', ' ', program.strip())
   program = re.sub(r'\s*\(\s*', '(', program)
+  program = re.sub(r',\(', ', (', program)
   program = re.sub(r'\s*\)\s*', ')', program)
   program = re.sub(r':(?=[^ ])', ': ', program)
-  print(program)
+  if verbose:
+    print(program)
 
   changed = True
   while changed:  # Loop until there are no more changes.
@@ -70,24 +72,26 @@ def simplify(program):
         continue
       arg_names = match_1.group(1).split(', ')
       expression = match_1.group(2)
-      print(f'arg_names: {arg_names}')
-      print(f'expression: {expression}')
+      if verbose:
+        print(f'arg_names: {arg_names}')
+        print(f'expression: {expression}')
       part_2 = program[open_2 + 1:close_2]
       match_2 = re.fullmatch(r'(?:\w+, )*\w+', part_2)
       if not match_2:
         continue
       variable_names = match_2.group(0).split(', ')
-      print(f'variable_names: {variable_names}')
       assert len(arg_names) == len(variable_names)
       renaming_dict = dict(zip(arg_names, variable_names))
-      print(f'renaming_dict: {renaming_dict}')
 
       all_tokens = re.findall(r'\w+|\W+', expression)
       for token_i, token in enumerate(all_tokens):
         if token in renaming_dict:
           all_tokens[token_i] = renaming_dict[token]
       new_expression = ''.join(all_tokens)
-      print(f'new_expression: {new_expression}')
+      if verbose:
+        print(f'variable_names: {variable_names}')
+        print(f'renaming_dict: {renaming_dict}')
+        print(f'new_expression: {new_expression}')
 
       program = program[:open_1] + new_expression + program[close_2 + 1:]
       changed = True

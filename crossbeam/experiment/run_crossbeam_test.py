@@ -14,14 +14,15 @@
 
 """Tests for crossbeam.experiment.run_crossbeam."""
 
-import argparse
 import random
+from unittest import mock
 
 from absl import flags
 from absl.testing import absltest
 from absl.testing import parameterized
 
 from crossbeam.algorithm import variables as variables_module
+from crossbeam.common import configs_all
 from crossbeam.datasets import data_gen
 from crossbeam.dsl import deepcoder_operations
 from crossbeam.dsl import domains
@@ -115,26 +116,32 @@ class RunCrossBeamTest(parameterized.TestCase):
     exp_common.set_global_seed(0)
 
     max_search_weight = 8
-    FLAGS([''])  # Parse flags
-    FLAGS.save_dir = '/tmp/crossbeam/'
-    FLAGS.domain = 'deepcoder'
-    FLAGS.train_steps = 100
-    FLAGS.eval_every = 20  # Run pytest with the `-s` flag to see training logs.
-    FLAGS.num_proc = 1
-    FLAGS.lr = 0.005
-    FLAGS.embed_dim = 32
-    FLAGS.decoder_rnn_layers = 1
-    FLAGS.max_search_weight = max_search_weight
-    FLAGS.beam_size = 4
-    FLAGS.grad_accumulate = 3
-    FLAGS.io_encoder = 'lambda_signature'
-    FLAGS.value_encoder = 'lambda_signature'
-    FLAGS.use_ur = False
+
+    args = mock.Mock()
+    args.save_dir = '/tmp/crossbeam/'
+    args.domain = 'deepcoder'
+    args.train_steps = 100
+    args.eval_every = 20  # Run pytest with the `-s` flag to see training logs.
+    args.num_proc = 1
+    args.lr = 0.005
+    args.embed_dim = 32
+    args.decoder_rnn_layers = 1
+    args.max_search_weight = max_search_weight
+    args.beam_size = 4
+    args.grad_accumulate = 3
+    args.io_encoder = 'lambda_signature'
+    args.value_encoder = 'lambda_signature'
+    args.use_ur = False
+    args.use_op_specific_lstm = True
+    args.arg_selector = 'lstm'
+    args.step_score_func = 'mlp'
 
     domain = domains.get_domain('deepcoder')
-    model = run_crossbeam.init_model(FLAGS, domain, 'deepcoder')
+    model = run_crossbeam.init_model(args, domain, 'deepcoder')
 
-    proc_args = argparse.Namespace(**FLAGS.flag_values_dict())
+    config = configs_all.get_config()
+    config.update(vars(args))
+    proc_args = config
     tasks_with_solutions = [task_1(), task_2(), task_3(), task_4()]
 
     for task, solution_expr in tasks_with_solutions:
@@ -146,7 +153,8 @@ class RunCrossBeamTest(parameterized.TestCase):
     task_gen_func = lambda _: random.choice(eval_tasks)
     train_eval.main_train_eval(proc_args, model, eval_tasks,
                                task_gen=task_gen_func,
-                               trace_gen=data_gen.trace_gen)
+                               trace_gen=data_gen.trace_gen,
+                               checkpoint=None)
 
     success_rate, _ = train_eval.do_eval(
         eval_tasks, domain, model,
