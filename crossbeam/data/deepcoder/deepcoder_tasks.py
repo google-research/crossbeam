@@ -1032,7 +1032,7 @@ HANDWRITTEN_TASKS = [
         outputs=[[10, 12, 0, 4, 0],
                  [0, 30, 0, 0, 50, 0, 10],
                  [44, 0, 0, 94, 0, 48, 28, 0, 0, 26]],
-        solution='ZipWith(lambda u1, u2: If(Greater(u2, 0), Multiply(2, u1), 0), p, w)',
+        solution='ZipWith(lambda u1, u2: Multiply(u1, Add(1, u2)), p, w)',
     ),
 
     # Tasks primarily using Scanl1.
